@@ -684,7 +684,7 @@ Error ProjectSettings::_setup(const String &p_path, const String &p_main_pack, b
 		bool ok = _load_resource_pack(p_main_pack, false, 0, true);
 		ERR_FAIL_COND_V_MSG(!ok, ERR_CANT_OPEN, vformat("Cannot open resource pack '%s'.", p_main_pack));
 
-		Error err = _load_settings_text_or_binary("res://project.godot", "res://project.binary");
+		Error err = _load_settings_text_or_binary("res://project.rlengine", "res://project.binary");
 #ifdef OVERRIDE_ENABLED
 		if (err == OK && !p_ignore_override) {
 			// Load override from location of the main pack
