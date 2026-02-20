@@ -234,6 +234,7 @@
 # Artyom <artem.natharov@gmail.com>, 2026.
 # MariyaShikunova <mariia@basealt.ru>, 2026.
 # Rémi Verschelde <remi@godotengine.org>, 2026.
+# Timur Abdeev <kishmish0021@gmail.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor interface\n"
@@ -2621,22 +2622,40 @@ msgid "Ready to install!"
 msgstr "Готово к установке!"
 
 msgid "Downloading (%s / %s)..."
-msgstr "Загрузка (%s / %s)…"
+msgstr "Установка (%s / %s)…"
 
-msgid "Downloading..."
-msgstr "Загрузка…"
+msgid "The beginning of the download..."
+msgstr "Начало загрузки…"
 
-msgid "Resolving..."
-msgstr "Определение адреса…"
+msgid "We ask where is our file..."
+msgstr "Спрашиваем, где наш файл..."
 
-msgid "Connecting..."
-msgstr "Подключение…"
+msgid "The answer has been received! We are connecting..."
+msgstr "Ответ получен! Подключаемся..."
 
-msgid "Requesting..."
-msgstr "Запрос…"
+msgid "Starting the download..."
+msgstr "Начало загрузки…"
 
 msgid "Error making request"
 msgstr "Ошибка во время запроса"
+
+msgid "Open a VK Group"
+msgstr "Открыть VK Группу"
+
+msgid "Open a Discord Server"
+msgstr "Открыть Discord Сервер"
+
+msgid "Open a Ruscord Server"
+msgstr "Открыть Ruscord Сервер"
+
+msgid "About Real Engine..."
+msgstr "О Real Engine..."
+
+msgid "Support Real Engine Development"
+msgstr "Поддержать разработку Real Engine"
+
+msgid "Open Site"
+msgstr "Открыть веб-сайт"
 
 msgid "Idle"
 msgstr "Простой"
@@ -8853,12 +8872,11 @@ msgid "You don't have any projects yet."
 msgstr "Проектов ещё нет."
 
 msgid ""
-"Get started by creating a new one,\n"
-"importing one that exists, or by downloading a project template from the "
-"Asset Library!"
+"It's time to create a new project.\n"
+"Create one using the button or import an existing one"
 msgstr ""
-"Начните работу с создания нового проекта,\n"
-"импорта уже существующего или загрузки шаблона проекта из библиотеки ассетов!"
+"Пора создать новый проект.\n"
+"Или если уже есть, можно его импортировать его."
 
 msgid "Go Online and Open Asset Library"
 msgstr "Войти в сеть и открыть библиотеку ассетов"
@@ -16024,6 +16042,33 @@ msgstr "Найденные классы обработки"
 
 msgid "Nodes and Classes:"
 msgstr "Узлы и классы:"
+
+msgid "Real Assets"
+msgstr "Real Ассеты"
+
+msgid "Characters"
+msgstr "Персонажи"
+
+msgid "Environments"
+msgstr "Окружающая среда"
+
+msgid "Scripts"
+msgstr "Скрипты"
+
+msgid "Maps"
+msgstr "Карты"
+
+msgid "Add-ons for Real Engine"
+msgstr "Дополнения для Real Engine"
+
+msgid "Decoration"
+msgstr "Декорации"
+
+msgid "3D Model"
+msgstr "3D Модели"
+
+msgid "2D Model"
+msgstr "2D Модели"
 
 msgid "File '%s' format is invalid, import aborted."
 msgstr "Неверный формат файла «%s», импорт прерван."

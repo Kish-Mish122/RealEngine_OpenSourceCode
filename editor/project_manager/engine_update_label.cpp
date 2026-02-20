@@ -43,7 +43,7 @@ bool EngineUpdateLabel::_can_check_updates() const {
 void EngineUpdateLabel::_check_update() {
 	checked_update = true;
 	_set_status(UpdateStatus::BUSY);
-	http->request("https://godotengine.org/versions.json");
+	http->request("https://raw.githubusercontent.com/Kish-Mish122/realengine/main/version.json");
 }
 
 void EngineUpdateLabel::_http_request_completed(int p_result, int p_response_code, const PackedStringArray &p_headers, const PackedByteArray &p_body) {
@@ -213,11 +213,13 @@ EngineUpdateLabel::VersionType EngineUpdateLabel::_get_version_type(const String
 
 	static HashMap<String, VersionType> type_map;
 	if (type_map.is_empty()) {
-		type_map["stable"] = VersionType::STABLE;
+		type_map["public-version"] = VersionType::STABLE;
 		type_map["rc"] = VersionType::RC;
 		type_map["beta"] = VersionType::BETA;
 		type_map["alpha"] = VersionType::ALPHA;
 		type_map["dev"] = VersionType::DEV;
+		type_map["close-alpha"] = VersionType::CLOSEA;
+		type_map["close-beta"] = VersionType::CLOSEB;
 	}
 
 	for (const KeyValue<String, VersionType> &kv : type_map) {

@@ -1,9 +1,9 @@
-short_name = "godot"
-name = "Godot Engine"
-major = 4
-minor = 6
-patch = 1
-status = "stable"
+short_name = "rlengine"
+name = "Real Engine"
+major = 20
+minor = 2
+patch = 6
+status = "close-alpha"
 module_config = ""
-website = "https://godotengine.org"
-docs = "4.6"
+website = "https://www.k1shm1sh-realengine.ru"
+docs = "20.2.6"

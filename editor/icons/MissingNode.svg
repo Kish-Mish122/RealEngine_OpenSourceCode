@@ -1,1 +1,56 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><path fill="none" stroke="#ff5f5f" stroke-linecap="round" stroke-width="2" d="M3 3 13 13M13 3 3 13"/></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg1"
+   width="15.36"
+   height="15.36"
+   viewBox="0 0 15.36 15.36"
+   sodipodi:docname="MissingNode.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="37.150728"
+     inkscape:cx="5.3700158"
+     inkscape:cy="8.2232573"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g1" />
+  <g
+     inkscape:groupmode="layer"
+     inkscape:label="Image"
+     id="g1">
+    <rect
+       style="fill:#ff0000;stroke-width:0.979172"
+       id="rect1"
+       width="2.1533897"
+       height="11.510278"
+       x="7"
+       y="0.59218222"
+       ry="0.60648328" />
+    <ellipse
+       style="fill:#ff0000"
+       id="path1"
+       cx="8.0563564"
+       cy="13.713325"
+       rx="1.0563568"
+       ry="1.0658736" />
+  </g>
+</svg>

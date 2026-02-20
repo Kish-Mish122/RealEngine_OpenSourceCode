@@ -546,17 +546,17 @@ void EditorAssetLibraryItemDownload::_notification(int p_what) {
 			if (cstatus != prev_status) {
 				switch (cstatus) {
 					case HTTPClient::STATUS_RESOLVING: {
-						status->set_text(TTRC("Resolving..."));
+						status->set_text(TTRC("We ask where is our file..."));
 						progress->set_max(1);
 						progress->set_value(0);
 					} break;
 					case HTTPClient::STATUS_CONNECTING: {
-						status->set_text(TTRC("Connecting..."));
+						status->set_text(TTRC("The answer has been received! We are connecting..."));
 						progress->set_max(1);
 						progress->set_value(0);
 					} break;
 					case HTTPClient::STATUS_REQUESTING: {
-						status->set_text(TTRC("Requesting..."));
+						status->set_text(TTRC("Starting the download..."));
 						progress->set_max(1);
 						progress->set_value(0);
 					} break;
@@ -770,7 +770,8 @@ void EditorAssetLibrary::_notification(int p_what) {
 void EditorAssetLibrary::_update_repository_options() {
 	// TODO: Move to editor_settings.cpp
 	Dictionary default_urls;
-	default_urls["godotengine.org (Official)"] = "https://godotengine.org/asset-library/api";
+	print_line("[REAL STORE]: Connecting to API...");
+	default_urls["RealEngine.ru"] = "https://rlengine-api.abdeevtimur67.workers.dev";
 	Dictionary available_urls = _EDITOR_DEF("asset_library/available_urls", default_urls, true);
 	repository->clear();
 	int i = 0;
@@ -845,11 +846,11 @@ const char *EditorAssetLibrary::support_text[SUPPORT_MAX] = {
 };
 
 void EditorAssetLibrary::_select_author(const String &p_author) {
-	if (!host.contains("godotengine.org")) {
+	if (!host.contains("realengine.ru")) {
 		// Don't open the link for alternative repositories.
 		return;
 	}
-	OS::get_singleton()->shell_open("https://godotengine.org/asset-library/asset?user=" + p_author.uri_encode());
+	OS::get_singleton()->shell_open("https://www.k1shm1sh-realengine.ru/assets-store.html");
 }
 
 void EditorAssetLibrary::_select_category(int p_id) {

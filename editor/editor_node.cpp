@@ -380,10 +380,16 @@ void EditorNode::_update_unsaved_cache() {
 	bool is_unsaved = EditorUndoRedoManager::get_singleton()->is_history_unsaved(EditorUndoRedoManager::GLOBAL_HISTORY) ||
 			EditorUndoRedoManager::get_singleton()->is_history_unsaved(editor_data.get_current_edited_scene_history_id());
 
-	if (unsaved_cache != is_unsaved) {
-		unsaved_cache = is_unsaved;
-		_update_title();
-	}
+    if (unsaved_cache != is_unsaved) {
+        unsaved_cache = is_unsaved;
+        _update_title();
+
+        // Сбросить таймеры при изменении состояния сцены
+        if (autosave_timer && autosave_notification_timer) {
+            autosave_timer->start();
+            autosave_notification_timer->start();
+        }
+    }
 }
 
 void EditorNode::input(const Ref<InputEvent> &p_event) {
@@ -415,8 +421,6 @@ void EditorNode::shortcut_input(const Ref<InputEvent> &p_event) {
 			editor_main_screen->select(EditorMainScreen::EDITOR_SCRIPT);
 		} else if (ED_IS_SHORTCUT("editor/editor_game", p_event)) {
 			editor_main_screen->select(EditorMainScreen::EDITOR_GAME);
-		} else if (ED_IS_SHORTCUT("editor/editor_help", p_event)) {
-			emit_signal(SNAME("request_help_search"), "");
 		} else if (ED_IS_SHORTCUT("editor/editor_assetlib", p_event) && AssetLibraryEditorPlugin::is_available()) {
 			editor_main_screen->select(EditorMainScreen::EDITOR_ASSETLIB);
 		} else if (ED_IS_SHORTCUT("editor/editor_next", p_event)) {
@@ -692,9 +696,12 @@ void EditorNode::_update_theme(bool p_skip_creation) {
 		distraction_free->set_button_icon(theme->get_icon(SNAME("DistractionFree"), EditorStringName(EditorIcons)));
 		update_distraction_free_button_theme();
 
-		help_menu->set_item_icon(help_menu->get_item_index(HELP_SEARCH), get_editor_theme_native_menu_icon(SNAME("HelpSearch"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_COPY_SYSTEM_INFO), get_editor_theme_native_menu_icon(SNAME("ActionCopy"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_ABOUT), get_editor_theme_native_menu_icon(SNAME("Godot"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
+		help_menu->set_item_icon(help_menu->get_item_index(HELP_VK), get_editor_theme_native_menu_icon(SNAME("VK"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
+		help_menu->set_item_icon(help_menu->get_item_index(HELP_DISCORD), get_editor_theme_native_menu_icon(SNAME("Discord"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
+		help_menu->set_item_icon(help_menu->get_item_index(HELP_RUSCORD), get_editor_theme_native_menu_icon(SNAME("Ruscord"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
+		help_menu->set_item_icon(help_menu->get_item_index(HELP_SITE), get_editor_theme_native_menu_icon(SNAME("site"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_SUPPORT_GODOT_DEVELOPMENT), get_editor_theme_native_menu_icon(SNAME("Heart"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 
 		_update_renderer_color();
@@ -965,9 +972,9 @@ void EditorNode::_notification(int p_what) {
 
 			// Save the project after opening to mark it as last modified, except in headless mode.
 			// Also use this opportunity to ensure default settings are applied to new projects created from the command line
-			// using `touch project.godot`.
+			// using `touch project.rlengine`.
 			if (DisplayServer::get_singleton()->window_can_draw()) {
-				const String project_settings_path = ProjectSettings::get_singleton()->get_resource_path().path_join("project.godot");
+				const String project_settings_path = ProjectSettings::get_singleton()->get_resource_path().path_join("project.rlengine");
 				// Check the file's size in bytes as an optimization. If it's under 10 bytes, the file is assumed to be empty.
 				if (FileAccess::get_size(project_settings_path) < 10) {
 					const HashMap<String, Variant> initial_settings = get_initial_settings();
@@ -993,6 +1000,18 @@ void EditorNode::_notification(int p_what) {
 			if (Engine::get_singleton()->is_recovery_mode_hint()) {
 				EditorToaster::get_singleton()->popup_str(TTR("Recovery Mode is enabled. Editor functionality has been restricted."), EditorToaster::SEVERITY_WARNING);
 			}
+
+    autosave_timer = memnew(Timer);
+    autosave_timer->set_one_shot(false);
+    autosave_timer->connect("timeout", callable_mp(this, &EditorNode::_autosave_scene));
+    add_child(autosave_timer);
+
+    autosave_notification_timer = memnew(Timer);
+    autosave_notification_timer->set_one_shot(false);
+    autosave_notification_timer->connect("timeout", callable_mp(this, &EditorNode::_autosave_notification));
+    add_child(autosave_notification_timer);
+
+	_update_autosave_timers();
 
 			/* DO NOT LOAD SCENES HERE, WAIT FOR FILE SCANNING AND REIMPORT TO COMPLETE */
 		} break;
@@ -1074,6 +1093,7 @@ void EditorNode::_notification(int p_what) {
 
 			if (EditorSettings::get_singleton()->check_changed_settings_in_group("interface/editor")) {
 				editor_dock_manager->update_tab_styles();
+				_update_autosave_timers();
 			}
 
 			if (EditorSettings::get_singleton()->check_changed_settings_in_group("interface/scene_tabs")) {
@@ -1506,10 +1526,10 @@ void EditorNode::_scan_external_changes() {
 		}
 	}
 
-	String project_settings_path = ProjectSettings::get_singleton()->get_resource_path().path_join("project.godot");
+	String project_settings_path = ProjectSettings::get_singleton()->get_resource_path().path_join("project.rlengine");
 	if (FileAccess::get_modified_time(project_settings_path) > ProjectSettings::get_singleton()->get_last_saved_time()) {
 		TreeItem *ti = disk_changed_list->create_item(r);
-		ti->set_text(0, "project.godot");
+		ti->set_text(0, "project.rlengine");
 		need_reload = true;
 		disk_changed_project = true;
 	}
@@ -2019,7 +2039,7 @@ void EditorNode::_dialog_display_load_error(String p_file, Error p_error) {
 				show_accept(vformat(TTR("Missing file '%s' or one of its dependencies."), p_file.get_file()), TTR("OK"));
 			} break;
 			case ERR_FILE_UNRECOGNIZED: {
-				show_accept(vformat(TTR("File '%s' is saved in a format that is newer than the formats supported by this version of Godot, so it can't be opened."), p_file.get_file()), TTR("OK"));
+				show_accept(vformat(TTR("File '%s' is saved in a format that is newer than the formats supported by this version of Real Engine, so it can't be opened."), p_file.get_file()), TTR("OK"));
 			} break;
 			default: {
 				show_accept(vformat(TTR("Error while loading file '%s'."), p_file.get_file()), TTR("OK"));
@@ -3776,40 +3796,50 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			file->popup_file_dialog();
 
 		} break;
-		case HELP_SEARCH: {
-			emit_signal(SNAME("request_help_search"), "");
-		} break;
 		case EDITOR_COMMAND_PALETTE: {
 			command_palette->open_popup();
 		} break;
 		case HELP_DOCS: {
-			OS::get_singleton()->shell_open(GODOT_VERSION_DOCS_URL "/");
+			OS::get_singleton()->shell_open("https://www.k1shm1sh-realengine.ru/documentation.html");
 		} break;
 		case HELP_FORUM: {
-			OS::get_singleton()->shell_open("https://forum.godotengine.org/");
+			OS::get_singleton()->shell_open("https://www.k1shm1sh-realengine.ru/documentation.html");
 		} break;
 		case HELP_REPORT_A_BUG: {
-			OS::get_singleton()->shell_open("https://github.com/godotengine/godot/issues");
+			OS::get_singleton()->shell_open("https://www.k1shm1sh-realengine.ru/faq.html");
 		} break;
 		case HELP_COPY_SYSTEM_INFO: {
+		    print_line("[REAL EDITOR INFO]: System requirements are copied");
 			String info = _get_system_info();
 			DisplayServer::get_singleton()->clipboard_set(info);
 		} break;
 		case HELP_SUGGEST_A_FEATURE: {
-			OS::get_singleton()->shell_open("https://github.com/godotengine/godot-proposals#readme");
+			OS::get_singleton()->shell_open("https://www.k1shm1sh-realengine.ru/faq.html");
 		} break;
 		case HELP_SEND_DOCS_FEEDBACK: {
-			OS::get_singleton()->shell_open("https://github.com/godotengine/godot-docs/issues");
+			OS::get_singleton()->shell_open("https://www.k1shm1sh-realengine.ru/faq.html");
 		} break;
 		case HELP_COMMUNITY: {
-			OS::get_singleton()->shell_open("https://godotengine.org/community");
+			OS::get_singleton()->shell_open("https://www.k1shm1sh-realengine.ru/community.html");
 		} break;
 		case HELP_ABOUT: {
 			about->popup_centered(Size2(780, 500) * EDSCALE);
 		} break;
 		case HELP_SUPPORT_GODOT_DEVELOPMENT: {
-			OS::get_singleton()->shell_open("https://fund.godotengine.org/?ref=help_menu");
+			OS::get_singleton()->shell_open("https://www.k1shm1sh-realengine.ru/donate.html");
 		} break;
+		case HELP_VK: {
+		    OS::get_singleton()->shell_open("https://vk.com/k1shm1sh_rlengine");
+		}
+		case HELP_DISCORD: {
+		    OS::get_singleton()->shell_open("https://discord.com/invite/AKF69xysp6");
+		}
+		case HELP_RUSCORD: {
+		    OS::get_singleton()->shell_open("https://ruscord.net/?code=emb5u1");
+		}
+		case HELP_SITE: {
+		    OS::get_singleton()->shell_open("https://www.k1shm1sh-realengine.ru");
+		}
 	}
 }
 
@@ -3854,6 +3884,7 @@ String EditorNode::adjust_script_name_casing(const String &p_file_name, ScriptLa
 }
 
 void EditorNode::_request_screenshot() {
+    print_line("[REAL EDITOR SCREENSHOT]: request screenshot...");
 	_screenshot();
 }
 
@@ -3863,6 +3894,7 @@ void EditorNode::_screenshot(bool p_use_utc) {
 
 	if (!EditorRun::request_screenshot(callable_mp(this, &EditorNode::_save_screenshot_with_embedded_process).bind(path))) {
 		_save_screenshot(path);
+		print_line("[REAL EDITOR SCREENSHOT]: Screenshot taken!");
 	}
 }
 
@@ -3940,9 +3972,12 @@ void EditorNode::_check_system_theme_changed() {
 		// Update system menus.
 		bool dark_mode = DisplayServer::get_singleton()->is_dark_mode();
 
-		help_menu->set_item_icon(help_menu->get_item_index(HELP_SEARCH), get_editor_theme_native_menu_icon(SNAME("HelpSearch"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_COPY_SYSTEM_INFO), get_editor_theme_native_menu_icon(SNAME("ActionCopy"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_ABOUT), get_editor_theme_native_menu_icon(SNAME("Godot"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
+		help_menu->set_item_icon(help_menu->get_item_index(HELP_VK), get_editor_theme_native_menu_icon(SNAME("VK"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
+		help_menu->set_item_icon(help_menu->get_item_index(HELP_DISCORD), get_editor_theme_native_menu_icon(SNAME("Discord"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
+		help_menu->set_item_icon(help_menu->get_item_index(HELP_RUSCORD), get_editor_theme_native_menu_icon(SNAME("Ruscord"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
+		help_menu->set_item_icon(help_menu->get_item_index(HELP_SITE), get_editor_theme_native_menu_icon(SNAME("site"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_SUPPORT_GODOT_DEVELOPMENT), get_editor_theme_native_menu_icon(SNAME("Heart"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		editor_dock_manager->update_docks_menu();
 	}
@@ -4035,10 +4070,12 @@ int EditorNode::_next_unsaved_scene(bool p_valid_filename, int p_start) {
 }
 
 void EditorNode::_exit_editor(int p_exit_code) {
+    print_line("[REAL EDITOR QUIT]: wait...");
 	exiting = true;
 	waiting_for_first_scan = false;
 	resource_preview->stop(); // Stop early to avoid crashes.
 	_save_editor_layout();
+	print_line("[REAL EDITOR QUIT]: done! Exiting...");
 
 	// Dim the editor window while it's quitting to make it clearer that it's busy.
 	dim_editor(true);
@@ -4047,6 +4084,7 @@ void EditorNode::_exit_editor(int p_exit_code) {
 	unload_editor_addons();
 
 	get_tree()->quit(p_exit_code);
+	print_line("[REAL EDITOR QUIT]: Quit!");
 }
 
 void EditorNode::unload_editor_addons() {
@@ -7714,7 +7752,6 @@ void EditorNode::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("update_node_reference", "value", "node", "remove"), &EditorNode::update_node_reference, DEFVAL(false));
 
-	ADD_SIGNAL(MethodInfo("request_help_search"));
 	ADD_SIGNAL(MethodInfo("script_add_function_request", PropertyInfo(Variant::OBJECT, "obj"), PropertyInfo(Variant::STRING, "function"), PropertyInfo(Variant::PACKED_STRING_ARRAY, "args")));
 	ADD_SIGNAL(MethodInfo("resource_saved", PropertyInfo(Variant::OBJECT, "obj")));
 	ADD_SIGNAL(MethodInfo("scene_saved", PropertyInfo(Variant::STRING, "path")));
@@ -7976,17 +8013,20 @@ void EditorNode::_build_help_menu() {
 		help_menu->set_system_menu(NativeMenu::INVALID_MENU_ID);
 	}
 	bool dark_mode = DisplayServer::get_singleton()->is_dark_mode_supported() && DisplayServer::get_singleton()->is_dark_mode();
-	help_menu->add_icon_shortcut(get_editor_theme_native_menu_icon(SNAME("HelpSearch"), menu_type == MENU_TYPE_GLOBAL, dark_mode), ED_GET_SHORTCUT("editor/editor_help"), HELP_SEARCH);
 	help_menu->add_separator();
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/online_docs"), HELP_DOCS);
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/forum"), HELP_FORUM);
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/community"), HELP_COMMUNITY);
 	help_menu->add_separator();
 	help_menu->add_icon_shortcut(get_editor_theme_native_menu_icon(SNAME("ActionCopy"), menu_type == MENU_TYPE_GLOBAL, dark_mode), ED_GET_SHORTCUT("editor/copy_system_info"), HELP_COPY_SYSTEM_INFO);
-	help_menu->set_item_tooltip(-1, TTRC("Copies the system info as a single-line text into the clipboard."));
+	help_menu->set_item_tooltip(-1, TTRC("Copies system information for support"));
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/report_a_bug"), HELP_REPORT_A_BUG);
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/suggest_a_feature"), HELP_SUGGEST_A_FEATURE);
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/send_docs_feedback"), HELP_SEND_DOCS_FEEDBACK);
+	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/vk"), HELP_VK);
+	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/discord"), HELP_DISCORD);
+	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/ruscord"), HELP_RUSCORD);
+	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/open_site"), HELP_SITE);
 	help_menu->add_separator();
 #ifdef MACOS_ENABLED
 	if (menu_type != MENU_TYPE_GLOBAL) {
@@ -8157,8 +8197,8 @@ void EditorNode::notify_settings_overrides_changed() {
 }
 
 // Returns the list of project settings to add to new projects. This is used by the
-// project manager creation dialog, but also applies to empty `project.godot` files
-// to cover the command line workflow of creating projects using `touch project.godot`.
+// project manager creation dialog, but also applies to empty `project.rlengine` files
+// to cover the command line workflow of creating projects using `touch project.rlengine`.
 //
 // This is used to set better defaults for new projects without affecting existing projects.
 HashMap<String, Variant> EditorNode::get_initial_settings() {
@@ -8243,6 +8283,21 @@ EditorNode::EditorNode() {
 	FileAccess::set_backup_save(EDITOR_GET("filesystem/on_save/safe_save_on_backup_then_rename"));
 
 	_update_vsync_mode();
+
+	    if (!EditorSettings::get_singleton()->has_setting("interface/editor/autosave_enabled")) {
+            EditorSettings::get_singleton()->set_setting("interface/editor/autosave_enabled", true);
+            EditorSettings::get_singleton()->set_initial_value("interface/editor/autosave_enabled", true, true);
+        }
+
+        if (!EditorSettings::get_singleton()->has_setting("interface/editor/autosave_interval")) {
+            EditorSettings::get_singleton()->set_setting("interface/editor/autosave_interval", 300);
+            EditorSettings::get_singleton()->set_initial_value("interface/editor/autosave_interval", 300, true);
+        }
+
+        if (!EditorSettings::get_singleton()->has_setting("interface/editor/autosave_notification")) {
+            EditorSettings::get_singleton()->set_setting("interface/editor/autosave_notification", true);
+            EditorSettings::get_singleton()->set_initial_value("interface/editor/autosave_notification", true, true);
+        }
 
 	// Warm up the project upgrade tool as early as possible.
 	project_upgrade_tool = memnew(ProjectUpgradeTool);
@@ -8757,8 +8812,12 @@ EditorNode::EditorNode() {
 	ED_SHORTCUT_AND_COMMAND("editor/report_a_bug", TTRC("Report a Bug"));
 	ED_SHORTCUT_AND_COMMAND("editor/suggest_a_feature", TTRC("Suggest a Feature"));
 	ED_SHORTCUT_AND_COMMAND("editor/send_docs_feedback", TTRC("Send Docs Feedback"));
-	ED_SHORTCUT_AND_COMMAND("editor/about", TTRC("About Godot..."));
-	ED_SHORTCUT_AND_COMMAND("editor/support_development", TTRC("Support Godot Development"));
+	ED_SHORTCUT_AND_COMMAND("editor/vk", TTRC("Open a VK Group"));
+	ED_SHORTCUT_AND_COMMAND("editor/discord", TTRC("Open a Discord Server"));
+	ED_SHORTCUT_AND_COMMAND("editor/ruscord", TTRC("Open a Ruscord Server"));
+	ED_SHORTCUT_AND_COMMAND("editor/about", TTRC("About Real Engine..."));
+	ED_SHORTCUT_AND_COMMAND("editor/support_development", TTRC("Support Real Engine Development"));
+	ED_SHORTCUT_AND_COMMAND("editor/open_site", TTRC("Open Site"));
 
 	// Use the Ctrl modifier so F2 can be used to rename nodes in the scene tree dock.
 	ED_SHORTCUT_AND_COMMAND("editor/editor_2d", TTRC("Open 2D Workspace"), KeyModifierMask::CTRL | Key::F1);
@@ -9408,4 +9467,65 @@ EditorNode::~EditorNode() {
 	file_dialogs.clear();
 
 	singleton = nullptr;
+}
+
+void EditorNode::_autosave_notification() {
+    if (EDITOR_GET("interface/editor/autosave_enabled")) {
+        EditorToaster::get_singleton()->popup_str("5 seconds until autosave...", EditorToaster::SEVERITY_INFO);
+    }
+}
+
+void EditorNode::_autosave_scene() {
+    bool autosave_enabled = EDITOR_GET("interface/editor/autosave_enabled");
+
+    if (!autosave_enabled) {
+        return; // Автосохранение выключено
+    }
+
+    if (unsaved_cache) {
+        Node *scene = editor_data.get_edited_scene_root();
+        if (scene && !scene->get_scene_file_path().is_empty()) {
+            _save_scene_with_preview(scene->get_scene_file_path());
+            EditorToaster::get_singleton()->popup_str("Scene autosaved!", EditorToaster::SEVERITY_INFO);
+        }
+    }
+}
+
+void EditorNode::_update_autosave_timers() {
+#ifdef TOOLS_ENABLED
+    bool autosave_enabled = EDITOR_GET("interface/editor/autosave_enabled");
+    int autosave_interval = EDITOR_GET("interface/editor/autosave_interval");
+    bool autosave_notification = EDITOR_GET("interface/editor/autosave_notification");
+#else
+    // В не-инструментальных сборках автосохранение отключено
+    bool autosave_enabled = false;
+    int autosave_interval = 300;
+    bool autosave_notification = true;
+#endif
+
+    if (autosave_timer && autosave_notification_timer) {
+        if (autosave_enabled && autosave_interval > 5) {
+            // Основной таймер автосохранения
+            autosave_timer->set_wait_time(autosave_interval);
+            autosave_timer->start();
+
+            // Таймер уведомления (за 5 секунд до сохранения)
+            if (autosave_notification) {
+                autosave_notification_timer->set_wait_time(autosave_interval - 5);
+                autosave_notification_timer->start();
+            } else {
+                autosave_notification_timer->stop();
+            }
+
+        } else {
+            autosave_timer->stop();
+            autosave_notification_timer->stop();
+
+            if (!autosave_enabled) {
+                print_line("Autosave disabled");
+            } else {
+                print_line("Autosave interval too short: " + itos(autosave_interval) + " seconds");
+            }
+        }
+    }
 }

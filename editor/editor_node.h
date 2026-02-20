@@ -197,7 +197,6 @@ public:
 		LAYOUT_DEFAULT,
 
 		// Help menu.
-		HELP_SEARCH,
 		HELP_DOCS,
 		HELP_FORUM,
 		HELP_COMMUNITY,
@@ -207,6 +206,10 @@ public:
 		HELP_SEND_DOCS_FEEDBACK,
 		HELP_ABOUT,
 		HELP_SUPPORT_GODOT_DEVELOPMENT,
+		HELP_VK,
+		HELP_DISCORD,
+		HELP_RUSCORD,
+		HELP_SITE,
 
 		// Update spinner menu.
 		SPINNER_UPDATE_CONTINUOUSLY,
@@ -235,6 +238,12 @@ public:
 	};
 
 private:
+    Timer *autosave_timer = nullptr;
+    Timer *autosave_notification_timer = nullptr;
+    void _autosave_scene();
+    void _autosave_notification();
+    void _update_autosave_timers();
+	void _setup_hot_reload_timer();
 	friend class EditorSceneTabs;
 
 	enum {
@@ -736,6 +745,7 @@ protected:
 	void _notification(int p_what);
 
 public:
+void try_autosave();
 	// Public for use with callable_mp.
 	void init_plugins();
 	void _on_plugin_ready(Object *p_script, const String &p_activate_name);
@@ -1017,7 +1027,6 @@ public:
 	void save_scene_if_open(const String &p_scene_path);
 	void save_scene_list(const HashSet<String> &p_scene_paths);
 	void save_before_run();
-	void try_autosave();
 	void restart_editor(bool p_goto_project_manager = false);
 	void unload_editor_addons();
 

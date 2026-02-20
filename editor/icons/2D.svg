@@ -1,1 +1,52 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><path fill="#e0e0e0" d="m3.308 15-2-2a1 1 0 0 1 1.414-1.414l.293.293V3.293h8.586L11.308 3a1 1 0 0 1 1.415-1.414l2 2a1 1 0 0 1 0 1.414l-2 2a1 1 0 0 1-1.415-1.414l.293-.293H5.015v6.586l.294-.293A1 1 0 0 1 6.723 13l-2 2a1 1 0 0 1-1.414 0z"/></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="16"
+   height="16"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="2D.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1">
+    <rect
+       x="-0.62148057"
+       y="-0.20716019"
+       width="24.375849"
+       height="17.539563"
+       id="rect1" />
+  </defs>
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="28.963094"
+     inkscape:cx="15.519751"
+     inkscape:cy="11.721814"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <path
+     fill="#e0e0e0"
+     d="m3.308 15-2-2a1 1 0 0 1 1.414-1.414l.293.293V3.293h8.586L11.308 3a1 1 0 0 1 1.415-1.414l2 2a1 1 0 0 1 0 1.414l-2 2a1 1 0 0 1-1.415-1.414l.293-.293H5.015v6.586l.294-.293A1 1 0 0 1 6.723 13l-2 2a1 1 0 0 1-1.414 0z"
+     id="path1" />
+  <text
+     xml:space="preserve"
+     id="text1"
+     style="text-align:start;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect1);fill:#e0e0e0;fill-opacity:1"
+     transform="matrix(0.5057417,0,0,0.52316813,7.3753624,6.6407938)"><tspan
+       x="-0.62109375"
+       y="10.740933"
+       id="tspan2">2D</tspan></text>
+</svg>

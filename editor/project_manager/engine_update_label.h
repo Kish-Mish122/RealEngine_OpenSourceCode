@@ -54,6 +54,8 @@ private:
 		BETA,
 		ALPHA,
 		DEV,
+		CLOSEA,
+		CLOSEB,
 		UNKNOWN,
 	};
 
