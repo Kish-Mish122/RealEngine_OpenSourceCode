@@ -5743,6 +5743,24 @@ LRESULT DisplayServerWindows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 					}
 					mb->set_double_click(true);
 				} break;
+case WM_COPYDATA: {
+    COPYDATASTRUCT* pcds = (COPYDATASTRUCT*)lParam;
+    if (pcds->dwData == 1) {
+        // Получаем URL из сообщения
+        wchar_t* url = (wchar_t*)pcds->lpData;
+
+        // Разворачиваем окно
+        ShowWindow(hWnd, SW_RESTORE);
+        SetForegroundWindow(hWnd);
+
+        // Здесь будет импорт ассета
+        // Пока просто покажем сообщение с URL
+        MessageBoxW(NULL, url, L"Импорт ассета", MB_OK);
+
+        // TODO: Добавить логику скачивания и установки ассета
+    }
+    return 0;
+}
 				default: {
 					return 0;
 				}

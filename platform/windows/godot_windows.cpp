@@ -36,6 +36,8 @@
 #include <clocale>
 #include <cstdio>
 
+#include <shellapi.h>
+
 // For export templates, add a section; the exporter will patch it to enclose
 // the data appended to the executable (bundled PCK).
 #ifndef TOOLS_ENABLED

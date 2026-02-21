@@ -745,6 +745,8 @@ protected:
 	void _notification(int p_what);
 
 public:
+    void _import_asset_from_url(const String &p_url, const String &p_name);
+    void _import_asset_downloaded(int p_status, int p_code, const PackedStringArray &p_headers, const PackedByteArray &p_data, const String &p_temp_file);
 void try_autosave();
 	// Public for use with callable_mp.
 	void init_plugins();

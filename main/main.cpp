@@ -149,6 +149,10 @@
 #endif // TOOLS_ENABLED && !GDSCRIPT_NO_LSP
 #endif // MODULE_GDSCRIPT_ENABLED
 
+#ifdef WINDOWS_ENABLED
+#include <windows.h>
+#endif
+
 /* Static members */
 
 // Singletons
@@ -293,6 +297,10 @@ bool profile_gpu = false;
 static const String NULL_DISPLAY_DRIVER("headless");
 static const String EMBEDDED_DISPLAY_DRIVER("embedded");
 static const String NULL_AUDIO_DRIVER("Dummy");
+
+static String import_asset_url;
+static String import_asset_name;
+static bool should_import_asset = false;
 
 // The length of the longest column in the command-line help we should align to
 // (excluding the 2-space left and right margins).
@@ -3750,6 +3758,40 @@ Error Main::setup2(bool p_show_boot_logo) {
 	// after init'ing the ScriptServer, but also after init'ing the ThemeDB,
 	// for the C# docs generation in the bindings.
 	List<String> cmdline_args = OS::get_singleton()->get_cmdline_args();
+	for (const String &arg : cmdline_args) {
+        if (arg.begins_with("rlengine://")) {
+            String command = arg.substr(10); // Убираем "rlengine://"
+
+            if (command.begins_with("import?")) {
+                String query = command.substr(7); // Убираем "import?"
+                Vector<String> params = query.split("&");
+
+                String asset_url;
+                String asset_name;
+
+                for (int j = 0; j < params.size(); j++) {
+                    Vector<String> kv = params[j].split("=");
+                    if (kv.size() == 2) {
+                        if (kv[0] == "url") {
+                            asset_url = kv[1].uri_decode();
+                        } else if (kv[0] == "name") {
+                            asset_name = kv[1].uri_decode();
+                        }
+                    }
+                }
+
+                if (!asset_url.is_empty() && !asset_name.is_empty()) {
+                    // Сохраняем во временные переменные (объявите их выше)
+                    import_asset_url = asset_url;
+                    import_asset_name = asset_name;
+                    should_import_asset = true;
+
+                    print_line("Real Engine: Import Assets '" + asset_name + "'");
+                }
+            }
+            break;
+        }
+    }
 	BindingsGenerator::handle_cmdline_args(cmdline_args);
 #endif
 
@@ -3909,6 +3951,44 @@ int Main::start() {
 	bool validating_converting_project = false;
 #endif // DISABLE_DEPRECATED
 #endif // TOOLS_ENABLED
+
+#ifdef WINDOWS_ENABLED
+    // Проверяем, не запущен ли уже Real Engine
+    HANDLE hMutex = CreateMutexA(NULL, TRUE, "RealEngine_SingleInstance_Mutex");
+
+    if (GetLastError() == ERROR_ALREADY_EXISTS) {
+        // Уже запущен - отправляем команду существующему окну
+        HWND hWnd = FindWindowA(NULL, "Real Engine");
+        if (hWnd) {
+            // Разворачиваем окно
+            ShowWindow(hWnd, SW_RESTORE);
+            SetForegroundWindow(hWnd);
+
+            // Если есть аргументы (rlengine://...), передаем их
+            LPWSTR *argv;
+            int argc;
+            argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+            if (argc > 1) {
+                COPYDATASTRUCT cds;
+                cds.dwData = 1;
+                // Конвертируем wide string в UTF-8
+                int len = WideCharToMultiByte(CP_UTF8, 0, argv[1], -1, NULL, 0, NULL, NULL);
+                char* utf8_url = new char[len];
+                WideCharToMultiByte(CP_UTF8, 0, argv[1], -1, utf8_url, len, NULL, NULL);
+
+                cds.cbData = len;
+                cds.lpData = utf8_url;
+
+                SendMessageA(hWnd, WM_COPYDATA, 0, (LPARAM)&cds);
+                delete[] utf8_url;
+            }
+            LocalFree(argv);
+
+            // Завершаем этот процесс
+            return 0;
+        }
+    }
+#endif
 
 	main_timer_sync.init(OS::get_singleton()->get_ticks_usec());
 	List<String> args = OS::get_singleton()->get_cmdline_args();
@@ -4755,6 +4835,15 @@ int Main::start() {
 	OS::get_singleton()->benchmark_dump();
 
 	return EXIT_SUCCESS;
+
+	if (should_import_asset && Engine::get_singleton()->is_editor_hint()) {
+        // Передаем данные в редактор через синглтон или настройки
+        EditorSettings::get_singleton()->set("import/asset_url", import_asset_url);
+        EditorSettings::get_singleton()->set("import/asset_name", import_asset_name);
+        EditorSettings::get_singleton()->set("import/asset_pending", true);
+
+        print_line("Real Engine: Данные ассета переданы в редактор");
+    }
 }
 
 /* Main iteration

@@ -1,0 +1,8 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\rlengine]
+@="URL:Real Engine Protocol"
+"URL Protocol"=""
+
+[HKEY_CLASSES_ROOT\rlengine\shell\open\command]
+@="\"D:\\путь\\к\\rlengine_handler.exe\" \"%1\""

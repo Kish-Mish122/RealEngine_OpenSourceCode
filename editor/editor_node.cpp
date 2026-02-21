@@ -1013,6 +1013,22 @@ void EditorNode::_notification(int p_what) {
 
 	_update_autosave_timers();
 
+	            if (EditorSettings::get_singleton()->has_setting("import/asset_pending") &&
+                    EditorSettings::get_singleton()->get("import/asset_pending").booleanize()) {
+
+                    String url = EditorSettings::get_singleton()->get("import/asset_url");
+                    String name = EditorSettings::get_singleton()->get("import/asset_name");
+
+                    if (!url.is_empty() && !name.is_empty()) {
+                        // Вызываем импорт с небольшой задержкой
+                        MessageQueue::get_singleton()->push_callable(
+                            callable_mp(this, &EditorNode::_import_asset_from_url), url, name);
+                    }
+
+                    // Сбрасываем флаг
+                    EditorSettings::get_singleton()->set("import/asset_pending", false);
+                }
+
 			/* DO NOT LOAD SCENES HERE, WAIT FOR FILE SCANNING AND REIMPORT TO COMPLETE */
 		} break;
 
@@ -3809,7 +3825,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			OS::get_singleton()->shell_open("https://www.k1shm1sh-realengine.ru/faq.html");
 		} break;
 		case HELP_COPY_SYSTEM_INFO: {
-		    print_line("[REAL EDITOR INFO]: System requirements are copied");
+		    print_line("[REAL EDITOR INFO]: System info are copied");
 			String info = _get_system_info();
 			DisplayServer::get_singleton()->clipboard_set(info);
 		} break;
@@ -3894,7 +3910,7 @@ void EditorNode::_screenshot(bool p_use_utc) {
 
 	if (!EditorRun::request_screenshot(callable_mp(this, &EditorNode::_save_screenshot_with_embedded_process).bind(path))) {
 		_save_screenshot(path);
-		print_line("[REAL EDITOR SCREENSHOT]: Screenshot taken!");
+		print_line("[REAL EDITOR SCREENSHOT]: Screenshot taken! Saved: " + path);
 	}
 }
 
@@ -7759,6 +7775,9 @@ void EditorNode::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("scene_closed", PropertyInfo(Variant::STRING, "path")));
 	ADD_SIGNAL(MethodInfo("preview_locale_changed"));
 	ADD_SIGNAL(MethodInfo("resource_counter_changed"));
+
+	ClassDB::bind_method(D_METHOD("_import_asset_from_url", "url", "name"), &EditorNode::_import_asset_from_url);
+    ClassDB::bind_method(D_METHOD("_import_asset_downloaded", "status", "code", "headers", "data", "temp_file"), &EditorNode::_import_asset_downloaded);
 }
 
 static Node *_resource_get_edited_scene() {
@@ -9528,4 +9547,60 @@ void EditorNode::_update_autosave_timers() {
             }
         }
     }
+}
+
+void EditorNode::_import_asset_from_url(const String &p_url, const String &p_name) {
+    // Создаем временную папку
+    String temp_dir = EditorPaths::get_singleton()->get_cache_dir().path_join("temp_imports");
+    DirAccess::make_dir_recursive_absolute(temp_dir);
+
+    String temp_file = temp_dir.path_join(p_name.replace(" ", "_") + ".zip");
+
+    // Создаем HTTP запрос
+    HTTPRequest *request = memnew(HTTPRequest);
+    add_child(request);
+
+    // Настраиваем заголовки
+    Vector<String> headers;
+    headers.push_back("User-Agent: Real Engine Asset Importer");
+
+    // Подключаем сигнал
+    request->connect("request_completed", callable_mp(this, &EditorNode::_import_asset_downloaded).bind(temp_file));
+
+    // Начинаем скачивание
+    Error err = request->request(p_url, headers);
+    if (err != OK) {
+        EditorNode::get_singleton()->show_warning("Не удалось начать скачивание ассета");
+        return;
+    }
+
+    // Показываем прогресс
+    progress_dialog->add_task("import_asset", "Импорт ассета: " + p_name, 100);
+
+    // Разворачиваем окно
+    DisplayServer::get_singleton()->window_set_mode(DisplayServer::WINDOW_MODE_MAXIMIZED);
+}
+
+void EditorNode::_import_asset_downloaded(int p_status, int p_code, const PackedStringArray &p_headers, const PackedByteArray &p_data, const String &p_temp_file) {
+    progress_dialog->task_step("import_asset", "Сохранение...", 50);
+
+    if (p_status != HTTPRequest::RESULT_SUCCESS || p_code != 200) {
+        EditorNode::get_singleton()->show_warning("Ошибка при скачивании ассета");
+        progress_dialog->end_task("import_asset");
+        return;
+    }
+
+    // Сохраняем файл
+    Ref<FileAccess> f = FileAccess::open(p_temp_file, FileAccess::WRITE);
+    f->store_buffer(p_data.ptr(), p_data.size());
+    f.unref();
+
+    progress_dialog->task_step("import_asset", "Импорт...", 80);
+
+    // Открываем диалог импорта
+    EditorAssetInstaller *installer = memnew(EditorAssetInstaller);
+    add_child(installer);
+    installer->open_asset(p_temp_file);
+
+    progress_dialog->end_task("import_asset");
 }
