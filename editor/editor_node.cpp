@@ -702,6 +702,7 @@ void EditorNode::_update_theme(bool p_skip_creation) {
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_DISCORD), get_editor_theme_native_menu_icon(SNAME("Discord"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_RUSCORD), get_editor_theme_native_menu_icon(SNAME("Ruscord"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_SITE), get_editor_theme_native_menu_icon(SNAME("site"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
+		help_menu->set_item_icon(help_menu->get_item_index(HELP_VKPLAY), get_editor_theme_native_menu_icon(SNAME("VKPlay"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_SUPPORT_GODOT_DEVELOPMENT), get_editor_theme_native_menu_icon(SNAME("Heart"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 
 		_update_renderer_color();
@@ -3856,6 +3857,9 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 		case HELP_SITE: {
 		    OS::get_singleton()->shell_open("https://www.k1shm1sh-realengine.ru");
 		}
+		case HELP_VKPLAY: {
+		    OS::get_singleton()->shell_open("mailrugames://show/0.2042297/?mode=lib");
+		}
 	}
 }
 
@@ -3994,6 +3998,7 @@ void EditorNode::_check_system_theme_changed() {
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_DISCORD), get_editor_theme_native_menu_icon(SNAME("Discord"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_RUSCORD), get_editor_theme_native_menu_icon(SNAME("Ruscord"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_SITE), get_editor_theme_native_menu_icon(SNAME("site"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
+		help_menu->set_item_icon(help_menu->get_item_index(HELP_VKPLAY), get_editor_theme_native_menu_icon(SNAME("VKPlay"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_SUPPORT_GODOT_DEVELOPMENT), get_editor_theme_native_menu_icon(SNAME("Heart"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		editor_dock_manager->update_docks_menu();
 	}
@@ -4100,7 +4105,7 @@ void EditorNode::_exit_editor(int p_exit_code) {
 	unload_editor_addons();
 
 	get_tree()->quit(p_exit_code);
-	print_line("[REAL EDITOR QUIT]: Quit!");
+	print_line("[REAL EDITOR QUIT]: exit code: 0");
 }
 
 void EditorNode::unload_editor_addons() {
@@ -8046,6 +8051,7 @@ void EditorNode::_build_help_menu() {
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/discord"), HELP_DISCORD);
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/ruscord"), HELP_RUSCORD);
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/open_site"), HELP_SITE);
+	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/vkplay"), HELP_VKPLAY);
 	help_menu->add_separator();
 #ifdef MACOS_ENABLED
 	if (menu_type != MENU_TYPE_GLOBAL) {
@@ -8832,6 +8838,7 @@ EditorNode::EditorNode() {
 	ED_SHORTCUT_AND_COMMAND("editor/suggest_a_feature", TTRC("Suggest a Feature"));
 	ED_SHORTCUT_AND_COMMAND("editor/send_docs_feedback", TTRC("Send Docs Feedback"));
 	ED_SHORTCUT_AND_COMMAND("editor/vk", TTRC("Open a VK Group"));
+	ED_SHORTCUT_AND_COMMAND("editor/vkplay", TTRC("Open a VK Play Lib"));
 	ED_SHORTCUT_AND_COMMAND("editor/discord", TTRC("Open a Discord Server"));
 	ED_SHORTCUT_AND_COMMAND("editor/ruscord", TTRC("Open a Ruscord Server"));
 	ED_SHORTCUT_AND_COMMAND("editor/about", TTRC("About Real Engine..."));

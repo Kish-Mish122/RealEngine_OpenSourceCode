@@ -36,6 +36,7 @@
 
 class Object;
 class Dictionary;
+class SplashScreen;
 
 template <typename T>
 class TypedArray;

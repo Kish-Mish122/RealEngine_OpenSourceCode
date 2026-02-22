@@ -75,6 +75,9 @@
 #include "servers/physics_3d/physics_server_3d.h"
 #endif // PHYSICS_3D_DISABLED
 
+#include "scene/resources/style_box_flat.h"
+#include "core/version.h"
+
 constexpr int GODOT4_CONFIG_VERSION = 5;
 
 ProjectManager *ProjectManager::singleton = nullptr;
@@ -109,7 +112,7 @@ void ProjectManager::_notification(int p_what) {
 
 		case NOTIFICATION_TRANSLATION_CHANGED: {
 			// TRANSLATORS: This refers to the application where users manage their Godot projects.
-			SceneTree::get_singleton()->get_root()->set_title(GODOT_VERSION_NAME + String(" - ") + TTR("Project Manager", "Application"));
+			SceneTree::get_singleton()->get_root()->set_title(GODOT_VERSION_NAME + String(" - ") + TTR("List of projects", "Application"));
 
 			const String line1 = TTR("You don't have any projects yet.");
 			const String line2 = TTR("It's time to create a new project.\nCreate one using the button or import an existing one");
@@ -549,54 +552,157 @@ void ProjectManager::_run_project_confirm() {
 }
 
 void ProjectManager::_open_selected_projects() {
-	// Show loading text to tell the user that the project manager is busy loading.
-	// This is especially important for the Web project manager.
-	loading_label->show();
+    // Получаем главное окно
+    Window *win = get_window();
+    if (!win) return;
 
-	const HashSet<String> &selected_list = project_list->get_selected_project_keys();
-	for (const String &path : selected_list) {
-		String conf = path.path_join("project.rlengine");
+    // Сохраняем оригинальный размер окна
+    static Size2i original_size = win->get_size();
+    static Vector2i original_pos = win->get_position();
 
-		if (!FileAccess::exists(conf)) {
-			loading_label->hide();
-			_show_error(vformat(TTR("Can't open project at '%s'.\nProject file doesn't exist or is inaccessible."), path));
-			return;
-		}
+    // Устанавливаем маленькое окно для заставки
+    Size2i splash_size(500, 250);
+    win->set_size(splash_size);
+    win->set_flag(Window::FLAG_RESIZE_DISABLED, true);
+    win->set_flag(Window::FLAG_BORDERLESS, true);
 
-		print_line("Editing project: " + path);
+    // Центрируем окно
+    Vector2i screen_size = DisplayServer::get_singleton()->screen_get_size();
+    win->set_position(Vector2i(
+        (screen_size.x - splash_size.x) / 2,
+        (screen_size.y - splash_size.y) / 2
+    ));
 
-		List<String> args;
+    // Создаем панель для заставки, если её нет
+    if (!splash_panel) {
+        splash_panel = memnew(Panel);
+        splash_panel->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
 
-		for (const String &a : Main::get_forwardable_cli_arguments(Main::CLI_SCOPE_TOOL)) {
-			args.push_back(a);
-		}
+        Ref<StyleBoxFlat> style = memnew(StyleBoxFlat);
+        style->set_bg_color(Color(0.1, 0.1, 0.1));
+        splash_panel->add_theme_style_override("panel", style);
 
-		args.push_back("--path");
-		args.push_back(path);
+        // Вертикальный контейнер
+        VBoxContainer *vbox = memnew(VBoxContainer);
+        splash_panel->add_child(vbox);
+        vbox->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
+        vbox->add_theme_constant_override("separation", 15);
 
-		args.push_back("--editor");
+        // Центрирующий контейнер
+        VBoxContainer *center = memnew(VBoxContainer);
+        vbox->add_child(center);
+        center->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+        center->set_v_size_flags(Control::SIZE_EXPAND_FILL);
+        center->set_alignment(BoxContainer::ALIGNMENT_CENTER);
 
-		if (open_in_recovery_mode) {
-			args.push_back("--recovery-mode");
-		}
+        // Название движка
+        engine_name_label = memnew(Label);
+        center->add_child(engine_name_label);
+        engine_name_label->set_text("Real Engine");
+        engine_name_label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
+        engine_name_label->add_theme_font_size_override("font_size", 32);
+        engine_name_label->add_theme_color_override("font_color", Color(0.8, 0.8, 0.8));
 
-		if (open_in_verbose_mode) {
-			args.push_back("--verbose");
-		}
+        // Версия движка
+        engine_version_label = memnew(Label);
+        center->add_child(engine_version_label);
+        engine_version_label->set_text(vformat("Version %s", GODOT_VERSION_NUMBER));
+        engine_version_label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
+        engine_version_label->add_theme_font_size_override("font_size", 16);
+        engine_version_label->add_theme_color_override("font_color", Color(0.6, 0.6, 0.6));
 
-		Error err = OS::get_singleton()->create_instance(args);
-		if (err != OK) {
-			loading_label->hide();
-			_show_error(vformat(TTR("Can't open project at '%s'.\nFailed to start the editor."), path));
-			ERR_PRINT(vformat("Failed to start an editor instance for the project at '%s', error code %d.", path, err));
-			return;
-		}
-	}
+        // Статус загрузки
+        loading_status_label = memnew(Label);
+        center->add_child(loading_status_label);
+        loading_status_label->set_text("Loading project...");
+        loading_status_label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
+        loading_status_label->add_theme_font_size_override("font_size", 12);
+        loading_status_label->add_theme_color_override("font_color", Color(0.5, 0.5, 0.5));
 
-	project_list->project_opening_initiated = true;
+        add_child(splash_panel);
+    }
 
-	_dim_window();
-	get_tree()->quit();
+    // Показываем панель
+    splash_panel->show();
+    loading_status_label->set_text("Loading project...");
+
+    // Обновляем отображение
+    DisplayServer::get_singleton()->process_events();
+
+    // Запоминаем время начала
+    uint64_t start_time = OS::get_singleton()->get_ticks_usec();
+
+    // Запускаем проект
+    const HashSet<String> &selected_list = project_list->get_selected_project_keys();
+    bool project_started = false;
+
+    for (const String &path : selected_list) {
+        String conf = path.path_join("project.rlengine");
+
+        if (!FileAccess::exists(conf)) {
+            loading_status_label->set_text("Error: Project file missing!");
+            DisplayServer::get_singleton()->process_events();
+            OS::get_singleton()->delay_usec(1000000); // 1 секунда показа ошибки
+            break;
+        }
+
+        print_line("Editing project: " + path);
+
+        List<String> args;
+        for (const String &a : Main::get_forwardable_cli_arguments(Main::CLI_SCOPE_TOOL)) {
+            args.push_back(a);
+        }
+
+        args.push_back("--path");
+        args.push_back(path);
+        args.push_back("--editor");
+
+        if (open_in_recovery_mode) {
+            args.push_back("--recovery-mode");
+        }
+
+        if (open_in_verbose_mode) {
+            args.push_back("--verbose");
+        }
+
+        Error err = OS::get_singleton()->create_instance(args);
+        if (err != OK) {
+            loading_status_label->set_text("Error: Failed to start editor!");
+            DisplayServer::get_singleton()->process_events();
+            OS::get_singleton()->delay_usec(1000000); // 1 секунда показа ошибки
+        } else {
+            project_started = true;
+        }
+    }
+
+    // Ждем минимум 2 секунды
+    uint64_t elapsed = OS::get_singleton()->get_ticks_usec() - start_time;
+    uint64_t remaining = 2000000 - elapsed; // 2 секунды в микросекундах
+
+    if (remaining > 0 && project_started) {
+        loading_status_label->set_text("Project started!");
+        OS::get_singleton()->delay_usec(remaining);
+    } else if (!project_started) {
+        // Если проект не запустился, показываем ошибку подольше
+        OS::get_singleton()->delay_usec(2000000); // 2 секунды
+    }
+
+    // Возвращаем окно к нормальному состоянию
+    if (win) {
+        win->set_size(original_size);
+        win->set_position(original_pos);
+        win->set_flag(Window::FLAG_RESIZE_DISABLED, false);
+        win->set_flag(Window::FLAG_BORDERLESS, false);
+    }
+
+    // Прячем панель
+    if (splash_panel) {
+        splash_panel->hide();
+    }
+
+    project_list->project_opening_initiated = true;
+    _dim_window();
+    get_tree()->quit();
 }
 
 void ProjectManager::_open_selected_projects_check_warnings() {
@@ -825,9 +931,36 @@ void ProjectManager::_erase_missing_projects() {
 }
 
 void ProjectManager::_erase_project_confirm() {
-	project_list->erase_selected_projects(false);
-	_update_project_buttons();
-	_update_list_placeholder();
+    // Получаем выбранные проекты ДО удаления из списка
+    Vector<ProjectList::Item> selected_projects = project_list->get_selected_projects();
+
+    // Запоминаем пути для удаления с диска
+    Vector<String> paths_to_delete;
+    if (delete_project_contents && delete_project_contents->is_pressed()) {
+        for (const ProjectList::Item &project : selected_projects) {
+            paths_to_delete.push_back(project.path);
+        }
+    }
+
+    // Удаляем проекты из списка
+    project_list->erase_selected_projects(false);
+
+    // Удаляем папки с диска
+    if (!paths_to_delete.is_empty()) {
+        for (const String &path : paths_to_delete) {
+            print_line("Deleting project folder: " + path);
+            OS::get_singleton()->move_to_trash(path); // В корзину
+            // Или полное удаление:
+            // DirAccess::remove_file_or_error(path);
+        }
+    }
+
+    _update_project_buttons();
+    _update_list_placeholder();
+}
+
+void ProjectManager::_on_delete_contents_toggled(bool p_toggled, Label *p_warning_label) {
+    p_warning_label->set_visible(p_toggled);
 }
 
 void ProjectManager::_erase_missing_projects_confirm() {
@@ -1171,7 +1304,7 @@ void ProjectManager::_full_convert_button_pressed() {
 }
 
 void ProjectManager::_migration_guide_button_pressed() {
-	const String url = vformat("%s/tutorials/migrating/index.html", GODOT_VERSION_DOCS_URL);
+	const String url = vformat("https://www.k1shm1sh-realengine.ru/documentation.html");
 	OS::get_singleton()->shell_open(url);
 }
 
@@ -1365,7 +1498,10 @@ ProjectManager::ProjectManager() {
 				EditorScale::set_scale(2.0);
 				break;
 			default:
-				EditorScale::set_scale(EDITOR_GET("interface/editor/custom_display_scale"));
+			case 7:
+			    EditorScale::set_scale(2.75);
+			    break;
+			EditorScale::set_scale(EDITOR_GET("interface/editor/custom_display_scale"));
 				break;
 		}
 		FileDialog::set_get_icon_callback(callable_mp_static(ProjectManager::_file_dialog_get_icon));
@@ -1753,23 +1889,36 @@ ProjectManager::ProjectManager() {
 		erase_missing_ask->get_ok_button()->connect(SceneStringName(pressed), callable_mp(this, &ProjectManager::_erase_missing_projects_confirm));
 		add_child(erase_missing_ask);
 
-		erase_ask = memnew(ConfirmationDialog);
-		erase_ask->set_ok_button_text(TTRC("Remove"));
-		erase_ask->get_ok_button()->connect(SceneStringName(pressed), callable_mp(this, &ProjectManager::_erase_project_confirm));
-		add_child(erase_ask);
+erase_ask = memnew(ConfirmationDialog);
+erase_ask->set_ok_button_text(TTRC("Remove"));
+erase_ask->get_ok_button()->connect(SceneStringName(pressed), callable_mp(this, &ProjectManager::_erase_project_confirm));
+add_child(erase_ask);
 
-		VBoxContainer *erase_ask_vb = memnew(VBoxContainer);
-		erase_ask->add_child(erase_ask_vb);
+VBoxContainer *erase_ask_vb = memnew(VBoxContainer);
+erase_ask->add_child(erase_ask_vb);
 
-		erase_ask_label = memnew(Label);
-		erase_ask_label->set_focus_mode(FOCUS_ACCESSIBILITY);
-		erase_ask_vb->add_child(erase_ask_label);
+erase_ask_label = memnew(Label);
+erase_ask_label->set_focus_mode(FOCUS_ACCESSIBILITY);
+erase_ask_vb->add_child(erase_ask_label);
 
-		// Comment out for now until we have a better warning system to
-		// ensure users delete their project only.
-		//delete_project_contents = memnew(CheckBox);
-		//delete_project_contents->set_text(TTRC("Also delete project contents (no undo!)"));
-		//erase_ask_vb->add_child(delete_project_contents);
+// Чекбокс для удаления папки проекта
+delete_project_contents = memnew(CheckBox);
+delete_project_contents->set_text(TTRC("Also delete project folder from disk (cannot be undone!)"));
+delete_project_contents->set_h_size_flags(SIZE_SHRINK_CENTER);
+// Добавляем предупреждение красным цветом
+delete_project_contents->add_theme_color_override("font_color", Color(1, 0.5, 0.5));
+erase_ask_vb->add_child(delete_project_contents);
+
+// Добавляем дополнительное предупреждение
+Label *warning_label = memnew(Label);
+warning_label->set_text(TTRC("Warning: This will permanently delete all project files!"));
+warning_label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
+warning_label->add_theme_color_override("font_color", Color(1, 0.3, 0.3));
+warning_label->set_visible(false);
+erase_ask_vb->add_child(warning_label);
+
+// Показываем предупреждение при активации чекбокса
+delete_project_contents->connect(SceneStringName(toggled), callable_mp(this, &ProjectManager::_on_delete_contents_toggled).bind(warning_label));
 
 		multi_open_ask = memnew(ConfirmationDialog);
 		multi_open_ask->set_ok_button_text(TTRC("Edit"));

@@ -210,6 +210,7 @@ public:
 		HELP_DISCORD,
 		HELP_RUSCORD,
 		HELP_SITE,
+		HELP_VKPLAY,
 
 		// Update spinner menu.
 		SPINNER_UPDATE_CONTINUOUSLY,

@@ -2147,21 +2147,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	}
 #endif
 
-#ifdef TOOLS_ENABLED
-	if (editor) {
-		Engine::get_singleton()->set_editor_hint(true);
-		Engine::get_singleton()->set_extension_reloading_enabled(true);
-
-		// Create initialization lock file to detect crashes during startup.
-		OS::get_singleton()->create_lock_file();
-
-		main_args.push_back("--editor");
-		if (!init_windowed && !init_fullscreen) {
-			init_maximized = true;
-			window_mode = DisplayServer::WINDOW_MODE_MAXIMIZED;
-		}
-	}
-
 	if (project_manager) {
 		Engine::get_singleton()->set_project_manager_hint(true);
 	}
@@ -2174,7 +2159,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 
 		Engine::get_singleton()->set_recovery_mode_hint(true);
 	}
-#endif
 
 	OS::get_singleton()->set_cmdline(execpath, main_args, user_args);
 
@@ -3921,6 +3905,7 @@ static MainTimerSync main_timer_sync;
 // and should move on to `OS::run`, and EXIT_FAILURE otherwise for
 // an early exit with that error code.
 int Main::start() {
+#ifdef TOOLS_ENABLED
 	GodotProfileZone("start");
 	OS::get_singleton()->benchmark_begin_measure("Startup", "Main::Start");
 
@@ -4054,8 +4039,8 @@ int Main::start() {
 				game_path = scene_path;
 #else
 				ERR_PRINT(
-						"Scene path was specified on the command line, but this Godot binary was compiled without support for path overrides. Aborting.\n"
-						"To be able to use it, use the `disable_path_overrides=no` SCons option when compiling Godot.\n");
+						"Scene path was specified on the command line, but this RLEngine binary was compiled without support for path overrides. Aborting.\n"
+						"To be able to use it, use the `disable_path_overrides=no` SCons option when compiling RLEngine.\n");
 				return EXIT_FAILURE;
 #endif // defined(OVERRIDE_PATH_ENABLED)
 			}
@@ -5354,3 +5339,5 @@ void Main::cleanup(bool p_force) {
 
 	OS::get_singleton()->finalize_core();
 }
+
+#endif

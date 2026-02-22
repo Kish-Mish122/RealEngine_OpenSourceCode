@@ -15570,6 +15570,12 @@ msgstr "Строка %d (%s):"
 msgid "Line %d:"
 msgstr "Строка %d:"
 
+msgid "Open a VK Play Lib"
+msgstr "Открыть VK Play библиотеку"
+
+msgid "Copies system information for support"
+msgstr "Скопировать системную информацию для поддержки"
+
 msgid ""
 "The resource does not have a valid path because it has not been saved.\n"
 "Please save the scene or resource that contains this resource and try again."
@@ -15598,6 +15604,9 @@ msgstr "Перейти к функции"
 
 msgid "Line"
 msgstr "Строка"
+
+msgid "List of projects"
+msgstr "Список проектов"
 
 msgid "Folding"
 msgstr "Сворачивание"

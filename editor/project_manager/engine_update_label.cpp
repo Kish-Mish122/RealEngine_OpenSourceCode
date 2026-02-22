@@ -213,7 +213,7 @@ EngineUpdateLabel::VersionType EngineUpdateLabel::_get_version_type(const String
 
 	static HashMap<String, VersionType> type_map;
 	if (type_map.is_empty()) {
-		type_map["public-version"] = VersionType::STABLE;
+		type_map["public"] = VersionType::STABLE;
 		type_map["rc"] = VersionType::RC;
 		type_map["beta"] = VersionType::BETA;
 		type_map["alpha"] = VersionType::ALPHA;

@@ -174,7 +174,7 @@ class ProjectManager : public Control {
 	Label *erase_ask_label = nullptr;
 	// Comment out for now until we have a better warning system to
 	// ensure users delete their project only.
-	//CheckBox *delete_project_contents = nullptr;
+	CheckBox *delete_project_contents = nullptr;
 	ConfirmationDialog *erase_missing_ask = nullptr;
 	ConfirmationDialog *multi_open_ask = nullptr;
 	ConfirmationDialog *multi_run_ask = nullptr;
@@ -250,6 +250,8 @@ class ProjectManager : public Control {
 	Button *full_convert_button = nullptr;
 	Button *migration_guide_button = nullptr;
 
+	void _on_delete_contents_toggled(bool p_toggled, Label *p_warning_label);
+
 	String version_convert_feature;
 	bool open_in_recovery_mode = false;
 	bool open_in_verbose_mode = false;
@@ -269,6 +271,12 @@ class ProjectManager : public Control {
 
 protected:
 	void _notification(int p_what);
+
+private:
+    Panel *splash_panel = nullptr;
+    Label *engine_name_label = nullptr;
+    Label *engine_version_label = nullptr;
+    Label *loading_status_label = nullptr;
 
 public:
 	static ProjectManager *get_singleton() { return singleton; }

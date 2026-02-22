@@ -1,9 +1,9 @@
 short_name = "rlengine"
 name = "Real Engine"
-major = 20
+major = 21
 minor = 2
 patch = 6
 status = "close-alpha"
 module_config = ""
 website = "https://www.k1shm1sh-realengine.ru"
-docs = "20.2.6"
+docs = "21.2.6"
