@@ -120,6 +120,9 @@ class ExportTemplateManager : public AcceptDialog {
 protected:
 	void _notification(int p_what);
 
+private:
+    void _add_custom_mirrors();
+
 public:
 	static String get_android_build_directory(const Ref<EditorExportPreset> &p_preset);
 	static String get_android_source_zip(const Ref<EditorExportPreset> &p_preset);

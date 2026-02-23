@@ -239,6 +239,10 @@ public:
 	};
 
 private:
+    void _check_templates_and_ask();
+    void _open_template_manager();
+    void _download_templates_if_missing();
+    void _check_templates_and_download();
     Timer *autosave_timer = nullptr;
     Timer *autosave_notification_timer = nullptr;
     void _autosave_scene();

@@ -48,6 +48,7 @@
 #include "editor/editor_string_names.h"
 #include "editor/inspector/editor_context_menu_plugin.h"
 #include "editor/plugins/editor_plugin_list.h"
+#include "editor/export/export_template_manager.h"
 #include "main/main.h"
 #include "scene/2d/node_2d.h"
 #include "scene/3d/bone_attachment_3d.h"
@@ -9460,6 +9461,8 @@ EditorNode::EditorNode() {
 
 	follow_system_theme = EDITOR_GET("interface/theme/follow_system_theme");
 	use_system_accent_color = EDITOR_GET("interface/theme/use_system_accent_color");
+
+	callable_mp(this, &EditorNode::_check_templates_and_ask).call_deferred();
 }
 
 EditorNode::~EditorNode() {
@@ -9610,4 +9613,47 @@ void EditorNode::_import_asset_downloaded(int p_status, int p_code, const Packed
     installer->open_asset(p_temp_file);
 
     progress_dialog->end_task("import_asset");
+}
+
+void EditorNode::_check_templates_and_download() {
+    String templates_dir = EditorPaths::get_singleton()->get_export_templates_dir().path_join(GODOT_VERSION_FULL_CONFIG);
+
+    if (!DirAccess::exists(templates_dir)) {
+        if (export_template_manager) {
+            export_template_manager->popup_manager();
+            // Вместо приватного _download_current() вызываем публичный метод через меню
+            export_template_manager->get_ok_button()->emit_signal(SceneStringName(pressed));
+        }
+    }
+}
+
+void EditorNode::_download_templates_if_missing() {
+    _check_templates_and_download();
+}
+
+void EditorNode::_check_templates_and_ask() {
+    // Проверяем, есть ли шаблоны
+    String templates_dir = EditorPaths::get_singleton()->get_export_templates_dir().path_join(GODOT_VERSION_FULL_CONFIG);
+
+    if (!DirAccess::exists(templates_dir)) {
+        // Шаблонов нет - показываем диалог
+        ConfirmationDialog *ask_dialog = memnew(ConfirmationDialog);
+        ask_dialog->set_title(TTR("Export Templates Missing"));
+        ask_dialog->set_text(TTR("You don't have export templates installed for this version.\nWould you like to download them now?"));
+        ask_dialog->set_ok_button_text(TTR("Download Templates"));
+        ask_dialog->set_cancel_button_text(TTR("Later"));
+
+        // Подключаем только сигнал подтверждения
+        ask_dialog->connect(SceneStringName(confirmed), callable_mp(this, &EditorNode::_open_template_manager));
+
+        // Не подключаем сигнал отмены - диалог сам закроется
+        add_child(ask_dialog);
+        ask_dialog->popup_centered();
+    }
+}
+
+void EditorNode::_open_template_manager() {
+    if (export_template_manager) {
+        export_template_manager->popup_manager();
+    }
 }

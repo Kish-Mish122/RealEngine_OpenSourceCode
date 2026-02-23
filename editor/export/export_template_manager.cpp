@@ -157,26 +157,29 @@ void ExportTemplateManager::_update_template_status() {
 }
 
 void ExportTemplateManager::_download_current() {
-	if (is_downloading_templates) {
-		return;
-	}
-	is_downloading_templates = true;
+    if (is_downloading_templates) {
+        return;
+    }
+    is_downloading_templates = true;
 
-	install_options_vb->hide();
-	download_progress_hb->show();
+    install_options_vb->hide();
+    download_progress_hb->show();
 
-	if (mirrors_available) {
-		String mirror_url = _get_selected_mirror();
-		if (mirror_url.is_empty()) {
-			_set_current_progress_status(TTR("There are no mirrors available."), true);
-			return;
-		}
+    // Сначала проверяем и добавляем свои зеркала
+    _add_custom_mirrors();
 
-		_download_template(mirror_url, true);
-	} else if (!is_refreshing_mirrors) {
-		_set_current_progress_status(TTR("Retrieving the mirror list..."));
-		_refresh_mirrors();
-	}
+    if (mirrors_available) {
+        String mirror_url = _get_selected_mirror();
+        if (mirror_url.is_empty()) {
+            _set_current_progress_status(TTR("There are no mirrors available."), true);
+            return;
+        }
+
+        _download_template(mirror_url, true);
+    } else if (!is_refreshing_mirrors) {
+        _set_current_progress_status(TTR("Retrieving the mirror list..."));
+        _refresh_mirrors();
+    }
 }
 
 void ExportTemplateManager::_download_template(const String &p_url, bool p_skip_check) {
@@ -281,65 +284,85 @@ void ExportTemplateManager::_refresh_mirrors() {
 }
 
 void ExportTemplateManager::_refresh_mirrors_completed(int p_status, int p_code, const PackedStringArray &headers, const PackedByteArray &p_data) {
-	if (p_status != HTTPRequest::RESULT_SUCCESS || p_code != 200) {
-		EditorNode::get_singleton()->show_warning(TTR("Error getting the list of mirrors."));
-		is_refreshing_mirrors = false;
-		if (is_downloading_templates) {
-			_cancel_template_download();
-		}
-		return;
-	}
+    mirrors_list->clear();
+    mirrors_list->add_item(TTR("Best available mirror"), 0);
 
-	String response_json = String::utf8((const char *)p_data.ptr(), p_data.size());
+    // Если официальные зеркала недоступны, сразу добавляем свои
+    if (p_status != HTTPRequest::RESULT_SUCCESS || p_code != 200) {
+        _add_custom_mirrors(); // ВЫЗЫВАЕМ СВОИ ЗЕРКАЛА
+        is_refreshing_mirrors = false;
 
-	JSON json;
-	Error err = json.parse(response_json);
-	if (err != OK) {
-		EditorNode::get_singleton()->show_warning(TTR("Error parsing JSON with the list of mirrors. Please report this issue!"));
-		is_refreshing_mirrors = false;
-		if (is_downloading_templates) {
-			_cancel_template_download();
-		}
-		return;
-	}
+        if (is_downloading_templates) {
+            String mirror_url = _get_selected_mirror();
+            if (mirror_url.is_empty()) {
+                _set_current_progress_status(TTR("There are no mirrors available."), true);
+                return;
+            }
+            _download_template(mirror_url, true);
+        }
+        return;
+    }
 
-	mirrors_list->clear();
-	mirrors_list->add_item(TTR("Best available mirror"), 0);
+    String response_json = String::utf8((const char *)p_data.ptr(), p_data.size());
 
-	mirrors_available = false;
+    JSON json;
+    Error err = json.parse(response_json);
+    if (err != OK) {
+        _add_custom_mirrors(); // ВЫЗЫВАЕМ СВОИ ЗЕРКАЛА
+        is_refreshing_mirrors = false;
+        return;
+    }
 
-	Dictionary mirror_data = json.get_data();
-	if (mirror_data.has("mirrors")) {
-		Array mirrors = mirror_data["mirrors"];
+    mirrors_available = false;
 
-		for (int i = 0; i < mirrors.size(); i++) {
-			Dictionary m = mirrors[i];
-			ERR_CONTINUE(!m.has("url") || !m.has("name"));
+    Dictionary mirror_data = json.get_data();
+    if (mirror_data.has("mirrors")) {
+        Array mirrors = mirror_data["mirrors"];
 
-			mirrors_list->add_item(m["name"]);
-			mirrors_list->set_item_metadata(i + 1, m["url"]);
+        for (int i = 0; i < mirrors.size(); i++) {
+            Dictionary m = mirrors[i];
+            ERR_CONTINUE(!m.has("url") || !m.has("name"));
 
-			mirrors_available = true;
-		}
-	}
-	if (!mirrors_available) {
-		EditorNode::get_singleton()->show_warning(TTR("No download links found for this version. Direct download is only available for official releases."));
-		if (is_downloading_templates) {
-			_cancel_template_download();
-		}
-	}
+            mirrors_list->add_item(m["name"]);
+            mirrors_list->set_item_metadata(i + 1, m["url"]);
 
-	is_refreshing_mirrors = false;
+            mirrors_available = true;
+        }
+    }
 
-	if (is_downloading_templates) {
-		String mirror_url = _get_selected_mirror();
-		if (mirror_url.is_empty()) {
-			_set_current_progress_status(TTR("There are no mirrors available."), true);
-			return;
-		}
+    if (!mirrors_available) {
+        _add_custom_mirrors();
+    }
 
-		_download_template(mirror_url, true);
-	}
+    is_refreshing_mirrors = false;
+
+    if (is_downloading_templates) {
+        String mirror_url = _get_selected_mirror();
+        if (mirror_url.is_empty()) {
+            _set_current_progress_status(TTR("There are no mirrors available."), true);
+            return;
+        }
+
+        _download_template(mirror_url, true);
+    }
+}
+
+// TODO: Сделать два зеркала для скачивания
+void ExportTemplateManager::_add_custom_mirrors() {
+    print_line("[REAL EXPORT]: showing mirror...");
+    mirrors_list->clear();
+
+    mirrors_list->add_item(TTR("Best available mirror"), 0);
+    String default_url = "https://github.com/Kish-Mish122/realengine/releases/download/v23.2.6/23.2.6.close-alpha.tpz";
+
+    mirrors_list->add_item("Real Engine.ru (Best)");
+    mirrors_list->set_item_metadata(1, default_url);
+
+    mirrors_list->select(1);
+
+    mirrors_available = true;
+
+    print_line("[REAL EXPORT]: mirror showing!");
 }
 
 void ExportTemplateManager::_force_online_mode() {
@@ -358,21 +381,21 @@ bool ExportTemplateManager::_humanize_http_status(HTTPRequest *p_request, String
 
 	switch (p_request->get_http_client_status()) {
 		case HTTPClient::STATUS_DISCONNECTED:
-			*r_status = TTR("Disconnected");
+			*r_status = TTR("Failed");
 			success = false;
 			break;
 		case HTTPClient::STATUS_RESOLVING:
-			*r_status = TTR("Resolving");
+			*r_status = TTR("Requesting a file");
 			break;
 		case HTTPClient::STATUS_CANT_RESOLVE:
 			*r_status = TTR("Can't Resolve");
 			success = false;
 			break;
 		case HTTPClient::STATUS_CONNECTING:
-			*r_status = TTR("Connecting...");
+			*r_status = TTR("The answer has been received! Starting the download");
 			break;
 		case HTTPClient::STATUS_CANT_CONNECT:
-			*r_status = TTR("Can't Connect");
+			*r_status = TTR("Couldn't start the download");
 			success = false;
 			break;
 		case HTTPClient::STATUS_CONNECTED:
@@ -624,17 +647,18 @@ void ExportTemplateManager::_uninstall_template_confirmed() {
 }
 
 String ExportTemplateManager::_get_selected_mirror() const {
-	if (mirrors_list->get_item_count() == 1) {
-		return "";
-	}
+    int selected = mirrors_list->get_selected_id();
 
-	int selected = mirrors_list->get_selected_id();
-	if (selected == 0) {
-		// This is a special "best available" value; so pick the first available mirror from the rest of the list.
-		selected = 1;
-	}
+    // Если ничего не выбрано, выбираем первый доступный
+    if (selected < 0 && mirrors_list->get_item_count() > 1) {
+        selected = 1;
+    }
 
-	return mirrors_list->get_item_metadata(selected);
+    if (selected > 0 && selected < mirrors_list->get_item_count()) {
+        return mirrors_list->get_item_metadata(selected);
+    }
+
+    return "";
 }
 
 void ExportTemplateManager::_mirror_options_button_cbk(int p_id) {

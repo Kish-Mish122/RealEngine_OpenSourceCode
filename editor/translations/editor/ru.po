@@ -6480,6 +6480,18 @@ msgstr ""
 msgid "Disconnected"
 msgstr "Отключён"
 
+msgid "Failed"
+msgstr "Не удалось подключиться"
+
+msgid "Requesting a file"
+msgstr "Запрашиваем файл"
+
+msgid "The answer has been received! Starting the download"
+msgstr "Ответ получен! Начинаем скачивание"
+
+msgid "Couldn't start the download"
+msgstr "Не удалось начать загрузку"
+
 msgid "Resolving"
 msgstr "Определение"
 
@@ -8369,11 +8381,30 @@ msgstr "Вставить как уникальный"
 msgid "Convert to %s"
 msgstr "Преобразовать в %s"
 
+msgid "Export Templates Missing"
+msgstr "Шаблон сборки не найден"
+
+msgid "Download Templates"
+msgstr "Скачать шаблон"
+
+msgid "Later"
+msgstr "Позже"
+
+msgid ""
+"You don't have export templates installed for this version.\n"
+"Would you like to download them now?"
+msgstr ""
+"Кажись, у вас нет шаблона сборки.\n"
+"Может, вы хотите скачать?"
+
 msgid "Select resources to make unique:"
 msgstr "Ресурсы, которые будут уникальными:"
 
 msgid "Duplicate resources"
 msgstr "Дублировать ресурсы"
+
+msgid "Real Engine.ru (Best)"
+msgstr "Real Engine.ru (Лучшее)"
 
 msgid "New"
 msgstr "Создать"

@@ -1403,26 +1403,144 @@ void ProjectManager::shortcut_input(const Ref<InputEvent> &p_ev) {
 }
 
 void ProjectManager::_files_dropped(PackedStringArray p_files) {
-	// TODO: Support installing multiple ZIPs at the same time?
-	if (p_files.size() == 1 && p_files[0].ends_with(".zip")) {
-		const String &file = p_files[0];
-		_install_project(file, file.get_file().get_basename().capitalize());
-		return;
-	}
+    // Разделяем ZIP файлы и папки
+    Vector<String> zip_files;
+    HashSet<String> folders_set;
 
-	HashSet<String> folders_set;
-	Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
-	for (int i = 0; i < p_files.size(); i++) {
-		const String &file = p_files[i];
-		folders_set.insert(da->dir_exists(file) ? file : file.get_base_dir());
-	}
-	ERR_FAIL_COND(folders_set.is_empty()); // This can't really happen, we consume every dropped file path above.
+    Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
 
-	PackedStringArray folders;
-	for (const String &E : folders_set) {
-		folders.push_back(E);
-	}
-	project_list->find_projects_multiple(folders);
+    for (int i = 0; i < p_files.size(); i++) {
+        const String &file = p_files[i];
+        if (file.ends_with(".zip")) {
+            zip_files.push_back(file);
+        } else {
+            folders_set.insert(da->dir_exists(file) ? file : file.get_base_dir());
+        }
+    }
+
+    // Обрабатываем ZIP файлы
+    if (!zip_files.is_empty()) {
+        if (zip_files.size() == 1) {
+            // Один ZIP - сразу устанавливаем
+            const String &file = zip_files[0];
+            _install_project(file, file.get_file().get_basename().capitalize());
+        } else {
+            // Несколько ZIP - показываем диалог выбора
+            _show_zip_selection_dialog(zip_files);
+        }
+        return;
+    }
+
+    // Обрабатываем папки для сканирования
+    if (!folders_set.is_empty()) {
+        PackedStringArray folders;
+        for (const String &folder : folders_set) {
+            folders.push_back(folder);
+        }
+        project_list->find_projects_multiple(folders);
+    }
+}
+
+void ProjectManager::_show_zip_selection_dialog(const PackedStringArray &p_zip_files) {
+    // Создаём диалог
+    ConfirmationDialog *dialog = memnew(ConfirmationDialog);
+    dialog->set_title(TTR("Install ZIP Archives"));
+    dialog->set_min_size(Size2(450, 350) * EDSCALE);
+
+    VBoxContainer *vbox = memnew(VBoxContainer);
+    dialog->add_child(vbox);
+    vbox->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+    vbox->set_v_size_flags(Control::SIZE_EXPAND_FILL);
+
+    Label *label = memnew(Label(TTR("Select ZIP files to install:")));
+    vbox->add_child(label);
+
+    // Контейнер для списка с прокруткой
+    ScrollContainer *scroll = memnew(ScrollContainer);
+    scroll->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+    scroll->set_v_size_flags(Control::SIZE_EXPAND_FILL);
+    scroll->set_custom_minimum_size(Size2(0, 200) * EDSCALE);
+    vbox->add_child(scroll);
+
+    VBoxContainer *list_vbox = memnew(VBoxContainer);
+    list_vbox->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+    scroll->add_child(list_vbox);
+
+    // Сохраняем пути файлов в метаданные диалога
+    dialog->set_meta("zip_count", p_zip_files.size());
+    for (int i = 0; i < p_zip_files.size(); i++) {
+        CheckBox *cb = memnew(CheckBox);
+        cb->set_text(p_zip_files[i].get_file());
+        cb->set_pressed(true);
+        cb->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+        cb->set_name("cb_" + itos(i)); // Уникальное имя для поиска
+        list_vbox->add_child(cb);
+
+        // Сохраняем путь в самом CheckBox
+        cb->set_meta("path", p_zip_files[i]);
+    }
+
+    // Подключаем кнопку OK
+    dialog->connect(SceneStringName(confirmed), callable_mp(this, &ProjectManager::_install_selected_zips_from_dialog).bind(dialog));
+
+    add_child(dialog);
+    dialog->popup_centered();
+}
+
+void ProjectManager::_install_selected_zips_from_dialog(ConfirmationDialog *p_dialog) {
+    // Получаем контейнер со списком
+    VBoxContainer *list_vbox = nullptr;
+
+    // Ищем VBoxContainer внутри диалога
+    for (int i = 0; i < p_dialog->get_child_count(); i++) {
+        VBoxContainer *vb = Object::cast_to<VBoxContainer>(p_dialog->get_child(i));
+        if (vb) {
+            // Ищем ScrollContainer внутри
+            for (int j = 0; j < vb->get_child_count(); j++) {
+                ScrollContainer *sc = Object::cast_to<ScrollContainer>(vb->get_child(j));
+                if (sc) {
+                    for (int k = 0; k < sc->get_child_count(); k++) {
+                        list_vbox = Object::cast_to<VBoxContainer>(sc->get_child(k));
+                        if (list_vbox) break;
+                    }
+                }
+            }
+        }
+    }
+
+    if (!list_vbox) {
+        p_dialog->queue_free();
+        return;
+    }
+
+    int installed_count = 0;
+
+    // Проходим по всем CheckBox
+    for (int i = 0; i < list_vbox->get_child_count(); i++) {
+        CheckBox *cb = Object::cast_to<CheckBox>(list_vbox->get_child(i));
+        if (cb && cb->is_pressed()) {
+            String path = cb->get_meta("path");
+            String name = path.get_file().get_basename().capitalize();
+            _install_project(path, name);
+            installed_count++;
+        }
+    }
+
+    // Показываем уведомление через AcceptDialog
+    if (installed_count > 0) {
+        AcceptDialog *msg = memnew(AcceptDialog);
+        msg->set_text(vformat(TTR("%d ZIP archive(s) installed successfully."), installed_count));
+        add_child(msg);
+        msg->popup_centered();
+    }
+
+    p_dialog->queue_free();
+}
+
+void ProjectManager::_install_selected_zips(const PackedStringArray &p_zip_files) {
+    for (int i = 0; i < p_zip_files.size(); i++) {
+        _install_project(p_zip_files[i], p_zip_files[i].get_file().get_basename().capitalize());
+    }
 }
 
 void ProjectManager::_titlebar_resized() {

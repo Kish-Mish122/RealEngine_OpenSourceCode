@@ -273,6 +273,9 @@ protected:
 	void _notification(int p_what);
 
 private:
+    void _install_selected_zips_from_dialog(ConfirmationDialog *p_dialog);
+    void _show_zip_selection_dialog(const PackedStringArray &p_zip_files);
+    void _install_selected_zips(const PackedStringArray &p_zip_files);
     Panel *splash_panel = nullptr;
     Label *engine_name_label = nullptr;
     Label *engine_version_label = nullptr;
