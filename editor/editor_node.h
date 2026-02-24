@@ -239,6 +239,15 @@ public:
 	};
 
 private:
+    HashMap<String, uint64_t> script_last_modified;
+    Timer *hot_reload_timer = nullptr;
+    bool project_running = false;
+
+    void _check_hot_reload();
+    void _start_hot_reload_timer();
+    void _stop_hot_reload_timer();
+    void _scan_folder(const String &p_path, const String &p_extension, Vector<String> &r_files);
+
     void _check_templates_and_ask();
     void _open_template_manager();
     void _download_templates_if_missing();

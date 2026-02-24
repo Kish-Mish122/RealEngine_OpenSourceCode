@@ -5416,6 +5416,10 @@ void EditorNode::_project_run_started() {
 	} else if (action_on_play == ACTION_ON_PLAY_OPEN_DEBUGGER) {
 		editor_dock_manager->open_dock(EditorDebuggerNode::get_singleton(), true);
 	}
+
+	    print_line("[REAL RELOAD]: Project started");
+        project_running = true;
+        _start_hot_reload_timer();
 }
 
 void EditorNode::_project_run_stopped() {
@@ -5423,6 +5427,10 @@ void EditorNode::_project_run_stopped() {
 	if (action_on_stop == ACTION_ON_STOP_CLOSE_BUTTOM_PANEL) {
 		bottom_panel->hide_bottom_panel();
 	}
+
+    print_line("[REAL RELOAD]: Project stopped");
+        project_running = false;
+        _stop_hot_reload_timer();
 }
 
 void EditorNode::notify_all_debug_sessions_exited() {
@@ -8851,7 +8859,7 @@ EditorNode::EditorNode() {
 	ED_SHORTCUT_AND_COMMAND("editor/editor_3d", TTRC("Open 3D Workspace"), KeyModifierMask::CTRL | Key::F2);
 	ED_SHORTCUT_AND_COMMAND("editor/editor_script", TTRC("Open Script Editor"), KeyModifierMask::CTRL | Key::F3);
 	ED_SHORTCUT_AND_COMMAND("editor/editor_game", TTRC("Open Game View"), KeyModifierMask::CTRL | Key::F4);
-	ED_SHORTCUT_AND_COMMAND("editor/editor_assetlib", TTRC("Open Asset Library"), KeyModifierMask::CTRL | Key::F5);
+	ED_SHORTCUT_AND_COMMAND("editor/editor_assetlib", TTRC("Open Real Store"), KeyModifierMask::CTRL | Key::F5);
 
 	ED_SHORTCUT_OVERRIDE("editor/editor_2d", "macos", KeyModifierMask::META | KeyModifierMask::CTRL | Key::KEY_1);
 	ED_SHORTCUT_OVERRIDE("editor/editor_3d", "macos", KeyModifierMask::META | KeyModifierMask::CTRL | Key::KEY_2);
@@ -9052,8 +9060,10 @@ EditorNode::EditorNode() {
 	default_layout.instantiate();
 	// Dock numbers are based on DockSlot enum value + 1.
 	default_layout->set_value(docks_section, "dock_3", "Scene,Import");
-	default_layout->set_value(docks_section, "dock_4", "FileSystem,History");
-	default_layout->set_value(docks_section, "dock_5", "Inspector,Signals,Groups");
+	default_layout->set_value(docks_section, "dock_4", "History");
+	default_layout->set_value(docks_section, "dock_5", "Inspector");
+	default_layout->set_value(docks_section, "dock_6", "Signals,Groups");
+	default_layout->set_value(docks_section, "dock_9", "FileSystem,Output,Debugger,Audio,Animation,Shader Editor,Search Results,AnimationTree,ResourcePreloader,ShaderFile,SpriteFrames,Theme,Polygon,TileSet,TileMap,Replication,GridMap");
 
 	int hsplits[] = { 0, dock_hsize, -dock_hsize, 0 };
 	for (int i = 0; i < (int)std_size(hsplits); i++) {
@@ -9216,7 +9226,7 @@ EditorNode::EditorNode() {
 	gui_base->add_child(disk_changed);
 
 	project_data_missing = memnew(ConfirmationDialog);
-	project_data_missing->set_text(TTRC("Project data folder (.godot) is missing. Please restart editor."));
+	project_data_missing->set_text(TTRC("Project data folder (.realengine) is missing. Please restart editor."));
 	project_data_missing->connect(SceneStringName(confirmed), callable_mp(this, &EditorNode::restart_editor).bind(false));
 	project_data_missing->set_ok_button_text(TTRC("Restart"));
 
@@ -9238,7 +9248,7 @@ EditorNode::EditorNode() {
 	if (AssetLibraryEditorPlugin::is_available()) {
 		add_editor_plugin(memnew(AssetLibraryEditorPlugin));
 	} else {
-		print_verbose("Asset Library not available (due to using Web editor, or SSL support disabled).");
+		print_verbose("Real Store not available (due to using Web editor, or SSL support disabled).");
 	}
 
 	// More visually meaningful to have this later.
@@ -9463,6 +9473,9 @@ EditorNode::EditorNode() {
 	use_system_accent_color = EDITOR_GET("interface/theme/use_system_accent_color");
 
 	callable_mp(this, &EditorNode::_check_templates_and_ask).call_deferred();
+
+     project_running = false;
+        hot_reload_timer = nullptr;
 }
 
 EditorNode::~EditorNode() {
@@ -9496,6 +9509,85 @@ EditorNode::~EditorNode() {
 	file_dialogs.clear();
 
 	singleton = nullptr;
+}
+
+void EditorNode::_start_hot_reload_timer() {
+    if (!hot_reload_timer) {
+        hot_reload_timer = memnew(Timer);
+        hot_reload_timer->set_one_shot(false);
+        hot_reload_timer->set_wait_time(0.5);
+        hot_reload_timer->connect("timeout", callable_mp(this, &EditorNode::_check_hot_reload));
+        add_child(hot_reload_timer);
+    }
+    hot_reload_timer->start();
+    print_line("[REAL RELOAD]: Time Reload - Started!");
+}
+
+void EditorNode::_stop_hot_reload_timer() {
+    if (hot_reload_timer) {
+        hot_reload_timer->stop();
+        print_line("[REAL RELOAD]: Timer stopped");
+    }
+}
+
+void EditorNode::_check_hot_reload() {
+    if (!project_running) {
+        return;
+    }
+
+    // Сканируем все .gd файлы
+    Vector<String> script_files;
+    _scan_folder("res://", "rlscr", script_files);
+
+    for (int i = 0; i < script_files.size(); i++) {
+        String path = script_files[i];
+
+        if (!FileAccess::exists(path)) {
+            continue;
+        }
+
+        uint64_t last_modified = FileAccess::get_modified_time(path);
+        uint64_t *cached_time = script_last_modified.getptr(path);
+
+        if (cached_time && *cached_time != last_modified) {
+            print_line("[REAL RELOAD]: File changed: " + path.get_file());
+            script_last_modified[path] = last_modified;
+
+            // Перезагружаем скрипт
+            ResourceLoader::load(path, "", ResourceFormatLoader::CACHE_MODE_IGNORE);
+            print_line("[REAL RELOAD]: Script reloaded: " + path.get_file());
+
+        } else if (!cached_time) {
+            script_last_modified[path] = last_modified;
+        }
+    }
+}
+
+void EditorNode::_scan_folder(const String &p_path, const String &p_extension, Vector<String> &r_files) {
+    Ref<DirAccess> da = DirAccess::open(p_path);
+    if (da.is_null()) return;
+
+    da->list_dir_begin();
+    String file_name = da->get_next();
+
+    while (!file_name.is_empty()) {
+        if (file_name == "." || file_name == "..") {
+            file_name = da->get_next();
+            continue;
+        }
+
+        String full_path = p_path.path_join(file_name);
+
+        if (da->current_is_dir()) {
+            _scan_folder(full_path, p_extension, r_files);
+        } else if (file_name.ends_with("." + p_extension)) {
+            r_files.push_back(full_path);
+        }
+
+        file_name = da->get_next();
+    }
+
+    da->list_dir_end();
 }
 
 void EditorNode::_autosave_notification() {
@@ -9580,22 +9672,22 @@ void EditorNode::_import_asset_from_url(const String &p_url, const String &p_nam
     // Начинаем скачивание
     Error err = request->request(p_url, headers);
     if (err != OK) {
-        EditorNode::get_singleton()->show_warning("Не удалось начать скачивание ассета");
+        EditorNode::get_singleton()->show_warning("Couldn't start asset download");
         return;
     }
 
     // Показываем прогресс
-    progress_dialog->add_task("import_asset", "Импорт ассета: " + p_name, 100);
+    progress_dialog->add_task("import_asset", "Importing an asset: " + p_name, 100);
 
     // Разворачиваем окно
     DisplayServer::get_singleton()->window_set_mode(DisplayServer::WINDOW_MODE_MAXIMIZED);
 }
 
 void EditorNode::_import_asset_downloaded(int p_status, int p_code, const PackedStringArray &p_headers, const PackedByteArray &p_data, const String &p_temp_file) {
-    progress_dialog->task_step("import_asset", "Сохранение...", 50);
+    progress_dialog->task_step("import_asset", "Save...", 50);
 
     if (p_status != HTTPRequest::RESULT_SUCCESS || p_code != 200) {
-        EditorNode::get_singleton()->show_warning("Ошибка при скачивании ассета");
+        EditorNode::get_singleton()->show_warning("Error when downloading an asset");
         progress_dialog->end_task("import_asset");
         return;
     }
@@ -9605,7 +9697,7 @@ void EditorNode::_import_asset_downloaded(int p_status, int p_code, const Packed
     f->store_buffer(p_data.ptr(), p_data.size());
     f.unref();
 
-    progress_dialog->task_step("import_asset", "Импорт...", 80);
+    progress_dialog->task_step("import_asset", "Import...", 80);
 
     // Открываем диалог импорта
     EditorAssetInstaller *installer = memnew(EditorAssetInstaller);

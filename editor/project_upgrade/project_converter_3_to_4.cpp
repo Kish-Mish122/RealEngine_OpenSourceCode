@@ -252,13 +252,13 @@ public:
 			for (unsigned int current_index = 0; RenamesMap3To4::class_renames[current_index][0]; current_index++) {
 				const String class_name = RenamesMap3To4::class_renames[current_index][0];
 				class_tscn_regexes.push_back(memnew(RegEx(String("\\b") + class_name + ".tscn\\b")));
-				class_gd_regexes.push_back(memnew(RegEx(String("\\b") + class_name + ".gd\\b")));
+				class_gd_regexes.push_back(memnew(RegEx(String("\\b") + class_name + ".rlscr\\b")));
 				class_shader_regexes.push_back(memnew(RegEx(String("\\b") + class_name + ".shader\\b")));
 
 				class_regexes.push_back(memnew(RegEx(String("\\b") + class_name + "\\b")));
 
 				class_temp_tscn_renames.push_back(class_name + ".tscn");
-				class_temp_gd_renames.push_back(class_name + ".gd");
+				class_temp_gd_renames.push_back(class_name + ".rlscr");
 				class_temp_shader_renames.push_back(class_name + ".shader");
 			}
 		}
@@ -391,7 +391,7 @@ bool ProjectConverter3To4::convert() {
 
 		if (file_size < uint64_t(maximum_file_size)) {
 			// ".tscn" must work exactly the same as ".gd" files because they may contain built-in Scripts.
-			if (file_name.ends_with(".gd")) {
+			if (file_name.ends_with(".rlscr")) {
 				fix_tool_declaration(source_lines, reg_container);
 
 				rename_classes(source_lines, reg_container); // Using only specialized function.

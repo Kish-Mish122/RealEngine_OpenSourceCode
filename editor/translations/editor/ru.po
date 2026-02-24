@@ -8020,6 +8020,30 @@ msgstr "Удалить свойство"
 msgid "Revert Value"
 msgstr "Вернуть значение"
 
+msgid "[REAL RELOAD]: Time Reload - Started!"
+msgstr "[REAL RELOAD]: Горячая перезагрузка начала работу!"
+
+msgid "[REAL RELOAD]: Timer stopped"
+msgstr "[REAL RELOAD]: Горячая перезагрузка остановила работу"
+
+msgid "[REAL RELOAD]: File changed: " + path.get_file()"
+msgstr "[REAL RELOAD]: Файл изменён: " + path.get_file()"
+
+msgid "[REAL RELOAD]: Script reloaded: " + path.get_file()"
+msgstr "[REAL RELOAD]: Скрипт перезагружен: " + path.get_file()"
+
+msgid "5 seconds until autosave..."
+msgstr "5 секунд до автосохранения..."
+
+msgid "Scene autosaved!"
+msgstr "Сцена сохранена!"
+
+msgid "Autosave disabled"
+msgstr "Автосохранение выключено"
+
+msgid "Autosave interval too short: " + itos(autosave_interval) + " seconds"
+msgstr "Слишком маленький интервал автосохранения: " + itos(autosave_interval) + " секунд"
+
 msgid "Category: %s"
 msgstr "Категория: %s"
 

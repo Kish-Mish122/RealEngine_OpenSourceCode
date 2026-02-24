@@ -689,7 +689,7 @@ EditorAssetLibraryItemDownload::EditorAssetLibraryItemDownload() {
 void EditorAssetLibrary::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_READY: {
-			add_theme_style_override(SceneStringName(panel), get_theme_stylebox(SNAME("bg"), SNAME("AssetLib")));
+			add_theme_style_override(SceneStringName(panel), get_theme_stylebox(SNAME("bg"), SNAME("Real Store")));
 			error_label->move_to_front();
 		} break;
 
@@ -703,7 +703,7 @@ void EditorAssetLibrary::_notification(int p_what) {
 			error_tr->set_texture(get_editor_theme_icon(SNAME("Error")));
 			filter->set_right_icon(get_editor_theme_icon(SNAME("Search")));
 			library_scroll->add_theme_style_override(SceneStringName(panel), get_theme_stylebox(SceneStringName(panel), SNAME("Tree")));
-			downloads_scroll->add_theme_style_override(SceneStringName(panel), get_theme_stylebox(SNAME("downloads"), SNAME("AssetLib")));
+			downloads_scroll->add_theme_style_override(SceneStringName(panel), get_theme_stylebox(SNAME("downloads"), SNAME("Real Store")));
 			error_label->add_theme_color_override("color", get_theme_color(SNAME("error_color"), EditorStringName(Editor)));
 		} break;
 

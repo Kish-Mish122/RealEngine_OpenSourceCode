@@ -92,7 +92,7 @@ protected:
 	}
 
 	virtual void _export_file(const String &p_path, const String &p_type, const HashSet<String> &p_features) override {
-		if (p_path.get_extension() != "gd" || script_mode == EditorExportPreset::MODE_SCRIPT_TEXT) {
+		if (p_path.get_extension() != "rlscr" || script_mode == EditorExportPreset::MODE_SCRIPT_TEXT) {
 			return;
 		}
 
@@ -112,7 +112,7 @@ protected:
 	}
 
 public:
-	virtual String get_name() const override { return "GDScript"; }
+	virtual String get_name() const override { return "RLScript"; }
 };
 
 static void _editor_init() {

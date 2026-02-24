@@ -254,7 +254,7 @@ String GDScriptWarning::get_name_from_code(Code p_code) {
 }
 
 String GDScriptWarning::get_setting_path_from_code(Code p_code) {
-	return "debug/gdscript/warnings/" + get_name_from_code(p_code).to_lower();
+	return "debug/rlscript/warnings/" + get_name_from_code(p_code).to_lower();
 }
 
 GDScriptWarning::Code GDScriptWarning::get_code_from_name(const String &p_name) {

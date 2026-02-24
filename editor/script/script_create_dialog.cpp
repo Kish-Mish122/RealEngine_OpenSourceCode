@@ -41,6 +41,7 @@
 #include "editor/gui/editor_file_dialog.h"
 #include "editor/gui/editor_validation_panel.h"
 #include "editor/settings/editor_settings.h"
+#include "core/string/print_string.h"
 #include "editor/themes/editor_scale.h"
 #include "scene/gui/grid_container.h"
 #include "scene/gui/line_edit.h"
@@ -492,8 +493,110 @@ void ScriptCreateDialog::_file_selected(const String &p_file) {
 }
 
 void ScriptCreateDialog::_create() {
-	parent_name->set_text(select_class->get_selected_type_name());
-	_parent_name_changed(parent_name->get_text());
+    print_line("=== SCRIPT CREATE DIALOG ===");
+
+    // Получаем путь к файлу
+    String path = file_path->get_text();
+    print_line("[DEBUG] Creating script at: " + path);
+
+    if (path.is_empty()) {
+        print_line("[ERROR] Path is empty!");
+        alert->set_text(TTR("Path is empty."));
+        alert->popup_centered();
+        return;
+    }
+
+    // Проверяем директорию
+    String dir = path.get_base_dir();
+    print_line("[DEBUG] Directory: " + dir);
+
+    Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
+    if (!da->dir_exists(dir)) {
+        print_line("[DEBUG] Creating directory: " + dir);
+        Error err = da->make_dir_recursive(dir);
+        print_line("[DEBUG] Create dir result: " + itos(err));
+        if (err != OK) {
+            alert->set_text(TTR("Failed to create directory."));
+            alert->popup_centered();
+            return;
+        }
+    }
+
+    // Проверяем расширение
+    String ext = path.get_extension();
+    print_line("[DEBUG] Extension: " + ext);
+
+    if (ext != "rlscr") {
+        print_line("[ERROR] Invalid extension: " + ext);
+        alert->set_text(TTR("Invalid extension. Use .rlscr"));
+        alert->popup_centered();
+        return;
+    }
+
+    // Проверяем существование файла
+    if (FileAccess::exists(path) && is_new_script_created) {
+        print_line("[ERROR] File already exists!");
+        alert->set_text(TTR("File already exists."));
+        alert->popup_centered();
+        return;
+    }
+
+    // Получаем выбранный язык
+    int lang_idx = language_menu->get_selected();
+    ScriptLanguage *lang = ScriptServer::get_language(lang_idx);
+    print_line("[DEBUG] Language: " + lang->get_name());
+
+    // Получаем имя класса
+    String class_name = path.get_file().get_basename();
+    print_line("[DEBUG] Class name: " + class_name);
+
+    // Получаем родительский класс
+    String parent = parent_name->get_text();
+    print_line("[DEBUG] Parent class: " + parent);
+
+    // Получаем шаблон
+    ScriptLanguage::ScriptTemplate templ = _get_current_template();
+    print_line("[DEBUG] Template: " + templ.name);
+
+    // Создаём скрипт
+    Ref<Script> script;
+
+    if (is_using_templates && !templ.content.is_empty()) {
+        script = lang->make_template(templ.content, class_name, parent);
+    } else {
+        // Используем базовый шаблон языка
+        script = lang->make_template("", class_name, parent);
+    }
+
+    if (script.is_null()) {
+        print_line("[ERROR] Failed to create script object");
+        alert->set_text(TTR("Failed to create script."));
+        alert->popup_centered();
+        return;
+    }
+
+    // Сохраняем скрипт
+    if (is_built_in) {
+        script->set_name(built_in_name->get_text());
+        script->reload();
+        print_line("[SUCCESS] Built-in script created");
+    } else {
+        String lpath = ProjectSettings::get_singleton()->localize_path(path);
+        script->set_path(lpath);
+        Error err = ResourceSaver::save(script, lpath, ResourceSaver::FLAG_CHANGE_PATH);
+        print_line("[DEBUG] Save result: " + itos(err));
+
+        if (err != OK) {
+            alert->set_text(TTR("Error saving script."));
+            alert->popup_centered();
+            return;
+        }
+        print_line("[SUCCESS] Script saved to: " + lpath);
+    }
+
+    // Сигнал об успехе
+    emit_signal(SNAME("script_created"), script);
+    hide();
 }
 
 void ScriptCreateDialog::_browse_class_in_tree() {
@@ -893,7 +996,7 @@ ScriptCreateDialog::ScriptCreateDialog() {
 	for (int i = 0; i < ScriptServer::get_language_count(); i++) {
 		String lang = ScriptServer::get_language(i)->get_name();
 		language_menu->add_item(lang);
-		if (lang == "GDScript") {
+		if (lang == "RLScript") {
 			default_language = i;
 		}
 	}

@@ -179,7 +179,7 @@ GDScriptInstance *GDScript::_create_instance(const Variant **p_args, int p_argco
 			MutexLock lock(GDScriptLanguage::singleton->mutex);
 			instances.erase(p_owner);
 		}
-		ERR_FAIL_V_MSG(nullptr, "Error constructing a GDScriptInstance: " + error_text);
+		ERR_FAIL_V_MSG(nullptr, "Error constructing a RLScriptInstance: " + error_text);
 	}
 
 	if (p_argcount < 0) {
@@ -197,7 +197,7 @@ GDScriptInstance *GDScript::_create_instance(const Variant **p_args, int p_argco
 				MutexLock lock(GDScriptLanguage::singleton->mutex);
 				instances.erase(p_owner);
 			}
-			ERR_FAIL_V_MSG(nullptr, "Error constructing a GDScriptInstance: " + error_text);
+			ERR_FAIL_V_MSG(nullptr, "Error constructing a RLScriptInstance: " + error_text);
 		}
 	}
 	//@TODO make thread safe
@@ -823,7 +823,7 @@ Error GDScript::reload(bool p_keep_state) {
 			GDScriptLanguage::get_singleton()->debug_break_parse(_get_debug_path(), parser.get_errors().front()->get().line, "Parser Error: " + parser.get_errors().front()->get().message);
 		}
 		// TODO: Show all error messages.
-		_err_print_error("GDScript::reload", path.is_empty() ? "built-in" : (const char *)path.utf8().get_data(), parser.get_errors().front()->get().line, ("Parse Error: " + parser.get_errors().front()->get().message).utf8().get_data(), false, ERR_HANDLER_SCRIPT);
+		_err_print_error("RLScript::reload", path.is_empty() ? "built-in" : (const char *)path.utf8().get_data(), parser.get_errors().front()->get().line, ("Parse Error: " + parser.get_errors().front()->get().message).utf8().get_data(), false, ERR_HANDLER_SCRIPT);
 		reloading = false;
 		return ERR_PARSE_ERROR;
 	}
@@ -838,7 +838,7 @@ Error GDScript::reload(bool p_keep_state) {
 
 		const List<GDScriptParser::ParserError>::Element *e = parser.get_errors().front();
 		while (e != nullptr) {
-			_err_print_error("GDScript::reload", path.is_empty() ? "built-in" : (const char *)path.utf8().get_data(), e->get().line, ("Parse Error: " + e->get().message).utf8().get_data(), false, ERR_HANDLER_SCRIPT);
+			_err_print_error("RLScript::reload", path.is_empty() ? "built-in" : (const char *)path.utf8().get_data(), e->get().line, ("Parse Error: " + e->get().message).utf8().get_data(), false, ERR_HANDLER_SCRIPT);
 			e = e->next();
 		}
 		reloading = false;
@@ -852,7 +852,7 @@ Error GDScript::reload(bool p_keep_state) {
 
 	if (err) {
 		// TODO: Provide the script function as the first argument.
-		_err_print_error("GDScript::reload", path.is_empty() ? "built-in" : (const char *)path.utf8().get_data(), compiler.get_error_line(), ("Compile Error: " + compiler.get_error()).utf8().get_data(), false, ERR_HANDLER_SCRIPT);
+		_err_print_error("RLScript::reload", path.is_empty() ? "built-in" : (const char *)path.utf8().get_data(), compiler.get_error_line(), ("Compile Error: " + compiler.get_error()).utf8().get_data(), false, ERR_HANDLER_SCRIPT);
 		if (can_run) {
 			if (EngineDebugger::is_active()) {
 				GDScriptLanguage::get_singleton()->debug_break_parse(_get_debug_path(), compiler.get_error_line(), "Parser Error: " + compiler.get_error());
@@ -876,7 +876,7 @@ Error GDScript::reload(bool p_keep_state) {
 		if (EngineDebugger::is_active()) {
 			Vector<ScriptLanguage::StackInfo> si;
 			// TODO: Provide the script function as the first argument.
-			EngineDebugger::get_script_debugger()->send_error("GDScript::reload", get_script_path(), warning.start_line, warning.get_name(), warning.get_message(), false, ERR_HANDLER_WARNING, si);
+			EngineDebugger::get_script_debugger()->send_error("RLScript::reload", get_script_path(), warning.start_line, warning.get_name(), warning.get_message(), false, ERR_HANDLER_WARNING, si);
 		}
 	}
 #endif
@@ -1110,7 +1110,7 @@ String GDScript::get_script_path() const {
 }
 
 Error GDScript::load_source_code(const String &p_path) {
-	if (p_path.is_empty() || p_path.begins_with("gdscript://") || ResourceLoader::get_resource_type(p_path.get_slice("::", 0)) == "PackedScene") {
+	if (p_path.is_empty() || p_path.begins_with("rlscr://") || ResourceLoader::get_resource_type(p_path.get_slice("::", 0)) == "PackedScene") {
 		return OK;
 	}
 
@@ -1307,7 +1307,7 @@ GDScript::GDScript() :
 		GDScriptLanguage::get_singleton()->script_list.add(&script_list);
 	}
 
-	path = vformat("gdscript://%d.gd", get_instance_id());
+	path = vformat("rlscr://%d.rlscr", get_instance_id());
 }
 
 void GDScript::_save_orphaned_subclasses() {
@@ -1368,7 +1368,7 @@ String GDScript::debug_get_script_name(const Ref<Script> &p_script) {
 
 String GDScript::canonicalize_path(const String &p_path) {
 	if (p_path.get_extension() == "gdc") {
-		return p_path.get_basename() + ".gd";
+		return p_path.get_basename() + ".rlscr";
 	}
 	return p_path;
 }
@@ -1502,7 +1502,7 @@ GDScript::~GDScript() {
 	if (is_print_verbose_enabled()) {
 		MutexLock lock(func_ptrs_to_update_mutex);
 		if (!func_ptrs_to_update.is_empty()) {
-			print_line(vformat("GDScript: %d orphaned lambdas becoming invalid at destruction of script '%s'.", func_ptrs_to_update.size(), fully_qualified_name));
+			print_line(vformat("RLScript: %d orphaned lambdas becoming invalid at destruction of script '%s'.", func_ptrs_to_update.size(), fully_qualified_name));
 		}
 	}
 
@@ -2037,7 +2037,7 @@ GDScriptInstance::~GDScriptInstance() {
 GDScriptLanguage *GDScriptLanguage::singleton = nullptr;
 
 String GDScriptLanguage::get_name() const {
-	return "GDScript";
+	return "RLScript";
 }
 
 /* LANGUAGE FUNCTIONS */
@@ -2167,11 +2167,11 @@ void GDScriptLanguage::_extension_unloading(const Ref<GDExtension> &p_extension)
 #endif
 
 String GDScriptLanguage::get_type() const {
-	return "GDScript";
+	return "RLScript";
 }
 
 String GDScriptLanguage::get_extension() const {
-	return "gd";
+	return "rlscr";
 }
 
 void GDScriptLanguage::finish() {
@@ -2384,7 +2384,7 @@ struct GDScriptDepSort {
 
 void GDScriptLanguage::reload_all_scripts() {
 #ifdef DEBUG_ENABLED
-	print_verbose("GDScript: Reloading all scripts");
+	print_verbose("RLScript: Reloading all scripts");
 	Array scripts;
 	{
 		MutexLock lock(mutex);
@@ -2392,7 +2392,7 @@ void GDScriptLanguage::reload_all_scripts() {
 		SelfList<GDScript> *elem = script_list.first();
 		while (elem) {
 			if (elem->self()->get_path().is_resource_file()) {
-				print_verbose("GDScript: Found: " + elem->self()->get_path());
+				print_verbose("RLScript: Found: " + elem->self()->get_path());
 				scripts.push_back(Ref<GDScript>(elem->self())); //cast to gdscript to avoid being erased by accident
 			}
 			elem = elem->next();
@@ -2493,7 +2493,7 @@ void GDScriptLanguage::reload_scripts(const Array &p_scripts, bool p_soft_reload
 
 	for (KeyValue<Ref<GDScript>, HashMap<ObjectID, List<Pair<StringName, Variant>>>> &E : to_reload) {
 		Ref<GDScript> scr = E.key;
-		print_verbose("GDScript: Reloading: " + scr->get_path());
+		print_verbose("RLScript: Reloading: " + scr->get_path());
 		if (scr->is_built_in()) {
 			// TODO: It would be nice to do it more efficiently than loading the whole scene again.
 			Ref<PackedScene> scene = ResourceLoader::load(scr->get_path().get_slice("::", 0), "", ResourceFormatLoader::CACHE_MODE_IGNORE_DEEP);
@@ -2657,7 +2657,7 @@ bool GDScriptLanguage::is_control_flow_keyword(const String &p_keyword) const {
 }
 
 bool GDScriptLanguage::handles_global_class_type(const String &p_type) const {
-	return p_type == "GDScript";
+	return p_type == "RLScript";
 }
 
 String GDScriptLanguage::get_global_class_name(const String &p_path, String *r_base_type, String *r_icon_path, bool *r_is_abstract, bool *r_is_tool) const {
@@ -2826,10 +2826,10 @@ GDScriptLanguage::GDScriptLanguage() {
 	track_call_stack = true;
 	track_locals = track_locals || EngineDebugger::is_active();
 
-	GLOBAL_DEF("debug/gdscript/warnings/enable", true);
+	GLOBAL_DEF("debug/rlscript/warnings/enable", true);
 
 	GLOBAL_DEF(PropertyInfo(Variant::DICTIONARY,
-					   "debug/gdscript/warnings/directory_rules",
+					   "debug/rlscript/warnings/directory_rules",
 					   PROPERTY_HINT_TYPE_STRING,
 					   vformat("%d/%d:;%d/%d:Exclude,Include", Variant::STRING, PROPERTY_HINT_DIR, Variant::INT, PROPERTY_HINT_ENUM)),
 			Dictionary({ { "res://addons", GDScriptParser::WarningDirectoryRule::DECISION_EXCLUDE } }));
@@ -2849,7 +2849,7 @@ GDScriptLanguage::GDScriptLanguage() {
 
 	// TODO: This setting has nothing to do with warnings. It should be moved at the next compatibility breakage,
 	// if the setting is still relevant at that time.
-	GLOBAL_DEF("debug/gdscript/warnings/renamed_in_godot_4_hint", true);
+	GLOBAL_DEF("debug/rlscript/warnings/renamed_in_godot_4_hint", true);
 #endif // DEBUG_ENABLED
 }
 
@@ -2916,18 +2916,18 @@ Ref<Resource> ResourceFormatLoaderGDScript::load(const String &p_path, const Str
 }
 
 void ResourceFormatLoaderGDScript::get_recognized_extensions(List<String> *p_extensions) const {
-	p_extensions->push_back("gd");
+	p_extensions->push_back("rlscr");
 	p_extensions->push_back("gdc");
 }
 
 bool ResourceFormatLoaderGDScript::handles_type(const String &p_type) const {
-	return (p_type == "Script" || p_type == "GDScript");
+	return (p_type == "Script" || p_type == "RLScript");
 }
 
 String ResourceFormatLoaderGDScript::get_resource_type(const String &p_path) const {
 	String el = p_path.get_extension().to_lower();
-	if (el == "gd" || el == "gdc") {
-		return "GDScript";
+	if (el == "rlscr" || el == "gdc") {
+		return "RLScript";
 	}
 	return "";
 }
@@ -3017,7 +3017,7 @@ Error ResourceFormatSaverGDScript::save(const Ref<Resource> &p_resource, const S
 		Error err;
 		Ref<FileAccess> file = FileAccess::open(p_path, FileAccess::WRITE, &err);
 
-		ERR_FAIL_COND_V_MSG(err, err, "Cannot save GDScript file '" + p_path + "'.");
+		ERR_FAIL_COND_V_MSG(err, err, "Cannot save RLScript file '" + p_path + "'.");
 
 		file->store_string(source);
 		if (file->get_error() != OK && file->get_error() != ERR_FILE_EOF) {
@@ -3034,7 +3034,7 @@ Error ResourceFormatSaverGDScript::save(const Ref<Resource> &p_resource, const S
 
 void ResourceFormatSaverGDScript::get_recognized_extensions(const Ref<Resource> &p_resource, List<String> *p_extensions) const {
 	if (Object::cast_to<GDScript>(*p_resource)) {
-		p_extensions->push_back("gd");
+		p_extensions->push_back("rlscr");
 	}
 }
 

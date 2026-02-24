@@ -460,7 +460,7 @@ String GDScriptLanguage::debug_parse_stack_level_expression(int p_level, const S
 }
 
 void GDScriptLanguage::get_recognized_extensions(List<String> *p_extensions) const {
-	p_extensions->push_back("gd");
+	p_extensions->push_back("rlscr");
 }
 
 void GDScriptLanguage::get_public_functions(List<MethodInfo> *p_functions) const {
@@ -1674,7 +1674,7 @@ static GDScriptCompletionIdentifier _type_from_variant(const Variant &p_value, G
 			ci.type.native_type = scr->get_instance_base_type();
 			ci.type.kind = GDScriptParser::DataType::SCRIPT;
 
-			if (scr->get_path().ends_with(".gd")) {
+			if (scr->get_path().ends_with(".rlscr")) {
 				Ref<GDScriptParserRef> parser = p_context.parser->get_depended_parser_for(scr->get_path());
 				if (parser.is_valid() && parser->raise_status(GDScriptParserRef::INTERFACE_SOLVED) == OK) {
 					ci.type.type_source = GDScriptParser::DataType::ANNOTATED_EXPLICIT;
@@ -2480,7 +2480,7 @@ static bool _guess_identifier_type(GDScriptParser::CompletionContext &p_context,
 	// Check global scripts.
 	if (ScriptServer::is_global_class(p_identifier->name)) {
 		String script = ScriptServer::get_global_class_path(p_identifier->name);
-		if (script.to_lower().ends_with(".gd")) {
+		if (script.to_lower().ends_with(".rlscr")) {
 			Ref<GDScriptParserRef> parser = p_context.parser->get_depended_parser_for(script);
 			if (parser.is_valid() && parser->raise_status(GDScriptParserRef::INTERFACE_SOLVED) == OK) {
 				r_type.type.type_source = GDScriptParser::DataType::ANNOTATED_EXPLICIT;
@@ -4485,9 +4485,9 @@ static Error _lookup_symbol_from_base(const GDScriptParser::DataType &p_base, co
 					const ProjectSettings::AutoloadInfo &autoload = ProjectSettings::get_singleton()->get_autoload(p_symbol);
 					if (autoload.is_singleton) {
 						String scr_path = autoload.path;
-						if (!scr_path.ends_with(".gd")) {
+						if (!scr_path.ends_with(".rlscr")) {
 							// Not a script, try find the script anyway, may have some success.
-							scr_path = scr_path.get_basename() + ".gd";
+							scr_path = scr_path.get_basename() + ".rlscr";
 						}
 
 						if (FileAccess::exists(scr_path)) {

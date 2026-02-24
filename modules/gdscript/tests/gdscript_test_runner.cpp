@@ -148,7 +148,7 @@ GDScriptTestRunner::GDScriptTestRunner(const String &p_source_dir, bool p_init_l
 
 #ifdef DEBUG_ENABLED
 	// Set all warning levels to "Warn" in order to test them properly, even the ones that default to error.
-	ProjectSettings::get_singleton()->set_setting("debug/gdscript/warnings/enable", true);
+	ProjectSettings::get_singleton()->set_setting("debug/rlscript/warnings/enable", true);
 	for (int i = 0; i < (int)GDScriptWarning::WARNING_MAX; i++) {
 		if (i == GDScriptWarning::UNTYPED_DECLARATION || i == GDScriptWarning::INFERRED_DECLARATION) {
 			// TODO: Add ability for test scripts to specify which warnings to enable/disable for testing.
@@ -281,13 +281,13 @@ bool GDScriptTestRunner::make_tests_for_dir(const String &p_dir) {
 			}
 		} else {
 			// `*.notest.gd` files are skipped.
-			if (next.ends_with(".notest.gd")) {
+			if (next.ends_with(".notest.rlscr")) {
 				next = dir->get_next();
 				continue;
-			} else if (binary_tokens && next.ends_with(".textonly.gd")) {
+			} else if (binary_tokens && next.ends_with(".textonly.rlscr")) {
 				next = dir->get_next();
 				continue;
-			} else if (next.has_extension("gd")) {
+			} else if (next.has_extension("rlscr")) {
 #ifndef DEBUG_ENABLED
 				// On release builds, skip tests marked as debug only.
 				Error open_err = OK;
@@ -307,7 +307,7 @@ bool GDScriptTestRunner::make_tests_for_dir(const String &p_dir) {
 				String out_file = next.get_basename() + ".out";
 				ERR_FAIL_COND_V_MSG(!is_generating && !dir->file_exists(out_file), false, "Could not find output file for " + next);
 
-				if (next.ends_with(".bin.gd")) {
+				if (next.ends_with(".bin.rlscr")) {
 					// Test text mode first.
 					GDScriptTest text_test(current_dir.path_join(next), current_dir.path_join(out_file), source_dir);
 					tests.push_back(text_test);
@@ -367,7 +367,7 @@ static bool generate_class_index_recursive(const String &p_dir) {
 				return false;
 			}
 		} else {
-			if (!next.ends_with(".gd")) {
+			if (!next.ends_with(".rlscr")) {
 				next = dir->get_next();
 				continue;
 			}
@@ -422,7 +422,7 @@ void GDScriptTestRunner::handle_cmdline() {
 			if (E->next()) {
 				path = E->next()->get();
 			} else {
-				path = "modules/gdscript/tests/scripts";
+				path = "modules/rlscript/tests/scripts";
 			}
 
 			GDScriptTestRunner runner(path, false, cmdline_args.find("--print-filenames") != nullptr);
@@ -607,7 +607,7 @@ GDScriptTest::TestResult GDScriptTest::execute_test_code(bool p_is_generating) {
 	}
 
 	// `*.norun.gd` files are allowed to not contain a `test()` function (no runtime testing).
-	if (source_file.ends_with(".norun.gd")) {
+	if (source_file.ends_with(".norun.rlscr")) {
 		enable_stdout();
 		result.status = GDTEST_OK;
 		result.output = get_text_for_status(result.status) + "\n" + result.output;

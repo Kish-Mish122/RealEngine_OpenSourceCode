@@ -4050,7 +4050,7 @@ void ScriptEditor::_on_find_in_files_result_selected(const String &fpath, int li
 				return;
 			}
 
-			const char *scr_header = "[sub_resource type=\"GDScript\" id=\"";
+			const char *scr_header = "[sub_resource type=\"RLScript\" id=\"";
 			const char *source_header = "script/source = \"";
 			String script_id;
 

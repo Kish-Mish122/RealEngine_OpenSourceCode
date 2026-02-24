@@ -438,7 +438,7 @@ FindInFilesDialog::FindInFilesDialog() {
 
 	_excludes_line_edit = memnew(LineEdit);
 	_excludes_line_edit->set_h_size_flags(Control::SIZE_EXPAND_FILL);
-	_excludes_line_edit->set_placeholder(TTRC("example: res://addons,scenes/test/*.gd"));
+	_excludes_line_edit->set_placeholder(TTRC("example: res://addons,scenes/test/*.rlscr"));
 	_excludes_line_edit->set_accessibility_name(TTRC("Excludes:"));
 	_excludes_line_edit->connect(SceneStringName(text_submitted), callable_mp(this, &FindInFilesDialog::_on_search_text_submitted));
 	gc->add_child(_excludes_line_edit);
