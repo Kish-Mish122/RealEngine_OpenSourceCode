@@ -152,7 +152,7 @@ public:
 	// to handle TSCN, TRES, `project.rlengine` well. We can expose it in case the
 	// user opens one of these using the script editor (which can be done using
 	// the All Files filter).
-	virtual PackedStringArray _get_supported_languages() const override { return PackedStringArray{ "ini", "cfg", "tscn", "tres", "godot" }; }
+	virtual PackedStringArray _get_supported_languages() const override { return PackedStringArray{ "ini", "cfg", "tres", "rlscene", "godot" }; }
 	virtual String _get_name() const override { return TTR("ConfigFile"); }
 
 	virtual Ref<EditorSyntaxHighlighter> _create() const override;

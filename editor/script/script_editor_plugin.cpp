@@ -4044,7 +4044,7 @@ void ScriptEditor::_on_find_in_files_result_selected(const String &fpath, int li
 				text_shader_editor->goto_line_selection(line_number - 1, begin, end);
 			}
 			return;
-		} else if (fpath.get_extension() == "tscn") {
+		} else if (fpath.get_extension() == "rlscene") {
 			const PackedStringArray lines = FileAccess::get_file_as_string(fpath).split("\n");
 			if (line_number > lines.size()) {
 				return;

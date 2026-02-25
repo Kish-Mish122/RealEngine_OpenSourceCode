@@ -528,7 +528,7 @@ void Main::print_help_option(const char *p_option, const char *p_description, CL
 				p_description);
 	}
 }
-
+// Я не знаю что это... ну и хуй с ним
 void Main::print_help(const char *p_binary) {
 	print_header(true);
 	print_help_copyright("Free and open source software under the terms of the MIT license.");
@@ -4031,8 +4031,7 @@ print_line("[REAL START]: starting editor...");
 			positional_arg = E->get();
 
 			String scene_path = ResourceUID::ensure_path(E->get());
-			if (scene_path.ends_with(".scn") ||
-					scene_path.ends_with(".tscn") ||
+			if (scene_path.ends_with(".rlscene") ||
 					scene_path.ends_with(".escn") ||
 					scene_path.ends_with(".res") ||
 					scene_path.ends_with(".tres")) {

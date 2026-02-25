@@ -30,20 +30,24 @@
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
      inkscape:current-layer="svg1" />
+  <path
+     style="fill:#ff0000;stroke-width:1.34362"
+     id="path1"
+     sodipodi:type="arc"
+     sodipodi:cx="3.9955478"
+     sodipodi:cy="4.0095668"
+     sodipodi:rx="3.7992752"
+     sodipodi:ry="3.7992749"
+     sodipodi:start="3.1488021"
+     sodipodi:end="3.1485501"
+     sodipodi:arc-type="slice"
+     d="M 0.19637135,3.9821764 A 3.7992752,3.7992749 0 0 1 4.0226989,0.21038888 3.7992752,3.7992749 0 0 1 7.7947276,4.0364785 3.7992752,3.7992749 0 0 1 3.9688754,7.8087481 3.7992752,3.7992749 0 0 1 0.19636457,3.9831337 l 3.79918323,0.026433 z" />
   <rect
-     style="fill:#ff0000;stroke-width:0.991918"
+     style="fill:#ffffff"
      id="rect1"
-     width="0.75705111"
-     height="6.0003309"
-     x="3.7291777"
-     y="0.21029198"
-     ry="0.37243432" />
-  <rect
-     style="fill:#ff0000;stroke-width:0.975564"
-     id="rect1-8"
-     width="0.7991094"
-     height="0.82714814"
-     x="3.7055912"
-     y="6.8647547"
-     ry="0.3574962" />
+     width="6.9396353"
+     height="0.93930417"
+     x="0.51872021"
+     y="3.5188859"
+     ry="0.23833092" />
 </svg>

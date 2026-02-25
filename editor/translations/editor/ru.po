@@ -8939,6 +8939,9 @@ msgstr "Войти в сеть и открыть библиотеку ассет
 msgid "Are you sure to run %d projects at once?"
 msgstr "Действительно запустить проекты (%d) одновременно?"
 
+msgid "Open Real Store"
+msgstr "Открыть Real Store"
+
 msgid ""
 "Can't run project: Project has no main scene defined.\n"
 "Please edit the project and set the main scene in the Project Settings under "
@@ -9265,14 +9268,12 @@ msgid "Donate"
 msgstr "Пожертвовать"
 
 msgid "Asset Library"
-msgstr "Библиотека ассетов"
+msgstr "Real Store"
 
 msgid ""
-"Asset Library not available (due to using Web editor, or because SSL support "
-"disabled)."
+"Asset Library not available..."
 msgstr ""
-"Библиотека ассетов недоступна (из-за использования веб-редактора или из-за "
-"отключения поддержки SSL)."
+"Библиотека ассетов недоступна..."
 
 msgid "Select a Folder to Scan"
 msgstr "Выбрать папку для сканирования"
@@ -11222,6 +11223,9 @@ msgstr "Свойства тайла:"
 
 msgid "Eraser Tool"
 msgstr "Инструмент Ластик"
+
+msgid "News"
+msgstr "Новости"
 
 msgid "Picker Tool"
 msgstr "Инструмент выбора"
@@ -16133,6 +16137,9 @@ msgstr "3D Модели"
 
 msgid "2D Model"
 msgstr "2D Модели"
+
+msgid "Image and Texture"
+msgstr "Картинки и текстуры"
 
 msgid "File '%s' format is invalid, import aborted."
 msgstr "Неверный формат файла «%s», импорт прерван."

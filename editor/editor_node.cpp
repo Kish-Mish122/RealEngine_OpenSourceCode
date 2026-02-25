@@ -704,7 +704,8 @@ void EditorNode::_update_theme(bool p_skip_creation) {
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_RUSCORD), get_editor_theme_native_menu_icon(SNAME("Ruscord"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_SITE), get_editor_theme_native_menu_icon(SNAME("site"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_VKPLAY), get_editor_theme_native_menu_icon(SNAME("VKPlay"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
-		help_menu->set_item_icon(help_menu->get_item_index(HELP_SUPPORT_GODOT_DEVELOPMENT), get_editor_theme_native_menu_icon(SNAME("Heart"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
+		help_menu->set_item_icon(help_menu->get_item_index(HELP_NEWS), get_editor_theme_native_menu_icon(SNAME("News"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
+		help_menu->set_item_icon(help_menu->get_item_index(HELP_SUPPORT_GODOT_DEVELOPMENT), get_editor_theme_native_menu_icon(SNAME("Money"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 
 		_update_renderer_color();
 	}
@@ -3861,6 +3862,9 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 		case HELP_VKPLAY: {
 		    OS::get_singleton()->shell_open("mailrugames://show/0.2042297/?mode=lib");
 		}
+		case HELP_NEWS: {
+		    OS::get_singleton()->shell_open("https://community.vkplay.ru/community/game/real-engine/");
+		}
 	}
 }
 
@@ -4000,7 +4004,8 @@ void EditorNode::_check_system_theme_changed() {
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_RUSCORD), get_editor_theme_native_menu_icon(SNAME("Ruscord"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_SITE), get_editor_theme_native_menu_icon(SNAME("site"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_VKPLAY), get_editor_theme_native_menu_icon(SNAME("VKPlay"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
-		help_menu->set_item_icon(help_menu->get_item_index(HELP_SUPPORT_GODOT_DEVELOPMENT), get_editor_theme_native_menu_icon(SNAME("Heart"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
+		help_menu->set_item_icon(help_menu->get_item_index(HELP_NEWS), get_editor_theme_native_menu_icon(SNAME("News"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
+		help_menu->set_item_icon(help_menu->get_item_index(HELP_SUPPORT_GODOT_DEVELOPMENT), get_editor_theme_native_menu_icon(SNAME("Money"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		editor_dock_manager->update_docks_menu();
 	}
 }
@@ -5921,7 +5926,7 @@ String EditorNode::_get_system_info() const {
 	}
 	const String distribution_version = OS::get_singleton()->get_version_alias();
 
-	String godot_version = "Godot v" + String(GODOT_VERSION_FULL_CONFIG);
+	String godot_version = "Real Engine v" + String(GODOT_VERSION_FULL_CONFIG);
 	if (String(GODOT_VERSION_BUILD) != "official") {
 		String hash = String(GODOT_VERSION_HASH);
 		hash = hash.is_empty() ? String("unknown") : vformat("(%s)", hash.left(9));
@@ -7559,7 +7564,7 @@ bool EditorNode::call_build() {
 
 	for (int i = 0; i < build_callback_count && builds_successful; i++) {
 		if (!build_callbacks[i]()) {
-			ERR_PRINT("A Godot Engine build callback failed.");
+			ERR_PRINT("A Real Engine build callback failed.");
 			builds_successful = false;
 		}
 	}
@@ -8061,6 +8066,7 @@ void EditorNode::_build_help_menu() {
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/ruscord"), HELP_RUSCORD);
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/open_site"), HELP_SITE);
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/vkplay"), HELP_VKPLAY);
+	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/news"), HELP_NEWS);
 	help_menu->add_separator();
 #ifdef MACOS_ENABLED
 	if (menu_type != MENU_TYPE_GLOBAL) {
@@ -8070,7 +8076,7 @@ void EditorNode::_build_help_menu() {
 #else
 	help_menu->add_icon_shortcut(get_editor_theme_native_menu_icon(SNAME("Godot"), menu_type == MENU_TYPE_GLOBAL, dark_mode), ED_GET_SHORTCUT("editor/about"), HELP_ABOUT);
 #endif
-	help_menu->add_icon_shortcut(get_editor_theme_native_menu_icon(SNAME("Heart"), menu_type == MENU_TYPE_GLOBAL, dark_mode), ED_GET_SHORTCUT("editor/support_development"), HELP_SUPPORT_GODOT_DEVELOPMENT);
+	help_menu->add_icon_shortcut(get_editor_theme_native_menu_icon(SNAME("Money"), menu_type == MENU_TYPE_GLOBAL, dark_mode), ED_GET_SHORTCUT("editor/support_development"), HELP_SUPPORT_GODOT_DEVELOPMENT);
 }
 
 void EditorNode::_add_to_main_menu(const String &p_name, PopupMenu *p_menu) {
@@ -8851,8 +8857,9 @@ EditorNode::EditorNode() {
 	ED_SHORTCUT_AND_COMMAND("editor/discord", TTRC("Open a Discord Server"));
 	ED_SHORTCUT_AND_COMMAND("editor/ruscord", TTRC("Open a Ruscord Server"));
 	ED_SHORTCUT_AND_COMMAND("editor/about", TTRC("About Real Engine..."));
-	ED_SHORTCUT_AND_COMMAND("editor/support_development", TTRC("Support Real Engine Development"));
 	ED_SHORTCUT_AND_COMMAND("editor/open_site", TTRC("Open Site"));
+	ED_SHORTCUT_AND_COMMAND("editor/news", TTRC("News"));
+	ED_SHORTCUT_AND_COMMAND("editor/support_development", TTRC("Support Real Engine Development"));
 
 	// Use the Ctrl modifier so F2 can be used to rename nodes in the scene tree dock.
 	ED_SHORTCUT_AND_COMMAND("editor/editor_2d", TTRC("Open 2D Workspace"), KeyModifierMask::CTRL | Key::F1);
@@ -9197,7 +9204,7 @@ EditorNode::EditorNode() {
 
 	disk_changed = memnew(ConfirmationDialog);
 	{
-		disk_changed->set_title(TTR("Files have been modified outside Godot"));
+		disk_changed->set_title(TTR("Files have been modified outside Real Engine"));
 
 		VBoxContainer *vbc = memnew(VBoxContainer);
 		disk_changed->add_child(vbc);
@@ -9248,7 +9255,7 @@ EditorNode::EditorNode() {
 	if (AssetLibraryEditorPlugin::is_available()) {
 		add_editor_plugin(memnew(AssetLibraryEditorPlugin));
 	} else {
-		print_verbose("Real Store not available (due to using Web editor, or SSL support disabled).");
+		print_verbose("Real Store not available...");
 	}
 
 	// More visually meaningful to have this later.
@@ -9738,7 +9745,7 @@ void EditorNode::_check_templates_and_ask() {
         // Подключаем только сигнал подтверждения
         ask_dialog->connect(SceneStringName(confirmed), callable_mp(this, &EditorNode::_open_template_manager));
 
-        // Не подключаем сигнал отмены - диалог сам закроется
+        // Не подключаем сигнал отмены, хай диалог сам закроется
         add_child(ask_dialog);
         ask_dialog->popup_centered();
     }

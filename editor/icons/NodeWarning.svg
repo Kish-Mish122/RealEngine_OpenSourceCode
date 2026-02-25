@@ -21,58 +21,33 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="25.21875"
-     inkscape:cx="3.9058241"
-     inkscape:cy="6.6815366"
+     inkscape:zoom="35.664698"
+     inkscape:cx="5.1731827"
+     inkscape:cy="9.4631391"
      inkscape:window-width="1920"
      inkscape:window-height="1009"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
      inkscape:current-layer="svg1" />
+  <path
+     style="fill:#ffcc00;stroke-width:2.71451"
+     id="path1"
+     sodipodi:type="arc"
+     sodipodi:cx="8.0331535"
+     sodipodi:cy="8.0468416"
+     sodipodi:rx="7.6686478"
+     sodipodi:ry="7.6826668"
+     sodipodi:start="3.1488021"
+     sodipodi:end="3.1485501"
+     sodipodi:arc-type="slice"
+     d="M 0.36470506,7.9914543 A 7.6686478,7.6826668 0 0 1 8.0879566,0.36437103 7.6686478,7.6826668 0 0 1 15.701609,8.1012609 7.6686478,7.6826668 0 0 1 7.9793166,15.729319 7.6686478,7.6826668 0 0 1 0.36469137,7.9933903 l 7.66846213,0.053451 z" />
   <rect
-     style="fill:#ffdd65;fill-opacity:1"
+     style="fill:#ffffff;stroke-width:2.02029"
      id="rect1"
-     width="1.4860634"
-     height="12.56144"
-     x="7.2525134"
-     y="0.55121154"
-     ry="0.39955476" />
-  <ellipse
-     style="fill:#ffdd65;fill-opacity:1"
-     id="path1-5"
-     cx="8.0235863"
-     cy="14.598716"
-     rx="1.0234209"
-     ry="1.0374404" />
-  <ellipse
-     style="fill:#e8e8e8;fill-opacity:1;stroke-width:0.977597"
-     id="path3"
-     cx="10.750399"
-     cy="2.6312797"
-     rx="1.7346213"
-     ry="1.6683301" />
-  <ellipse
-     style="fill:#ff0000;fill-opacity:1;stroke-width:0.920502"
-     id="path3-2"
-     cx="10.756991"
-     cy="2.6202314"
-     rx="1.6296601"
-     ry="1.5744174" />
-  <rect
-     style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke-width:0.690011"
-     id="rect3-1-9"
-     width="0.36630788"
-     height="1.9553603"
-     x="10.564317"
-     y="1.2573354"
-     ry="0.24132611"
-     transform="matrix(0.99998862,0.00477161,-0.00380047,0.99999278,0,0)" />
-  <ellipse
-     style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero"
-     id="path4"
-     cx="10.748585"
-     cy="3.6677172"
-     rx="0.21820873"
-     ry="0.23201941" />
+     width="14.007308"
+     height="1.8994048"
+     x="1.0153507"
+     y="7.054616"
+     ry="0.48193854" />
 </svg>

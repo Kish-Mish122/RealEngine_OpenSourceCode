@@ -1691,7 +1691,7 @@ ProjectSettings::ProjectSettings() {
 	GLOBAL_DEF_BASIC(PropertyInfo(Variant::STRING, "application/config/description", PROPERTY_HINT_MULTILINE_TEXT), "");
 	GLOBAL_DEF_BASIC("application/config/version", "");
 	GLOBAL_DEF_INTERNAL(PropertyInfo(Variant::STRING, "application/config/tags"), PackedStringArray());
-	GLOBAL_DEF_BASIC(PropertyInfo(Variant::STRING, "application/run/main_scene", PROPERTY_HINT_FILE, "*.tscn,*.scn,*.res"), "");
+	GLOBAL_DEF_BASIC(PropertyInfo(Variant::STRING, "application/run/main_scene", PROPERTY_HINT_FILE, "*.rlscene"), "");
 	GLOBAL_DEF("application/run/disable_stdout", false);
 	GLOBAL_DEF("application/run/disable_stderr", false);
 	GLOBAL_DEF("application/run/print_header", true);

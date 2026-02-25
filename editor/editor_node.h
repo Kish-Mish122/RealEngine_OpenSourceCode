@@ -211,6 +211,7 @@ public:
 		HELP_RUSCORD,
 		HELP_SITE,
 		HELP_VKPLAY,
+		HELP_NEWS,
 
 		// Update spinner menu.
 		SPINNER_UPDATE_CONTINUOUSLY,
