@@ -240,6 +240,8 @@ public:
 	};
 
 private:
+    void _run_startup_checks();
+
     HashMap<String, uint64_t> script_last_modified;
     Timer *hot_reload_timer = nullptr;
     bool project_running = false;

@@ -163,6 +163,8 @@
 #include "editor/settings/editor_command_palette.h"
 #include "editor/settings/editor_feature_profile.h"
 #include "editor/settings/editor_layouts_dialog.h"
+#include "editor/driver_check.h"
+#include "editor/ram_check.h"
 #include "editor/settings/editor_settings.h"
 #include "editor/settings/editor_settings_dialog.h"
 #include "editor/settings/project_settings_editor.h"
@@ -9483,6 +9485,8 @@ EditorNode::EditorNode() {
 
      project_running = false;
         hot_reload_timer = nullptr;
+
+     callable_mp(this, &EditorNode::_run_startup_checks).call_deferred();
 }
 
 EditorNode::~EditorNode() {
@@ -9516,6 +9520,23 @@ EditorNode::~EditorNode() {
 	file_dialogs.clear();
 
 	singleton = nullptr;
+}
+
+void EditorNode::_run_startup_checks() {
+    print_line("[REAL CHECKER]: Running startup checks...");
+
+    // Проверка драйверов
+    if (gui_base) {
+        print_line("[REAL CHECKER]: GUI base exists");
+
+        DriverCheck *driver_check = memnew(DriverCheck);
+        driver_check->show_driver_warning(gui_base);
+
+        RAMCheck *ram_check = memnew(RAMCheck);
+        ram_check->check_ram_at_startup(gui_base);
+    } else {
+        print_line("[REAL CHECKER]: GUI base is NULL!");
+    }
 }
 
 void EditorNode::_start_hot_reload_timer() {
