@@ -1,4 +1,4 @@
-/**************************************************************************/
+﻿/**************************************************************************/
 /*  theme_db.cpp                                                          */
 /**************************************************************************/
 /*                         This file is part of:                          */
@@ -49,8 +49,8 @@ void ThemeDB::initialize_theme() {
 	// Allow creating the default theme at a different scale to suit higher/lower base resolutions.
 	float default_theme_scale = GLOBAL_DEF(PropertyInfo(Variant::FLOAT, "gui/theme/default_theme_scale", PROPERTY_HINT_RANGE, "0.5,8,0.01", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), 1.0);
 
-	String project_theme_path = GLOBAL_DEF_RST_BASIC(PropertyInfo(Variant::STRING, "gui/theme/custom", PROPERTY_HINT_FILE, "*.tres,*.res,*.theme", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), "");
-	String project_font_path = GLOBAL_DEF_RST_BASIC(PropertyInfo(Variant::STRING, "gui/theme/custom_font", PROPERTY_HINT_FILE, "*.tres,*.res,*.otf,*.ttf,*.woff,*.woff2,*.fnt,*.font,*.pfb,*.pfm", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), "");
+	String project_theme_path = GLOBAL_DEF_RST_BASIC(PropertyInfo(Variant::STRING, "gui/theme/custom", PROPERTY_HINT_FILE, "*.tscn,*.res,*.theme", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), "");
+	String project_font_path = GLOBAL_DEF_RST_BASIC(PropertyInfo(Variant::STRING, "gui/theme/custom_font", PROPERTY_HINT_FILE, "*.tscn,*.res,*.otf,*.ttf,*.woff,*.woff2,*.fnt,*.font,*.pfb,*.pfm", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED), "");
 
 	TextServer::FontAntialiasing font_antialiasing = (TextServer::FontAntialiasing)(int)GLOBAL_GET("gui/theme/default_font_antialiasing");
 	TextServer::Hinting font_hinting = (TextServer::Hinting)(int)GLOBAL_GET("gui/theme/default_font_hinting");

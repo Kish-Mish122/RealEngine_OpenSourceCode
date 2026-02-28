@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <class name="ProjectSettings" inherits="Object" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
 	<brief_description>
 		Stores globally-accessible variables.
@@ -431,7 +431,7 @@
 		<member name="audio/buses/channel_disable_time" type="float" setter="" getter="" default="2.0">
 			Audio buses will disable automatically when sound goes below a given dB threshold for a given time. This saves CPU as effects assigned to that bus will no longer do any processing.
 		</member>
-		<member name="audio/buses/default_bus_layout" type="String" setter="" getter="" default="&quot;res://default_bus_layout.tres&quot;">
+		<member name="audio/buses/default_bus_layout" type="String" setter="" getter="" default="&quot;res://default_bus_layout.tscn&quot;">
 			Default [AudioBusLayout] resource file to use in the project, unless overridden by the scene.
 		</member>
 		<member name="audio/driver/driver" type="String" setter="" getter="">
@@ -943,7 +943,7 @@
 			Windows override for [member display/display_server/driver].
 		</member>
 		<member name="display/mouse_cursor/custom_image" type="String" setter="" getter="" default="&quot;&quot;">
-			Custom image for the mouse cursor (limited to 256×256).
+			Custom image for the mouse cursor (limited to 256Г—256).
 		</member>
 		<member name="display/mouse_cursor/custom_image_hotspot" type="Vector2" setter="" getter="" default="Vector2(0, 0)">
 			Hotspot for the custom mouse cursor image.
@@ -1245,7 +1245,7 @@
 			If set to [code]true[/code] and [member display/window/stretch/mode] is set to [code]"canvas_items"[/code], font and [DPITexture] oversampling is enabled in the main window. Use [member Viewport.oversampling] to control oversampling in other viewports and windows.
 		</member>
 		<member name="gui/theme/custom" type="String" setter="" getter="" default="&quot;&quot;">
-			Path to a custom [Theme] resource file to use for the project ([code].theme[/code] or generic [code].tres[/code]/[code].res[/code] extension).
+			Path to a custom [Theme] resource file to use for the project ([code].theme[/code] or generic [code].tscn[/code]/[code].res[/code] extension).
 		</member>
 		<member name="gui/theme/custom_font" type="String" setter="" getter="" default="&quot;&quot;">
 			Path to a custom [Font] resource to use as default for all GUI elements of the project.
@@ -3029,7 +3029,7 @@
 			[b]Note:[/b] This setting only works on Windows, as threaded optimization is disabled by default on other platforms.
 		</member>
 		<member name="rendering/global_illumination/gi/use_half_resolution" type="bool" setter="" getter="" default="false" keywords="size">
-			If [code]true[/code], renders [VoxelGI] and SDFGI ([member Environment.sdfgi_enabled]) buffers at halved resolution (e.g. 960×540 when the viewport size is 1920×1080). This improves performance significantly when VoxelGI or SDFGI is enabled, at the cost of artifacts that may be visible on polygon edges. The loss in quality becomes less noticeable as the viewport resolution increases. [LightmapGI] rendering is not affected by this setting.
+			If [code]true[/code], renders [VoxelGI] and SDFGI ([member Environment.sdfgi_enabled]) buffers at halved resolution (e.g. 960Г—540 when the viewport size is 1920Г—1080). This improves performance significantly when VoxelGI or SDFGI is enabled, at the cost of artifacts that may be visible on polygon edges. The loss in quality becomes less noticeable as the viewport resolution increases. [LightmapGI] rendering is not affected by this setting.
 			[b]Note:[/b] This property is only read when the project starts. To set half-resolution GI at run-time, call [method RenderingServer.gi_set_use_half_resolution] instead.
 		</member>
 		<member name="rendering/global_illumination/sdfgi/frames_to_converge" type="int" setter="" getter="" default="5">
@@ -3120,7 +3120,7 @@
 		<member name="rendering/lights_and_shadows/directional_shadow/soft_shadow_filter_quality" type="int" setter="" getter="" default="2">
 			Quality setting for shadows cast by [DirectionalLight3D]s. Higher quality settings use more samples when reading from shadow maps and are thus slower. Low quality settings may result in shadows looking grainy.
 			[b]Note:[/b] The Soft Very Low setting will automatically multiply [i]constant[/i] shadow blur by 0.75x to reduce the amount of noise visible. This automatic blur change only affects the constant blur factor defined in [member Light3D.shadow_blur], not the variable blur performed by [DirectionalLight3D]s' [member Light3D.light_angular_distance].
-			[b]Note:[/b] The Soft High and Soft Ultra settings will automatically multiply [i]constant[/i] shadow blur by 1.5× and 2× respectively to make better use of the increased sample count. This increased blur also improves stability of dynamic object shadows.
+			[b]Note:[/b] The Soft High and Soft Ultra settings will automatically multiply [i]constant[/i] shadow blur by 1.5Г— and 2Г— respectively to make better use of the increased sample count. This increased blur also improves stability of dynamic object shadows.
 		</member>
 		<member name="rendering/lights_and_shadows/directional_shadow/soft_shadow_filter_quality.mobile" type="int" setter="" getter="" default="0">
 			Lower-end override for [member rendering/lights_and_shadows/directional_shadow/soft_shadow_filter_quality] on mobile devices, due to performance concerns or driver support.
@@ -3149,7 +3149,7 @@
 		<member name="rendering/lights_and_shadows/positional_shadow/soft_shadow_filter_quality" type="int" setter="" getter="" default="2">
 			Quality setting for shadows cast by [OmniLight3D]s and [SpotLight3D]s. Higher quality settings use more samples when reading from shadow maps and are thus slower. Low quality settings may result in shadows looking grainy.
 			[b]Note:[/b] The Soft Very Low setting will automatically multiply [i]constant[/i] shadow blur by 0.75x to reduce the amount of noise visible. This automatic blur change only affects the constant blur factor defined in [member Light3D.shadow_blur], not the variable blur performed by [DirectionalLight3D]s' [member Light3D.light_angular_distance].
-			[b]Note:[/b] The Soft High and Soft Ultra settings will automatically multiply shadow blur by 1.5× and 2× respectively to make better use of the increased sample count. This increased blur also improves stability of dynamic object shadows.
+			[b]Note:[/b] The Soft High and Soft Ultra settings will automatically multiply shadow blur by 1.5Г— and 2Г— respectively to make better use of the increased sample count. This increased blur also improves stability of dynamic object shadows.
 		</member>
 		<member name="rendering/lights_and_shadows/positional_shadow/soft_shadow_filter_quality.mobile" type="int" setter="" getter="" default="0">
 			Lower-end override for [member rendering/lights_and_shadows/positional_shadow/soft_shadow_filter_quality] on mobile devices, due to performance concerns or driver support.
@@ -3458,7 +3458,7 @@
 			[b]Note:[/b] Currently this only affects certain compressed formats (BC1, BC3, BC4, BC5, and BC6), all of which are exclusive to desktop platforms and consoles.
 		</member>
 		<member name="rendering/textures/vram_compression/import_etc2_astc" type="bool" setter="" getter="" default="false">
-			If [code]true[/code], the texture importer will import VRAM-compressed textures using the Ericsson Texture Compression 2 algorithm for lower quality textures and normal maps and Adaptable Scalable Texture Compression algorithm for high quality textures (in 4×4 block size).
+			If [code]true[/code], the texture importer will import VRAM-compressed textures using the Ericsson Texture Compression 2 algorithm for lower quality textures and normal maps and Adaptable Scalable Texture Compression algorithm for high quality textures (in 4Г—4 block size).
 			[b]Note:[/b] This setting is an override. The texture importer will always import the format the host platform needs, even if this is set to [code]false[/code].
 			[b]Note:[/b] Changing this setting does [i]not[/i] impact textures that were already imported before. To make this setting apply to textures that were already imported, exit the editor, remove the [code].godot/imported/[/code] folder located inside the project folder then restart the editor (see [member application/config/use_hidden_project_data_directory]).
 		</member>
@@ -3488,16 +3488,16 @@
 			If [member rendering/vrs/mode] is set to [b]Texture[/b], this is the path to default texture loaded as the VRS image.
 			The texture [i]must[/i] use a lossless compression format so that colors can be matched precisely. The following VRS densities are mapped to various colors, with brighter colors representing a lower level of shading precision:
 			[codeblock lang=text]
-			- 1×1 = rgb(0, 0, 0)     - #000000
-			- 1×2 = rgb(0, 85, 0)    - #005500
-			- 2×1 = rgb(85, 0, 0)    - #550000
-			- 2×2 = rgb(85, 85, 0)   - #555500
-			- 2×4 = rgb(85, 170, 0)  - #55aa00
-			- 4×2 = rgb(170, 85, 0)  - #aa5500
-			- 4×4 = rgb(170, 170, 0) - #aaaa00
-			- 4×8 = rgb(170, 255, 0) - #aaff00 - Not supported on most hardware
-			- 8×4 = rgb(255, 170, 0) - #ffaa00 - Not supported on most hardware
-			- 8×8 = rgb(255, 255, 0) - #ffff00 - Not supported on most hardware
+			- 1Г—1 = rgb(0, 0, 0)     - #000000
+			- 1Г—2 = rgb(0, 85, 0)    - #005500
+			- 2Г—1 = rgb(85, 0, 0)    - #550000
+			- 2Г—2 = rgb(85, 85, 0)   - #555500
+			- 2Г—4 = rgb(85, 170, 0)  - #55aa00
+			- 4Г—2 = rgb(170, 85, 0)  - #aa5500
+			- 4Г—4 = rgb(170, 170, 0) - #aaaa00
+			- 4Г—8 = rgb(170, 255, 0) - #aaff00 - Not supported on most hardware
+			- 8Г—4 = rgb(255, 170, 0) - #ffaa00 - Not supported on most hardware
+			- 8Г—8 = rgb(255, 255, 0) - #ffff00 - Not supported on most hardware
 			[/codeblock]
 		</member>
 		<member name="threading/worker_pool/low_priority_thread_ratio" type="float" setter="" getter="" default="0.3">
@@ -3512,7 +3512,7 @@
 		<member name="xr/openxr/binding_modifiers/dpad_binding" type="bool" setter="" getter="" default="false">
 			If [code]true[/code], enables the D-pad binding modifier if supported by the XR runtime.
 		</member>
-		<member name="xr/openxr/default_action_map" type="String" setter="" getter="" default="&quot;res://openxr_action_map.tres&quot;">
+		<member name="xr/openxr/default_action_map" type="String" setter="" getter="" default="&quot;res://openxr_action_map.tscn&quot;">
 			Action map configuration to load by default.
 		</member>
 		<member name="xr/openxr/enabled" type="bool" setter="" getter="" default="false">

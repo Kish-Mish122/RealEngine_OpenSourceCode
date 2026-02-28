@@ -1,4 +1,4 @@
-/**************************************************************************/
+﻿/**************************************************************************/
 /*  editor_file_system.cpp                                                */
 /**************************************************************************/
 /*                         This file is part of:                          */
@@ -2207,7 +2207,7 @@ void EditorFileSystem::_update_script_documentation() {
 			continue;
 		}
 
-		if (path.ends_with(".rlscene")) {
+		if (path.ends_with(".tscn")) {
 			Ref<PackedScene> packed_scene = ResourceLoader::load(path);
 			if (packed_scene.is_valid()) {
 				Ref<SceneState> state = packed_scene->get_state();

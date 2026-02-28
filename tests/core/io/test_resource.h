@@ -1,4 +1,4 @@
-/**************************************************************************/
+﻿/**************************************************************************/
 /*  test_resource.h                                                       */
 /**************************************************************************/
 /*                         This file is part of:                          */
@@ -538,7 +538,7 @@ TEST_CASE("[Resource] Saving and loading") {
 	child_resource->set_name("I'm a child resource");
 	resource->set_meta("other_resource", child_resource);
 	const String save_path_binary = TestUtils::get_temp_path("resource.res");
-	const String save_path_text = TestUtils::get_temp_path("resource.tres");
+	const String save_path_text = TestUtils::get_temp_path("resource.tscn");
 	ResourceSaver::save(resource, save_path_binary);
 	ResourceSaver::save(resource, save_path_text);
 
@@ -585,7 +585,7 @@ TEST_CASE("[Resource] Breaking circular references on save") {
 	resource_c->set_meta("next", resource_b);
 
 	const String save_path_binary = TestUtils::get_temp_path("resource.res");
-	const String save_path_text = TestUtils::get_temp_path("resource.tres");
+	const String save_path_text = TestUtils::get_temp_path("resource.tscn");
 	ResourceSaver::save(resource_a, save_path_binary);
 	// Suppress expected errors caused by the resources above being uncached.
 	ERR_PRINT_OFF;

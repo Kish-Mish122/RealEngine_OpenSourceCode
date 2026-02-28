@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <class name="ResourceImporterScene" inherits="ResourceImporter" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
 	<brief_description>
 		Imports a glTF, FBX, COLLADA, or Blender 3D scene.
@@ -41,7 +41,7 @@
 		</member>
 		<member name="materials/extract_format" type="int" setter="" getter="" default="0">
 			Extracted material file format.
-			- [code]0 (Text)[/code], text file format ([code]*.tres[/code]).
+			- [code]0 (Text)[/code], text file format ([code]*.tscn[/code]).
 			- [code]1 (Binary)[/code], binary file format ([code]*.res[/code]).
 			- [code]2 (Material)[/code], binary file format ([code]*.material[/code]).
 		</member>

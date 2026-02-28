@@ -935,11 +935,6 @@ Error ProjectSettings::_load_settings_binary(const String &p_path) {
 }
 
 Error ProjectSettings::_load_settings_text(const String &p_path) {
-        String ext = p_path.get_extension().to_lower();
-        if (ext != "godot" && ext != "rlengine") {
-            ERR_PRINT(vformat("Unknown config file format: '%s'.", p_path));
-            return ERR_FILE_UNRECOGNIZED;
-        }
 	Error err;
 	Ref<FileAccess> f = FileAccess::open(p_path, FileAccess::READ, &err);
 
@@ -994,7 +989,7 @@ Error ProjectSettings::_load_settings_text(const String &p_path) {
 }
 
 Error ProjectSettings::_load_settings_text_or_binary(const String &p_text_path, const String &p_bin_path) {
-		// Attempt first to load the binary project.rlengine file.
+	// Attempt first to load the binary project.rlengine file.
 	Error err = _load_settings_binary(p_bin_path);
 	if (err == OK) {
 		return OK;
@@ -1691,7 +1686,7 @@ ProjectSettings::ProjectSettings() {
 	GLOBAL_DEF_BASIC(PropertyInfo(Variant::STRING, "application/config/description", PROPERTY_HINT_MULTILINE_TEXT), "");
 	GLOBAL_DEF_BASIC("application/config/version", "");
 	GLOBAL_DEF_INTERNAL(PropertyInfo(Variant::STRING, "application/config/tags"), PackedStringArray());
-	GLOBAL_DEF_BASIC(PropertyInfo(Variant::STRING, "application/run/main_scene", PROPERTY_HINT_FILE, "*.rlscene"), "");
+	GLOBAL_DEF_BASIC(PropertyInfo(Variant::STRING, "application/run/main_scene", PROPERTY_HINT_FILE, "*.tscn,*.scn,*.res"), "");
 	GLOBAL_DEF("application/run/disable_stdout", false);
 	GLOBAL_DEF("application/run/disable_stderr", false);
 	GLOBAL_DEF("application/run/print_header", true);

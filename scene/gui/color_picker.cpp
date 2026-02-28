@@ -1,4 +1,4 @@
-/**************************************************************************/
+﻿/**************************************************************************/
 /*  color_picker.cpp                                                      */
 /**************************************************************************/
 /*                         This file is part of:                          */
@@ -933,7 +933,7 @@ void ColorPicker::_save_palette(bool p_is_save_as) {
 		}
 
 		file_dialog->set_file_mode(FileDialog::FILE_MODE_SAVE_FILE);
-		file_dialog->set_current_file("new_palette.tres");
+		file_dialog->set_current_file("new_palette.tscn");
 		file_dialog->popup_centered_ratio();
 	}
 }

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <class name="EditorSettings" inherits="Resource" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
 	<brief_description>
 		Object that holds the project-independent editor settings.
@@ -861,7 +861,7 @@
 		</member>
 		<member name="filesystem/on_save/warn_on_saving_large_text_resources" type="bool" setter="" getter="">
 			If [code]true[/code], displays a warning toast message when saving a text-based scene or resource that is larger than 500 KiB on disk. This is typically caused by binary subresources being embedded as text, which results in slow and inefficient conversion to text. This in turn impacts scene saving and loading times.
-			This should usually be resolved by moving the embedded binary subresource to its own binary resource file ([code].res[/code] extension instead of [code].tres[/code]). This is the preferred approach. Alternatively, the entire scene can be saved with the binary [code].scn[/code] format as opposed to [code].tscn[/code], but this will make it less friendly to version control systems.
+			This should usually be resolved by moving the embedded binary subresource to its own binary resource file ([code].res[/code] extension instead of [code].tscn[/code]). This is the preferred approach. Alternatively, the entire scene can be saved with the binary [code].scn[/code] format as opposed to [code].tscn[/code], but this will make it less friendly to version control systems.
 		</member>
 		<member name="filesystem/quick_open_dialog/default_display_mode" type="int" setter="" getter="">
 			If set to [code]Adaptive[/code], the dialog opens in list view or grid view depending on the requested type. If set to [code]Last Used[/code], the display mode will always open the way you last used it.
@@ -1199,7 +1199,7 @@
 			The corner radius to use for interface elements (in pixels). [code]0[/code] is square.
 		</member>
 		<member name="interface/theme/custom_theme" type="String" setter="" getter="">
-			The custom theme resource to use for the editor. Must be a Godot theme resource in [code].tres[/code] or [code].res[/code] format.
+			The custom theme resource to use for the editor. Must be a Godot theme resource in [code].tscn[/code] or [code].res[/code] format.
 		</member>
 		<member name="interface/theme/draw_extra_borders" type="bool" setter="" getter="">
 			If [code]true[/code], draws additional borders around interactive UI elements in the editor. This is automatically enabled when using the [b]Black (OLED)[/b] theme preset, as this theme preset uses a fully black background.
@@ -1454,7 +1454,7 @@
 			[b]Note:[/b] The [url=$DOCS_URL/tutorials/scripting/gdscript/gdscript_styleguide.html]GDScript style guide[/url] recommends using tabs for indentation. It is advised to change this setting only if you need to work on a project that currently uses spaces for indentation.
 		</member>
 		<member name="text_editor/behavior/navigation/custom_word_separators" type="String" setter="" getter="">
-			The characters to consider as word delimiters if [member text_editor/behavior/navigation/use_custom_word_separators] is [code]true[/code]. This is in addition to default characters if [member text_editor/behavior/navigation/use_default_word_separators] is [code]true[/code]. The characters should be defined without separation, for example [code]_♥=[/code].
+			The characters to consider as word delimiters if [member text_editor/behavior/navigation/use_custom_word_separators] is [code]true[/code]. This is in addition to default characters if [member text_editor/behavior/navigation/use_default_word_separators] is [code]true[/code]. The characters should be defined without separation, for example [code]_в™Ґ=[/code].
 		</member>
 		<member name="text_editor/behavior/navigation/drag_and_drop_selection" type="bool" setter="" getter="">
 			If [code]true[/code], allows drag-and-dropping text in the script editor to move text. Disable this if you find yourself accidentally drag-and-dropping text in the script editor.

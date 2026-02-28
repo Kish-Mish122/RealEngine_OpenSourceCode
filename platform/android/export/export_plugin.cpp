@@ -993,13 +993,13 @@ void EditorExportPlatformAndroid::_get_manifest_info(const Ref<EditorExportPrese
 	}
 
 	MetadataInfo rendering_method_metadata = {
-		"org.godotengine.rendering.method",
+		"org.rlengine.rendering.method",
 		p_preset->get_project_setting("rendering/renderer/rendering_method.mobile")
 	};
 	r_metadata.append(rendering_method_metadata);
 
 	MetadataInfo editor_version_metadata = {
-		"org.godotengine.editor.version",
+		"org.rlengine.editor.version",
 		String(GODOT_VERSION_FULL_CONFIG)
 	};
 	r_metadata.append(editor_version_metadata);
@@ -2574,7 +2574,7 @@ Error EditorExportPlatformAndroid::run(const Ref<EditorExportPreset> &p_preset, 
 		print_verbose(output);
 		if (err || rv != 0 || output.contains("Error: Activity not started")) {
 			// The implicit launch failed, let's try an explicit launch by specifying the component name before giving up.
-			const String component_name = get_package_name(p_preset, package_name) + "/com.godot.game.GodotAppLauncher";
+			const String component_name = get_package_name(p_preset, package_name) + "/com.rlengine.game.RealEngineAppLauncher";
 			print_line("Implicit launch failed... Trying explicit launch using", component_name);
 			args.erase(get_package_name(p_preset, package_name));
 			args.push_back("-n");

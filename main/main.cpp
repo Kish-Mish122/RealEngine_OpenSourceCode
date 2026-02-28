@@ -149,16 +149,6 @@
 #endif // TOOLS_ENABLED && !GDSCRIPT_NO_LSP
 #endif // MODULE_GDSCRIPT_ENABLED
 
-#ifdef WINDOWS_ENABLED
-#include <windows.h>
-#endif
-
-#ifdef WINDOWS_ENABLED
-#include <windows.h>
-#include <tlhelp32.h>
-#include <psapi.h>
-#endif
-
 /* Static members */
 
 // Singletons
@@ -303,10 +293,6 @@ bool profile_gpu = false;
 static const String NULL_DISPLAY_DRIVER("headless");
 static const String EMBEDDED_DISPLAY_DRIVER("embedded");
 static const String NULL_AUDIO_DRIVER("Dummy");
-
-static String import_asset_url;
-static String import_asset_name;
-static bool should_import_asset = false;
 
 // The length of the longest column in the command-line help we should align to
 // (excluding the 2-space left and right margins).
@@ -528,11 +514,11 @@ void Main::print_help_option(const char *p_option, const char *p_description, CL
 				p_description);
 	}
 }
-// Я не знаю что это... ну и хуй с ним
+
 void Main::print_help(const char *p_binary) {
 	print_header(true);
 	print_help_copyright("Free and open source software under the terms of the MIT license.");
-	print_help_copyright("2026-present Real Engine.");
+	print_help_copyright("(c) 2014-present Godot Engine contributors. (c) 2007-present Juan Linietsky, Ariel Manzur.");
 
 	print_help_title("Usage");
 	OS::get_singleton()->print("  %s \u001b[96m[options] [path to \"project.rlengine\" file]\u001b[0m\n", p_binary);
@@ -568,11 +554,11 @@ void Main::print_help(const char *p_binary) {
 #ifdef TOOLS_ENABLED
 	print_help_option("-e, --editor", "Start the editor instead of running the scene.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 	print_help_option("-p, --project-manager", "Start the project manager, even if a project is auto-detected.\n", CLI_OPTION_AVAILABILITY_EDITOR);
-	print_help_option("--recovery-mode", "Start the editor in recovery mode, which disables features that can typically cause startup crashes, such as tool scripts, editor plugins, RLExtension addons, and others.\n", CLI_OPTION_AVAILABILITY_EDITOR);
+	print_help_option("--recovery-mode", "Start the editor in recovery mode, which disables features that can typically cause startup crashes, such as tool scripts, editor plugins, GDExtension addons, and others.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 	print_help_option("--debug-server <uri>", "Start the editor debug server (<protocol>://<host/IP>[:port], e.g. tcp://127.0.0.1:6007)\n", CLI_OPTION_AVAILABILITY_EDITOR);
-	print_help_option("--dap-port <port>", "Use the specified port for the RLScript Debug Adapter Protocol. Recommended port range [1024, 49151].\n", CLI_OPTION_AVAILABILITY_EDITOR);
+	print_help_option("--dap-port <port>", "Use the specified port for the GDScript Debug Adapter Protocol. Recommended port range [1024, 49151].\n", CLI_OPTION_AVAILABILITY_EDITOR);
 #if defined(MODULE_GDSCRIPT_ENABLED) && !defined(GDSCRIPT_NO_LSP)
-	print_help_option("--lsp-port <port>", "Use the specified port for the RLScript Language Server Protocol. Recommended port range [1024, 49151].\n", CLI_OPTION_AVAILABILITY_EDITOR);
+	print_help_option("--lsp-port <port>", "Use the specified port for the GDScript Language Server Protocol. Recommended port range [1024, 49151].\n", CLI_OPTION_AVAILABILITY_EDITOR);
 #endif // MODULE_GDSCRIPT_ENABLED && !GDSCRIPT_NO_LSP
 #endif
 	print_help_option("--quit", "Quit after the first iteration.\n");
@@ -717,15 +703,15 @@ void Main::print_help(const char *p_binary) {
 #endif // DISABLE_DEPRECATED
 	print_help_option("--doctool [path]", "Dump the engine API reference to the given <path> (defaults to current directory) in XML format, merging if existing files are found.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 	print_help_option("--no-docbase", "Disallow dumping the base types (used with --doctool).\n", CLI_OPTION_AVAILABILITY_EDITOR);
-	print_help_option("--gdextension-docs", "Rather than dumping the engine API, generate API reference from all the RLExtensions loaded in the current project (used with --doctool).\n", CLI_OPTION_AVAILABILITY_EDITOR);
+	print_help_option("--gdextension-docs", "Rather than dumping the engine API, generate API reference from all the GDExtensions loaded in the current project (used with --doctool).\n", CLI_OPTION_AVAILABILITY_EDITOR);
 #ifdef MODULE_GDSCRIPT_ENABLED
 	print_help_option("--gdscript-docs <path>", "Rather than dumping the engine API, generate API reference from the inline documentation in the GDScript files found in <path> (used with --doctool).\n", CLI_OPTION_AVAILABILITY_EDITOR);
 #endif
 	print_help_option("--build-solutions", "Build the scripting solutions (e.g. for C# projects). Implies --editor and requires a valid project to edit.\n", CLI_OPTION_AVAILABILITY_EDITOR);
-	print_help_option("--dump-rlextension-interface", "Generate a RLExtension header file \"gdextension_interface.h\" in the current folder. This file is the base file required to implement a GDExtension.\n", CLI_OPTION_AVAILABILITY_EDITOR);
-	print_help_option("--dump-rlextension-interface-json", "Generate a JSON dump of the RLExtension interface named \"gdextension_interface.json\" in the current folder.\n", CLI_OPTION_AVAILABILITY_EDITOR);
-	print_help_option("--dump-extension-api", "Generate a JSON dump of the RLEngine API for RLExtension bindings named \"extension_api.json\" in the current folder.\n", CLI_OPTION_AVAILABILITY_EDITOR);
-	print_help_option("--dump-extension-api-with-docs", "Generate JSON dump of the RLEngine API like the previous option, but including documentation.\n", CLI_OPTION_AVAILABILITY_EDITOR);
+	print_help_option("--dump-gdextension-interface", "Generate a GDExtension header file \"gdextension_interface.h\" in the current folder. This file is the base file required to implement a GDExtension.\n", CLI_OPTION_AVAILABILITY_EDITOR);
+	print_help_option("--dump-gdextension-interface-json", "Generate a JSON dump of the GDExtension interface named \"gdextension_interface.json\" in the current folder.\n", CLI_OPTION_AVAILABILITY_EDITOR);
+	print_help_option("--dump-extension-api", "Generate a JSON dump of the Godot API for GDExtension bindings named \"extension_api.json\" in the current folder.\n", CLI_OPTION_AVAILABILITY_EDITOR);
+	print_help_option("--dump-extension-api-with-docs", "Generate JSON dump of the Godot API like the previous option, but including documentation.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 	print_help_option("--validate-extension-api <path>", "Validate an extension API file dumped (with one of the two previous options) from a previous version of the engine to ensure API compatibility.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 	print_help_option("", "If incompatibilities or errors are detected, the exit code will be non-zero.\n");
 	print_help_option("--benchmark", "Benchmark the run time and print it to console.\n", CLI_OPTION_AVAILABILITY_EDITOR);
@@ -966,8 +952,8 @@ int Main::test_entrypoint(int argc, char *argv[], bool &tests_need_run) {
 			return status;
 #else
 			ERR_PRINT(
-					"`--test` was specified on the command line, but this RLEngine binary was compiled without support for unit tests. Aborting.\n"
-					"To be able to run unit tests, use the `tests=yes` SCons option when compiling RLEngine.\n");
+					"`--test` was specified on the command line, but this Godot binary was compiled without support for unit tests. Aborting.\n"
+					"To be able to run unit tests, use the `tests=yes` SCons option when compiling Godot.\n");
 			return EXIT_FAILURE;
 #endif
 		}
@@ -1501,8 +1487,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			}
 #else
 			ERR_PRINT(
-					"`--remote-fs` was specified on the command line, but this RLEngine binary was compiled without debug. Aborting.\n"
-					"To be able to use it, use the `target=template_debug` SCons option when compiling RLEngine.\n");
+					"`--remote-fs` was specified on the command line, but this Godot binary was compiled without debug. Aborting.\n"
+					"To be able to use it, use the `target=template_debug` SCons option when compiling Godot.\n");
 #endif // defined(DEBUG_ENABLED) || defined (TOOLS_ENABLED)
 		} else if (arg == "--remote-fs-password") { // remote filesystem password
 
@@ -1516,8 +1502,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			}
 #else
 			ERR_PRINT(
-					"`--remote-fs-password` was specified on the command line, but this RLEngine binary was compiled without debug. Aborting.\n"
-					"To be able to use it, use the `target=template_debug` SCons option when compiling RLEngine.\n");
+					"`--remote-fs-password` was specified on the command line, but this Godot binary was compiled without debug. Aborting.\n"
+					"To be able to use it, use the `target=template_debug` SCons option when compiling Godot.\n");
 			goto error;
 #endif // defined(DEBUG_ENABLED) || defined (TOOLS_ENABLED)
 		} else if (arg == "--render-thread") { // render thread mode
@@ -1527,7 +1513,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 					separate_thread_render = 0;
 #ifndef DISABLE_DEPRECATED
 				} else if (N->get() == "unsafe") {
-					OS::get_singleton()->print("The --render-thread unsafe option is unsupported in RLEngine public-beta and will be removed.\n");
+					OS::get_singleton()->print("The --render-thread unsafe option is unsupported in Godot 4 and will be removed.\n");
 					separate_thread_render = 0;
 #endif
 				} else if (N->get() == "separate") {
@@ -1579,7 +1565,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			editor = true;
 			cmdline_tool = true;
 			dump_gdextension_interface_header = true;
-			print_line("Dumping RLExtension interface header file");
+			print_line("Dumping GDExtension interface header file");
 			// Hack. Not needed but otherwise we end up detecting that this should
 			// run the project instead of a cmdline tool.
 			// Needs full refactoring to fix properly.
@@ -1589,7 +1575,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			editor = true;
 			cmdline_tool = true;
 			dump_gdextension_interface = true;
-			print_line("Dumping RLExtension interface json file");
+			print_line("Dumping GDExtension interface json file");
 			// Hack. Not needed but otherwise we end up detecting that this should
 			// run the project instead of a cmdline tool.
 			// Needs full refactoring to fix properly.
@@ -1658,7 +1644,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			}
 #ifndef DISABLE_DEPRECATED
 		} else if (arg == "--export") { // For users used to 3.x syntax.
-			OS::get_singleton()->print("The RLEngine public-beta --export option was changed to more explicit --export-release / --export-debug / --export-pack options.\nSee the --help output for details.\n");
+			OS::get_singleton()->print("The Godot 3 --export option was changed to more explicit --export-release / --export-debug / --export-pack options.\nSee the --help output for details.\n");
 			goto error;
 		} else if (arg == "--convert-3to4") {
 			// Actually handling is done in start().
@@ -1733,8 +1719,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			}
 #else
 			ERR_PRINT(
-					"`--path` was specified on the command line, but this RLEngine binary was compiled without support for path overrides. Aborting.\n"
-					"To be able to use it, use the `disable_path_overrides=no` SCons option when compiling RLEngine.\n");
+					"`--path` was specified on the command line, but this Godot binary was compiled without support for path overrides. Aborting.\n"
+					"To be able to use it, use the `disable_path_overrides=no` SCons option when compiling Godot.\n");
 			goto error;
 #endif // defined(OVERRIDE_PATH_ENABLED)
 		} else if (arg == "--quit") { // Auto quit at the end of the first main loop iteration
@@ -1770,8 +1756,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 #endif
 #else
 			ERR_PRINT(
-					"`project.rlengine` path was specified on the command line, but this RLEngine binary was compiled without support for path overrides. Aborting.\n"
-					"To be able to use it, use the `disable_path_overrides=no` SCons option when compiling RLEngine.\n");
+					"`project.rlengine` path was specified on the command line, but this Godot binary was compiled without support for path overrides. Aborting.\n"
+					"To be able to use it, use the `disable_path_overrides=no` SCons option when compiling Godot.\n");
 			goto error;
 #endif // defined(OVERRIDE_PATH_ENABLED)
 		} else if (arg == "-b" || arg == "--breakpoints") { // add breakpoints
@@ -1825,8 +1811,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			}
 #else
 			ERR_PRINT(
-					"`--main-pack` was specified on the command line, but this RLEngine binary was compiled without support for path overrides. Aborting.\n"
-					"To be able to use it, use the `disable_path_overrides=no` SCons option when compiling RLEngine.\n");
+					"`--main-pack` was specified on the command line, but this Godot binary was compiled without support for path overrides. Aborting.\n"
+					"To be able to use it, use the `disable_path_overrides=no` SCons option when compiling Godot.\n");
 			goto error;
 #endif // defined(OVERRIDE_PATH_ENABLED) || defined(WEB_ENABLED)
 
@@ -1871,8 +1857,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			}
 #else
 			ERR_PRINT(
-					"`--remote-debug` was specified on the command line, but this RLEngine binary was compiled without debug. Aborting.\n"
-					"To be able to use it, use the `target=template_debug` SCons option when compiling RLEngine.\n");
+					"`--remote-debug` was specified on the command line, but this Godot binary was compiled without debug. Aborting.\n"
+					"To be able to use it, use the `target=template_debug` SCons option when compiling Godot.\n");
 			goto error;
 #endif // defined(DEBUG_ENABLED) || defined (TOOLS_ENABLED)
 		} else if (arg == "--editor-pid") { // not exposed to user
@@ -2053,9 +2039,9 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		String exec_basename = exec_path.get_file().get_basename();
 
 		if (FileAccess::exists(old_cwd.path_join(exec_basename + ".pck"))) {
-			error_msg += "\"" + exec_basename + ".pck\" was found in the current working directory. To be able to load a project from the CWD, use the `disable_path_overrides=no` SCons option when compiling RLEngine.\n";
+			error_msg += "\"" + exec_basename + ".pck\" was found in the current working directory. To be able to load a project from the CWD, use the `disable_path_overrides=no` SCons option when compiling Godot.\n";
 		} else if (FileAccess::exists(old_cwd.path_join("project.rlengine"))) {
-			error_msg += "\"project.rlengine\" was found in the current working directory. To be able to load a project from the CWD, use the `disable_path_overrides=no` SCons option when compiling RLEngine.\n";
+			error_msg += "\"project.rlengine\" was found in the current working directory. To be able to load a project from the CWD, use the `disable_path_overrides=no` SCons option when compiling Godot.\n";
 		} else {
 			error_msg += "If you've renamed the executable, the associated .pck file should also be renamed to match the executable's name (without the extension).\n";
 		}
@@ -2153,6 +2139,21 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	}
 #endif
 
+#ifdef TOOLS_ENABLED
+	if (editor) {
+		Engine::get_singleton()->set_editor_hint(true);
+		Engine::get_singleton()->set_extension_reloading_enabled(true);
+
+		// Create initialization lock file to detect crashes during startup.
+		OS::get_singleton()->create_lock_file();
+
+		main_args.push_back("--editor");
+		if (!init_windowed && !init_fullscreen) {
+			init_maximized = true;
+			window_mode = DisplayServer::WINDOW_MODE_MAXIMIZED;
+		}
+	}
+
 	if (project_manager) {
 		Engine::get_singleton()->set_project_manager_hint(true);
 	}
@@ -2165,6 +2166,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 
 		Engine::get_singleton()->set_recovery_mode_hint(true);
 	}
+#endif
 
 	OS::get_singleton()->set_cmdline(execpath, main_args, user_args);
 
@@ -2234,7 +2236,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	// This also prevents logs from being created for the editor instance, as feature tags
 	// are disabled while in the editor (even if they should logically apply).
 	GLOBAL_DEF("debug/file_logging/enable_file_logging.pc", true);
-	GLOBAL_DEF("debug/file_logging/log_path", "user://logs/real_engine.log");
+	GLOBAL_DEF("debug/file_logging/log_path", "user://logs/godot.log");
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "debug/file_logging/max_log_files", PROPERTY_HINT_RANGE, "0,20,1,or_greater"), 5);
 
 	// If `--log-file` is used to override the log path, allow creating logs for the project manager or editor
@@ -3668,7 +3670,7 @@ Error Main::setup2(bool p_show_boot_logo) {
 	}
 
 	PackedStringArray extensions;
-	extensions.push_back("rlscr");
+	extensions.push_back("gd");
 	if (ClassDB::class_exists("CSharpScript")) {
 		extensions.push_back("cs");
 	}
@@ -3748,40 +3750,6 @@ Error Main::setup2(bool p_show_boot_logo) {
 	// after init'ing the ScriptServer, but also after init'ing the ThemeDB,
 	// for the C# docs generation in the bindings.
 	List<String> cmdline_args = OS::get_singleton()->get_cmdline_args();
-	for (const String &arg : cmdline_args) {
-        if (arg.begins_with("rlengine://")) {
-            String command = arg.substr(10); // Убираем "rlengine://"
-
-            if (command.begins_with("import?")) {
-                String query = command.substr(7); // Убираем "import?"
-                Vector<String> params = query.split("&");
-
-                String asset_url;
-                String asset_name;
-
-                for (int j = 0; j < params.size(); j++) {
-                    Vector<String> kv = params[j].split("=");
-                    if (kv.size() == 2) {
-                        if (kv[0] == "url") {
-                            asset_url = kv[1].uri_decode();
-                        } else if (kv[0] == "name") {
-                            asset_name = kv[1].uri_decode();
-                        }
-                    }
-                }
-
-                if (!asset_url.is_empty() && !asset_name.is_empty()) {
-                    // Сохраняем во временные переменные (объявите их выше)
-                    import_asset_url = asset_url;
-                    import_asset_name = asset_name;
-                    should_import_asset = true;
-
-                    print_line("Real Engine: Import Assets '" + asset_name + "'");
-                }
-            }
-            break;
-        }
-    }
 	BindingsGenerator::handle_cmdline_args(cmdline_args);
 #endif
 
@@ -3911,8 +3879,6 @@ static MainTimerSync main_timer_sync;
 // and should move on to `OS::run`, and EXIT_FAILURE otherwise for
 // an early exit with that error code.
 int Main::start() {
-print_line("[REAL START]: starting editor...");
-#ifdef TOOLS_ENABLED
 	GodotProfileZone("start");
 	OS::get_singleton()->benchmark_begin_measure("Startup", "Main::Start");
 
@@ -3943,44 +3909,6 @@ print_line("[REAL START]: starting editor...");
 	bool validating_converting_project = false;
 #endif // DISABLE_DEPRECATED
 #endif // TOOLS_ENABLED
-
-#ifdef WINDOWS_ENABLED
-    // Проверяем, не запущен ли уже Real Engine
-    HANDLE hMutex = CreateMutexA(NULL, TRUE, "RealEngine_SingleInstance_Mutex");
-
-    if (GetLastError() == ERROR_ALREADY_EXISTS) {
-        // Уже запущен - отправляем команду существующему окну
-        HWND hWnd = FindWindowA(NULL, "Real Engine");
-        if (hWnd) {
-            // Разворачиваем окно
-            ShowWindow(hWnd, SW_RESTORE);
-            SetForegroundWindow(hWnd);
-
-            // Если есть аргументы (rlengine://...), передаем их
-            LPWSTR *argv;
-            int argc;
-            argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-            if (argc > 1) {
-                COPYDATASTRUCT cds;
-                cds.dwData = 1;
-                // Конвертируем wide string в UTF-8
-                int len = WideCharToMultiByte(CP_UTF8, 0, argv[1], -1, NULL, 0, NULL, NULL);
-                char* utf8_url = new char[len];
-                WideCharToMultiByte(CP_UTF8, 0, argv[1], -1, utf8_url, len, NULL, NULL);
-
-                cds.cbData = len;
-                cds.lpData = utf8_url;
-
-                SendMessageA(hWnd, WM_COPYDATA, 0, (LPARAM)&cds);
-                delete[] utf8_url;
-            }
-            LocalFree(argv);
-
-            // Завершаем этот процесс
-            return 0;
-        }
-    }
-#endif
 
 	main_timer_sync.init(OS::get_singleton()->get_ticks_usec());
 	List<String> args = OS::get_singleton()->get_cmdline_args();
@@ -4023,15 +3951,16 @@ print_line("[REAL START]: starting editor...");
 			}
 #else
 			ERR_PRINT(
-					"`--scene` was specified on the command line, but this RLEngine binary was compiled without support for path overrides. Aborting.\n"
-					"To be able to use it, use the `disable_path_overrides=no` SCons option when compiling RLEngine.\n");
+					"`--scene` was specified on the command line, but this Godot binary was compiled without support for path overrides. Aborting.\n"
+					"To be able to use it, use the `disable_path_overrides=no` SCons option when compiling Godot.\n");
 			return EXIT_FAILURE;
 #endif // defined(OVERRIDE_PATH_ENABLED)
 		} else if (E->get().length() && E->get()[0] != '-' && positional_arg.is_empty() && game_path.is_empty()) {
 			positional_arg = E->get();
 
 			String scene_path = ResourceUID::ensure_path(E->get());
-			if (scene_path.ends_with(".rlscene") ||
+			if (scene_path.ends_with(".scn") ||
+					scene_path.ends_with(".tscn") ||
 					scene_path.ends_with(".escn") ||
 					scene_path.ends_with(".res") ||
 					scene_path.ends_with(".tres")) {
@@ -4045,8 +3974,8 @@ print_line("[REAL START]: starting editor...");
 				game_path = scene_path;
 #else
 				ERR_PRINT(
-						"Scene path was specified on the command line, but this RLEngine binary was compiled without support for path overrides. Aborting.\n"
-						"To be able to use it, use the `disable_path_overrides=no` SCons option when compiling RLEngine.\n");
+						"Scene path was specified on the command line, but this Godot binary was compiled without support for path overrides. Aborting.\n"
+						"To be able to use it, use the `disable_path_overrides=no` SCons option when compiling Godot.\n");
 				return EXIT_FAILURE;
 #endif // defined(OVERRIDE_PATH_ENABLED)
 			}
@@ -4138,7 +4067,7 @@ print_line("[REAL START]: starting editor...");
 			// Ensure that doctool is running in the root dir, but only if
 			// user did not manually specify a path as argument.
 			if (doc_tool_implicit_cwd) {
-				ERR_FAIL_COND_V_MSG(!da->dir_exists("doc"), EXIT_FAILURE, "--doctool must be run from the RLEngine repository's root folder, or specify a path that points there.");
+				ERR_FAIL_COND_V_MSG(!da->dir_exists("doc"), EXIT_FAILURE, "--doctool must be run from the Godot repository's root folder, or specify a path that points there.");
 			}
 		}
 
@@ -4511,8 +4440,8 @@ print_line("[REAL START]: starting editor...");
 			DocTools docs;
 			Error err;
 
-			Vector<String> paths = get_files_with_extension(gdscript_docs_path, "rlscr");
-			ERR_FAIL_COND_V_MSG(paths.is_empty(), EXIT_FAILURE, "Couldn't find any RLScript files under the given directory: " + gdscript_docs_path);
+			Vector<String> paths = get_files_with_extension(gdscript_docs_path, "gd");
+			ERR_FAIL_COND_V_MSG(paths.is_empty(), EXIT_FAILURE, "Couldn't find any GDScript files under the given directory: " + gdscript_docs_path);
 
 			for (const String &path : paths) {
 				Ref<GDScript> gdscript = ResourceLoader::load(path);
@@ -4527,11 +4456,11 @@ print_line("[REAL START]: starting editor...");
 
 			Ref<DirAccess> da = DirAccess::create_for_path(doc_tool_path);
 			err = da->make_dir_recursive(doc_tool_path);
-			ERR_FAIL_COND_V_MSG(err != OK, EXIT_FAILURE, "Error: Can't create RLScript docs directory: " + doc_tool_path + ": " + itos(err));
+			ERR_FAIL_COND_V_MSG(err != OK, EXIT_FAILURE, "Error: Can't create GDScript docs directory: " + doc_tool_path + ": " + itos(err));
 
 			HashMap<String, String> doc_data_classes;
 			err = docs.save_classes(doc_tool_path, doc_data_classes, false);
-			ERR_FAIL_COND_V_MSG(err != OK, EXIT_FAILURE, "Error saving RLScript docs:" + itos(err));
+			ERR_FAIL_COND_V_MSG(err != OK, EXIT_FAILURE, "Error saving GDScript docs:" + itos(err));
 
 			return EXIT_SUCCESS;
 		}
@@ -4826,17 +4755,6 @@ print_line("[REAL START]: starting editor...");
 	OS::get_singleton()->benchmark_dump();
 
 	return EXIT_SUCCESS;
-
-	if (should_import_asset && Engine::get_singleton()->is_editor_hint()) {
-        // Передаем данные в редактор через синглтон или настройки
-        EditorSettings::get_singleton()->set("import/asset_url", import_asset_url);
-        EditorSettings::get_singleton()->set("import/asset_name", import_asset_name);
-        EditorSettings::get_singleton()->set("import/asset_pending", true);
-
-        print_line("Real Engine: Данные ассета переданы в редактор");
-    }
-
-   print_line("[REAL START]: done!");
 }
 
 /* Main iteration
@@ -5347,5 +5265,3 @@ void Main::cleanup(bool p_force) {
 
 	OS::get_singleton()->finalize_core();
 }
-
-#endif

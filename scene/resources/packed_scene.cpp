@@ -1,4 +1,4 @@
-/**************************************************************************/
+﻿/**************************************************************************/
 /*  packed_scene.cpp                                                      */
 /**************************************************************************/
 /*                         This file is part of:                          */
@@ -2550,7 +2550,7 @@ HashSet<StringName> PackedScene::get_scene_groups(const String &p_path) {
 		}
 	}
 
-	if (p_path.get_extension() == "rlscene") {
+	if (p_path.get_extension() == "tres") {
 		Ref<FileAccess> scene_file = FileAccess::open(p_path, FileAccess::READ);
 		ERR_FAIL_COND_V(scene_file.is_null(), HashSet<StringName>());
 

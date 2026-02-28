@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+﻿<?xml version="1.0"?>
 <mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
   <mime-type type="application/x-godot-project">
     <comment>Godot Engine project</comment>
@@ -11,7 +11,7 @@
     <comment>Godot Engine resource</comment>
     <icon name="x-godot-resource"/>
     <glob pattern="*.res"/>
-    <glob pattern="*.tres"/>
+    <glob pattern="*.tscn"/>
   </mime-type>
 
   <mime-type type="application/x-godot-scene">

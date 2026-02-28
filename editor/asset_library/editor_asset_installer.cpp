@@ -1,4 +1,4 @@
-/**************************************************************************/
+﻿/**************************************************************************/
 /*  editor_asset_installer.cpp                                            */
 /**************************************************************************/
 /*                         This file is part of:                          */
@@ -629,7 +629,7 @@ void EditorAssetInstaller::_notification(int p_what) {
 				extension_icon_map["ogg"] = get_editor_theme_icon(SNAME("AudioStreamOggVorbis"));
 				extension_icon_map["mp3"] = get_editor_theme_icon(SNAME("AudioStreamMP3"));
 
-				extension_icon_map["rlscene"] = get_editor_theme_icon(SNAME("PackedScene"));
+				extension_icon_map["tres"] = get_editor_theme_icon(SNAME("PackedScene"));
 				extension_icon_map["escn"] = get_editor_theme_icon(SNAME("PackedScene"));
 				extension_icon_map["dae"] = get_editor_theme_icon(SNAME("PackedScene"));
 				extension_icon_map["gltf"] = get_editor_theme_icon(SNAME("PackedScene"));

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <class name="StringName" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
 	<brief_description>
 		A built-in type for unique strings.
@@ -289,7 +289,7 @@
 				[codeblock]
 				var a = "/path/to/file.txt".get_extension() # a is "txt"
 				var b = "cool.txt".get_extension()          # b is "txt"
-				var c = "cool.font.tres".get_extension()    # c is "tres"
+				var c = "cool.font.tscn".get_extension()    # c is "tres"
 				var d = ".pack1".get_extension()            # d is "pack1"
 
 				var e = "file.txt.".get_extension()  # e is ""
@@ -526,9 +526,9 @@
 				print("node_2d".is_valid_unicode_identifier())      # Prints true
 				print("1st_method".is_valid_unicode_identifier())   # Prints false
 				print("MyMethod#2".is_valid_unicode_identifier())   # Prints false
-				print("állóképesség".is_valid_unicode_identifier()) # Prints true
-				print("выносливость".is_valid_unicode_identifier()) # Prints true
-				print("体力".is_valid_unicode_identifier())         # Prints true
+				print("ГЎllГіkГ©pessГ©g".is_valid_unicode_identifier()) # Prints true
+				print("РІС‹РЅРѕСЃР»РёРІРѕСЃС‚СЊ".is_valid_unicode_identifier()) # Prints true
+				print("дЅ“еЉ›".is_valid_unicode_identifier())         # Prints true
 				[/codeblock]
 				See also [method is_valid_ascii_identifier].
 				[b]Note:[/b] This method checks identifiers the same way as GDScript. See [method TextServer.is_valid_identifier] for more advanced checks.
@@ -828,7 +828,7 @@
 			<return type="float" />
 			<param index="0" name="text" type="String" />
 			<description>
-				Returns the similarity index ([url=https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient]Sørensen-Dice coefficient[/url]) of this string compared to another. A result of [code]1.0[/code] means totally similar, while [code]0.0[/code] means totally dissimilar.
+				Returns the similarity index ([url=https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient]SГёrensen-Dice coefficient[/url]) of this string compared to another. A result of [code]1.0[/code] means totally similar, while [code]0.0[/code] means totally dissimilar.
 				[codeblock]
 				print("ABC123".similarity("ABC123")) # Prints 1.0
 				print("ABC123".similarity("XYZ456")) # Prints 0.0

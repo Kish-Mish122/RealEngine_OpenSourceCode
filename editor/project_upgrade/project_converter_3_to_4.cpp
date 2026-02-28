@@ -1,4 +1,4 @@
-/**************************************************************************/
+﻿/**************************************************************************/
 /*  project_converter_3_to_4.cpp                                          */
 /**************************************************************************/
 /*                         This file is part of:                          */
@@ -711,7 +711,7 @@ Vector<String> ProjectConverter3To4::check_for_files() {
 			String file_name = dir->_get_next();
 
 			while (file_name != "") {
-				if (file_name == ".git" || file_name == ".godot") {
+				if (file_name == ".git" || file_name == ".rlengine") {
 					file_name = dir->_get_next();
 					continue;
 				}
@@ -719,7 +719,7 @@ Vector<String> ProjectConverter3To4::check_for_files() {
 					directories_to_check.append(current_dir.path_join(file_name) + "/");
 				} else {
 					bool proper_extension = false;
-					if (file_name.ends_with(".gd") || file_name.ends_with(".shader") || file_name.ends_with(".gdshader") || file_name.ends_with(".tscn") || file_name.ends_with(".tres") || file_name.ends_with(".godot") || file_name.ends_with(".cs") || file_name.ends_with(".csproj") || file_name.ends_with(".import")) {
+					if (file_name.ends_with(".gd") || file_name.ends_with(".shader") || file_name.ends_with(".gdshader") || file_name.ends_with(".tscn") || file_name.ends_with(".tscn") || file_name.ends_with(".rlengine") || file_name.ends_with(".cs") || file_name.ends_with(".csproj") || file_name.ends_with(".import")) {
 						proper_extension = true;
 					}
 
@@ -1416,7 +1416,7 @@ String ProjectConverter3To4::get_starting_space(const String &line) const {
 	return empty_space;
 }
 
-// Returns the object that’s executing the function in the line.
+// Returns the object thatвЂ™s executing the function in the line.
 // e.g. Passing the line "var roman = kieliszek.funkcja()" to this function returns "kieliszek".
 String ProjectConverter3To4::get_object_of_execution(const String &line) const {
 	int end = line.size() - 1; // Last one is \0
