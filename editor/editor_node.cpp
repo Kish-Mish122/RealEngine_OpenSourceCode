@@ -1025,12 +1025,10 @@ void EditorNode::_notification(int p_what) {
                     String name = EditorSettings::get_singleton()->get("import/asset_name");
 
                     if (!url.is_empty() && !name.is_empty()) {
-                        // Р’С‹Р·С‹РІР°РµРј РёРјРїРѕСЂС‚ СЃ РЅРµР±РѕР»СЊС€РѕР№ Р·Р°РґРµСЂР¶РєРѕР№
                         MessageQueue::get_singleton()->push_callable(
                             callable_mp(this, &EditorNode::_import_asset_from_url), url, name);
                     }
 
-                    // РЎР±СЂР°СЃС‹РІР°РµРј С„Р»Р°Рі
                     EditorSettings::get_singleton()->set("import/asset_pending", false);
                 }
 
@@ -9483,10 +9481,18 @@ EditorNode::EditorNode() {
 
 	callable_mp(this, &EditorNode::_check_templates_and_ask).call_deferred();
 
-     project_running = false;
-        hot_reload_timer = nullptr;
+	// Стартуем Hot Reload (горячую перезагрузку)
+	print_line("[REAL HOT RELOAD]: Starting to work...");
+    project_running = false;
+    hot_reload_timer = nullptr;
+    print_line("[REAL HOT RELOAD]: Started to work!");
 
-     callable_mp(this, &EditorNode::_run_startup_checks).call_deferred();
+    // Стартуем проверку драйверов и оперативной памяти
+    print_line("[REAL CHECKER]: Starting to work...");
+    callable_mp(this, &EditorNode::_run_startup_checks).call_deferred();
+    print_line("[REAL CHECKER]: Started to work!");
+
+    // Можно было наоборот для пущей убедительности, ну а зачем?
 }
 
 EditorNode::~EditorNode() {
@@ -9525,7 +9531,6 @@ EditorNode::~EditorNode() {
 void EditorNode::_run_startup_checks() {
     print_line("[REAL CHECKER]: Running startup checks...");
 
-    // РџСЂРѕРІРµСЂРєР° РґСЂР°Р№РІРµСЂРѕРІ
     if (gui_base) {
         print_line("[REAL CHECKER]: GUI base exists");
 
@@ -9563,7 +9568,6 @@ void EditorNode::_check_hot_reload() {
         return;
     }
 
-    // РЎРєР°РЅРёСЂСѓРµРј РІСЃРµ .gd С„Р°Р№Р»С‹
     Vector<String> script_files;
     _scan_folder("res://", "rlscr", script_files);
 
@@ -9581,7 +9585,6 @@ void EditorNode::_check_hot_reload() {
             print_line("[REAL RELOAD]: File changed: " + path.get_file());
             script_last_modified[path] = last_modified;
 
-            // РџРµСЂРµР·Р°РіСЂСѓР¶Р°РµРј СЃРєСЂРёРїС‚
             ResourceLoader::load(path, "", ResourceFormatLoader::CACHE_MODE_IGNORE);
             print_line("[REAL RELOAD]: Script reloaded: " + path.get_file());
 
@@ -9628,7 +9631,7 @@ void EditorNode::_autosave_scene() {
     bool autosave_enabled = EDITOR_GET("interface/editor/autosave_enabled");
 
     if (!autosave_enabled) {
-        return; // РђРІС‚РѕСЃРѕС…СЂР°РЅРµРЅРёРµ РІС‹РєР»СЋС‡РµРЅРѕ
+        return;
     }
 
     if (unsaved_cache) {
@@ -9646,7 +9649,6 @@ void EditorNode::_update_autosave_timers() {
     int autosave_interval = EDITOR_GET("interface/editor/autosave_interval");
     bool autosave_notification = EDITOR_GET("interface/editor/autosave_notification");
 #else
-    // Р’ РЅРµ-РёРЅСЃС‚СЂСѓРјРµРЅС‚Р°Р»СЊРЅС‹С… СЃР±РѕСЂРєР°С… Р°РІС‚РѕСЃРѕС…СЂР°РЅРµРЅРёРµ РѕС‚РєР»СЋС‡РµРЅРѕ
     bool autosave_enabled = false;
     int autosave_interval = 300;
     bool autosave_notification = true;
@@ -9654,11 +9656,9 @@ void EditorNode::_update_autosave_timers() {
 
     if (autosave_timer && autosave_notification_timer) {
         if (autosave_enabled && autosave_interval > 5) {
-            // РћСЃРЅРѕРІРЅРѕР№ С‚Р°Р№РјРµСЂ Р°РІС‚РѕСЃРѕС…СЂР°РЅРµРЅРёСЏ
             autosave_timer->set_wait_time(autosave_interval);
             autosave_timer->start();
 
-            // РўР°Р№РјРµСЂ СѓРІРµРґРѕРјР»РµРЅРёСЏ (Р·Р° 5 СЃРµРєСѓРЅРґ РґРѕ СЃРѕС…СЂР°РЅРµРЅРёСЏ)
             if (autosave_notification) {
                 autosave_notification_timer->set_wait_time(autosave_interval - 5);
                 autosave_notification_timer->start();
@@ -9680,34 +9680,27 @@ void EditorNode::_update_autosave_timers() {
 }
 
 void EditorNode::_import_asset_from_url(const String &p_url, const String &p_name) {
-    // РЎРѕР·РґР°РµРј РІСЂРµРјРµРЅРЅСѓСЋ РїР°РїРєСѓ
     String temp_dir = EditorPaths::get_singleton()->get_cache_dir().path_join("temp_imports");
     DirAccess::make_dir_recursive_absolute(temp_dir);
 
     String temp_file = temp_dir.path_join(p_name.replace(" ", "_") + ".zip");
 
-    // РЎРѕР·РґР°РµРј HTTP Р·Р°РїСЂРѕСЃ
     HTTPRequest *request = memnew(HTTPRequest);
     add_child(request);
 
-    // РќР°СЃС‚СЂР°РёРІР°РµРј Р·Р°РіРѕР»РѕРІРєРё
     Vector<String> headers;
     headers.push_back("User-Agent: Real Engine Asset Importer");
 
-    // РџРѕРґРєР»СЋС‡Р°РµРј СЃРёРіРЅР°Р»
     request->connect("request_completed", callable_mp(this, &EditorNode::_import_asset_downloaded).bind(temp_file));
 
-    // РќР°С‡РёРЅР°РµРј СЃРєР°С‡РёРІР°РЅРёРµ
     Error err = request->request(p_url, headers);
     if (err != OK) {
         EditorNode::get_singleton()->show_warning("Couldn't start asset download");
         return;
     }
 
-    // РџРѕРєР°Р·С‹РІР°РµРј РїСЂРѕРіСЂРµСЃСЃ
     progress_dialog->add_task("import_asset", "Importing an asset: " + p_name, 100);
 
-    // Р Р°Р·РІРѕСЂР°С‡РёРІР°РµРј РѕРєРЅРѕ
     DisplayServer::get_singleton()->window_set_mode(DisplayServer::WINDOW_MODE_MAXIMIZED);
 }
 
@@ -9720,14 +9713,12 @@ void EditorNode::_import_asset_downloaded(int p_status, int p_code, const Packed
         return;
     }
 
-    // РЎРѕС…СЂР°РЅСЏРµРј С„Р°Р№Р»
     Ref<FileAccess> f = FileAccess::open(p_temp_file, FileAccess::WRITE);
     f->store_buffer(p_data.ptr(), p_data.size());
     f.unref();
 
     progress_dialog->task_step("import_asset", "Import...", 80);
 
-    // РћС‚РєСЂС‹РІР°РµРј РґРёР°Р»РѕРі РёРјРїРѕСЂС‚Р°
     EditorAssetInstaller *installer = memnew(EditorAssetInstaller);
     add_child(installer);
     installer->open_asset(p_temp_file);
@@ -9741,7 +9732,6 @@ void EditorNode::_check_templates_and_download() {
     if (!DirAccess::exists(templates_dir)) {
         if (export_template_manager) {
             export_template_manager->popup_manager();
-            // Р’РјРµСЃС‚Рѕ РїСЂРёРІР°С‚РЅРѕРіРѕ _download_current() РІС‹Р·С‹РІР°РµРј РїСѓР±Р»РёС‡РЅС‹Р№ РјРµС‚РѕРґ С‡РµСЂРµР· РјРµРЅСЋ
             export_template_manager->get_ok_button()->emit_signal(SceneStringName(pressed));
         }
     }
@@ -9752,21 +9742,17 @@ void EditorNode::_download_templates_if_missing() {
 }
 
 void EditorNode::_check_templates_and_ask() {
-    // РџСЂРѕРІРµСЂСЏРµРј, РµСЃС‚СЊ Р»Рё С€Р°Р±Р»РѕРЅС‹
     String templates_dir = EditorPaths::get_singleton()->get_export_templates_dir().path_join(GODOT_VERSION_FULL_CONFIG);
 
     if (!DirAccess::exists(templates_dir)) {
-        // РЁР°Р±Р»РѕРЅРѕРІ РЅРµС‚ - РїРѕРєР°Р·С‹РІР°РµРј РґРёР°Р»РѕРі
         ConfirmationDialog *ask_dialog = memnew(ConfirmationDialog);
-        ask_dialog->set_title(TTR("Export Templates Missing"));
-        ask_dialog->set_text(TTR("You don't have export templates installed for this version.\nWould you like to download them now?"));
+        ask_dialog->set_title(TTR("Real Engine - No build template found!"));
+        ask_dialog->set_text(TTR("Real Engine did not detect a template for the build.\nMaybe you should download it automatically?"));
         ask_dialog->set_ok_button_text(TTR("Download Templates"));
         ask_dialog->set_cancel_button_text(TTR("Later"));
 
-        // РџРѕРґРєР»СЋС‡Р°РµРј С‚РѕР»СЊРєРѕ СЃРёРіРЅР°Р» РїРѕРґС‚РІРµСЂР¶РґРµРЅРёСЏ
         ask_dialog->connect(SceneStringName(confirmed), callable_mp(this, &EditorNode::_open_template_manager));
 
-        // РќРµ РїРѕРґРєР»СЋС‡Р°РµРј СЃРёРіРЅР°Р» РѕС‚РјРµРЅС‹, С…Р°Р№ РґРёР°Р»РѕРі СЃР°Рј Р·Р°РєСЂРѕРµС‚СЃСЏ
         add_child(ask_dialog);
         ask_dialog->popup_centered();
     }

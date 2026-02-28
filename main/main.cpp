@@ -518,7 +518,7 @@ void Main::print_help_option(const char *p_option, const char *p_description, CL
 void Main::print_help(const char *p_binary) {
 	print_header(true);
 	print_help_copyright("Free and open source software under the terms of the MIT license.");
-	print_help_copyright("(c) 2014-present Godot Engine contributors. (c) 2007-present Juan Linietsky, Ariel Manzur.");
+	print_help_copyright("Real Engine - K1sh-M1sh 2025");
 
 	print_help_title("Usage");
 	OS::get_singleton()->print("  %s \u001b[96m[options] [path to \"project.rlengine\" file]\u001b[0m\n", p_binary);
@@ -697,9 +697,9 @@ void Main::print_help(const char *p_binary) {
 #ifndef DISABLE_DEPRECATED
 	// Commands are long; split the description to a second line.
 	print_help_option("--convert-3to4 ", "\n", CLI_OPTION_AVAILABILITY_HIDDEN);
-	print_help_option("  [max_file_kb] [max_line_size]", "Converts project from Godot 3.x to Godot 4.x.\n", CLI_OPTION_AVAILABILITY_EDITOR);
+	print_help_option("  [max_file_kb] [max_line_size]", "Converts project from Real Engine Alpha to Real Engine Beta.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 	print_help_option("--validate-conversion-3to4 ", "\n", CLI_OPTION_AVAILABILITY_HIDDEN);
-	print_help_option("  [max_file_kb] [max_line_size]", "Shows what elements will be renamed when converting project from Godot 3.x to Godot 4.x.\n", CLI_OPTION_AVAILABILITY_EDITOR);
+	print_help_option("  [max_file_kb] [max_line_size]", "Shows what elements will be renamed when converting project from Real Engine Alpha to Real Engine Beta.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 #endif // DISABLE_DEPRECATED
 	print_help_option("--doctool [path]", "Dump the engine API reference to the given <path> (defaults to current directory) in XML format, merging if existing files are found.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 	print_help_option("--no-docbase", "Disallow dumping the base types (used with --doctool).\n", CLI_OPTION_AVAILABILITY_EDITOR);
@@ -710,8 +710,8 @@ void Main::print_help(const char *p_binary) {
 	print_help_option("--build-solutions", "Build the scripting solutions (e.g. for C# projects). Implies --editor and requires a valid project to edit.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 	print_help_option("--dump-gdextension-interface", "Generate a GDExtension header file \"gdextension_interface.h\" in the current folder. This file is the base file required to implement a GDExtension.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 	print_help_option("--dump-gdextension-interface-json", "Generate a JSON dump of the GDExtension interface named \"gdextension_interface.json\" in the current folder.\n", CLI_OPTION_AVAILABILITY_EDITOR);
-	print_help_option("--dump-extension-api", "Generate a JSON dump of the Godot API for GDExtension bindings named \"extension_api.json\" in the current folder.\n", CLI_OPTION_AVAILABILITY_EDITOR);
-	print_help_option("--dump-extension-api-with-docs", "Generate JSON dump of the Godot API like the previous option, but including documentation.\n", CLI_OPTION_AVAILABILITY_EDITOR);
+	print_help_option("--dump-extension-api", "Generate a JSON dump of the Real Engine API for GDExtension bindings named \"extension_api.json\" in the current folder.\n", CLI_OPTION_AVAILABILITY_EDITOR);
+	print_help_option("--dump-extension-api-with-docs", "Generate JSON dump of the Real Engine API like the previous option, but including documentation.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 	print_help_option("--validate-extension-api <path>", "Validate an extension API file dumped (with one of the two previous options) from a previous version of the engine to ensure API compatibility.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 	print_help_option("", "If incompatibilities or errors are detected, the exit code will be non-zero.\n");
 	print_help_option("--benchmark", "Benchmark the run time and print it to console.\n", CLI_OPTION_AVAILABILITY_EDITOR);
@@ -952,8 +952,8 @@ int Main::test_entrypoint(int argc, char *argv[], bool &tests_need_run) {
 			return status;
 #else
 			ERR_PRINT(
-					"`--test` was specified on the command line, but this Godot binary was compiled without support for unit tests. Aborting.\n"
-					"To be able to run unit tests, use the `tests=yes` SCons option when compiling Godot.\n");
+					"`--test` was specified on the command line, but this Real Engine binary was compiled without support for unit tests. Aborting.\n"
+					"To be able to run unit tests, use the `tests=yes` SCons option when compiling Real Engine.\n");
 			return EXIT_FAILURE;
 #endif
 		}
@@ -1487,8 +1487,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			}
 #else
 			ERR_PRINT(
-					"`--remote-fs` was specified on the command line, but this Godot binary was compiled without debug. Aborting.\n"
-					"To be able to use it, use the `target=template_debug` SCons option when compiling Godot.\n");
+					"`--remote-fs` was specified on the command line, but this Real Engine binary was compiled without debug. Aborting.\n"
+					"To be able to use it, use the `target=template_debug` SCons option when compiling Real Engine.\n");
 #endif // defined(DEBUG_ENABLED) || defined (TOOLS_ENABLED)
 		} else if (arg == "--remote-fs-password") { // remote filesystem password
 
@@ -1502,8 +1502,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			}
 #else
 			ERR_PRINT(
-					"`--remote-fs-password` was specified on the command line, but this Godot binary was compiled without debug. Aborting.\n"
-					"To be able to use it, use the `target=template_debug` SCons option when compiling Godot.\n");
+					"`--remote-fs-password` was specified on the command line, but this Real Engine binary was compiled without debug. Aborting.\n"
+					"To be able to use it, use the `target=template_debug` SCons option when compiling Real Engine.\n");
 			goto error;
 #endif // defined(DEBUG_ENABLED) || defined (TOOLS_ENABLED)
 		} else if (arg == "--render-thread") { // render thread mode
@@ -1513,7 +1513,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 					separate_thread_render = 0;
 #ifndef DISABLE_DEPRECATED
 				} else if (N->get() == "unsafe") {
-					OS::get_singleton()->print("The --render-thread unsafe option is unsupported in Godot 4 and will be removed.\n");
+					OS::get_singleton()->print("The --render-thread unsafe option is unsupported in Real Engine Beta and will be removed.\n");
 					separate_thread_render = 0;
 #endif
 				} else if (N->get() == "separate") {
@@ -1644,7 +1644,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			}
 #ifndef DISABLE_DEPRECATED
 		} else if (arg == "--export") { // For users used to 3.x syntax.
-			OS::get_singleton()->print("The Godot 3 --export option was changed to more explicit --export-release / --export-debug / --export-pack options.\nSee the --help output for details.\n");
+			OS::get_singleton()->print("The Real Engine beta --export option was changed to more explicit --export-release / --export-debug / --export-pack options.\nSee the --help output for details.\n");
 			goto error;
 		} else if (arg == "--convert-3to4") {
 			// Actually handling is done in start().
@@ -1719,8 +1719,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			}
 #else
 			ERR_PRINT(
-					"`--path` was specified on the command line, but this Godot binary was compiled without support for path overrides. Aborting.\n"
-					"To be able to use it, use the `disable_path_overrides=no` SCons option when compiling Godot.\n");
+					"`--path` was specified on the command line, but this Real Engine binary was compiled without support for path overrides. Aborting.\n"
+					"To be able to use it, use the `disable_path_overrides=no` SCons option when compiling Real Engine.\n");
 			goto error;
 #endif // defined(OVERRIDE_PATH_ENABLED)
 		} else if (arg == "--quit") { // Auto quit at the end of the first main loop iteration
@@ -1756,8 +1756,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 #endif
 #else
 			ERR_PRINT(
-					"`project.rlengine` path was specified on the command line, but this Godot binary was compiled without support for path overrides. Aborting.\n"
-					"To be able to use it, use the `disable_path_overrides=no` SCons option when compiling Godot.\n");
+					"`project.rlengine` path was specified on the command line, but this Real Engine binary was compiled without support for path overrides. Aborting.\n"
+					"To be able to use it, use the `disable_path_overrides=no` SCons option when compiling Real Engine.\n");
 			goto error;
 #endif // defined(OVERRIDE_PATH_ENABLED)
 		} else if (arg == "-b" || arg == "--breakpoints") { // add breakpoints
@@ -1811,8 +1811,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			}
 #else
 			ERR_PRINT(
-					"`--main-pack` was specified on the command line, but this Godot binary was compiled without support for path overrides. Aborting.\n"
-					"To be able to use it, use the `disable_path_overrides=no` SCons option when compiling Godot.\n");
+					"`--main-pack` was specified on the command line, but this Real Engine binary was compiled without support for path overrides. Aborting.\n"
+					"To be able to use it, use the `disable_path_overrides=no` SCons option when compiling Real Engine.\n");
 			goto error;
 #endif // defined(OVERRIDE_PATH_ENABLED) || defined(WEB_ENABLED)
 
@@ -1857,8 +1857,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			}
 #else
 			ERR_PRINT(
-					"`--remote-debug` was specified on the command line, but this Godot binary was compiled without debug. Aborting.\n"
-					"To be able to use it, use the `target=template_debug` SCons option when compiling Godot.\n");
+					"`--remote-debug` was specified on the command line, but this Real Engine binary was compiled without debug. Aborting.\n"
+					"To be able to use it, use the `target=template_debug` SCons option when compiling Real Engine.\n");
 			goto error;
 #endif // defined(DEBUG_ENABLED) || defined (TOOLS_ENABLED)
 		} else if (arg == "--editor-pid") { // not exposed to user
@@ -2006,7 +2006,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 
 #if defined(DEBUG_ENABLED) || defined(TOOLS_ENABLED)
 	// Network file system needs to be configured before globals, since globals are based on the
-	// 'project.rlengine' file which will only be available through the network if this is enabled
+	// 'project.godot' file which will only be available through the network if this is enabled
 	if (!remotefs.is_empty()) {
 		int port;
 		if (remotefs.contains_char(':')) {
@@ -2039,9 +2039,9 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		String exec_basename = exec_path.get_file().get_basename();
 
 		if (FileAccess::exists(old_cwd.path_join(exec_basename + ".pck"))) {
-			error_msg += "\"" + exec_basename + ".pck\" was found in the current working directory. To be able to load a project from the CWD, use the `disable_path_overrides=no` SCons option when compiling Godot.\n";
+			error_msg += "\"" + exec_basename + ".pck\" was found in the current working directory. To be able to load a project from the CWD, use the `disable_path_overrides=no` SCons option when compiling Real Engine.\n";
 		} else if (FileAccess::exists(old_cwd.path_join("project.rlengine"))) {
-			error_msg += "\"project.rlengine\" was found in the current working directory. To be able to load a project from the CWD, use the `disable_path_overrides=no` SCons option when compiling Godot.\n";
+			error_msg += "\"project.rlengine\" was found in the current working directory. To be able to load a project from the CWD, use the `disable_path_overrides=no` SCons option when compiling Real Engine.\n";
 		} else {
 			error_msg += "If you've renamed the executable, the associated .pck file should also be renamed to match the executable's name (without the extension).\n";
 		}
@@ -2236,7 +2236,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	// This also prevents logs from being created for the editor instance, as feature tags
 	// are disabled while in the editor (even if they should logically apply).
 	GLOBAL_DEF("debug/file_logging/enable_file_logging.pc", true);
-	GLOBAL_DEF("debug/file_logging/log_path", "user://logs/godot.log");
+	GLOBAL_DEF("debug/file_logging/log_path", "user://logs/rlengine.log");
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "debug/file_logging/max_log_files", PROPERTY_HINT_RANGE, "0,20,1,or_greater"), 5);
 
 	// If `--log-file` is used to override the log path, allow creating logs for the project manager or editor
@@ -2718,7 +2718,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	GLOBAL_DEF_NOVAL(PropertyInfo(Variant::STRING, "display/display_server/driver.macos", PROPERTY_HINT_ENUM, "default,macos,headless"), "default");
 
 	GLOBAL_DEF_RST_NOVAL("audio/driver/driver", AudioDriverManager::get_driver(0)->get_name());
-	if (audio_driver.is_empty()) { // Specified in project.rlengine.
+	if (audio_driver.is_empty()) { // Specified in project.godot.
 		if (project_manager) {
 			// The project manager doesn't need to play sound (TTS audio output is not emitted by Godot, but by the system itself).
 			// Disable audio output so it doesn't appear in the list of applications outputting sound in the OS.
@@ -3398,7 +3398,7 @@ Error Main::setup2(bool p_show_boot_logo) {
 		}
 #endif
 
-		if (tablet_driver.is_empty()) { // specified in project.rlengine
+		if (tablet_driver.is_empty()) { // specified in project.godot
 			tablet_driver = GLOBAL_GET("input_devices/pen_tablet/driver");
 			if (tablet_driver.is_empty()) {
 				tablet_driver = DisplayServer::get_singleton()->tablet_get_driver_name(0);
@@ -3951,8 +3951,8 @@ int Main::start() {
 			}
 #else
 			ERR_PRINT(
-					"`--scene` was specified on the command line, but this Godot binary was compiled without support for path overrides. Aborting.\n"
-					"To be able to use it, use the `disable_path_overrides=no` SCons option when compiling Godot.\n");
+					"`--scene` was specified on the command line, but this Real Engine binary was compiled without support for path overrides. Aborting.\n"
+					"To be able to use it, use the `disable_path_overrides=no` SCons option when compiling Real Engine.\n");
 			return EXIT_FAILURE;
 #endif // defined(OVERRIDE_PATH_ENABLED)
 		} else if (E->get().length() && E->get()[0] != '-' && positional_arg.is_empty() && game_path.is_empty()) {
@@ -3974,8 +3974,8 @@ int Main::start() {
 				game_path = scene_path;
 #else
 				ERR_PRINT(
-						"Scene path was specified on the command line, but this Godot binary was compiled without support for path overrides. Aborting.\n"
-						"To be able to use it, use the `disable_path_overrides=no` SCons option when compiling Godot.\n");
+						"Scene path was specified on the command line, but this Real Engine binary was compiled without support for path overrides. Aborting.\n"
+						"To be able to use it, use the `disable_path_overrides=no` SCons option when compiling Real Engine.\n");
 				return EXIT_FAILURE;
 #endif // defined(OVERRIDE_PATH_ENABLED)
 			}
@@ -4067,7 +4067,7 @@ int Main::start() {
 			// Ensure that doctool is running in the root dir, but only if
 			// user did not manually specify a path as argument.
 			if (doc_tool_implicit_cwd) {
-				ERR_FAIL_COND_V_MSG(!da->dir_exists("doc"), EXIT_FAILURE, "--doctool must be run from the Godot repository's root folder, or specify a path that points there.");
+				ERR_FAIL_COND_V_MSG(!da->dir_exists("doc"), EXIT_FAILURE, "--doctool must be run from the Real Engine repository's root folder, or specify a path that points there.");
 			}
 		}
 

@@ -130,76 +130,89 @@ int64_t get_image_base(const String &p_path) {
 }
 
 extern void CrashHandlerException(int signal) {
-	CrashHandlerData data;
+    CrashHandlerData data;
 
-	if (OS::get_singleton() == nullptr || OS::get_singleton()->is_disable_crash_handler() || IsDebuggerPresent()) {
-		return;
-	}
+    if (OS::get_singleton() == nullptr || OS::get_singleton()->is_disable_crash_handler() || IsDebuggerPresent()) {
+        return;
+    }
 
-	if (OS::get_singleton()->is_crash_handler_silent()) {
-		std::_Exit(0);
-	}
+    if (OS::get_singleton()->is_crash_handler_silent()) {
+        std::_Exit(0);
+    }
 
-	String msg;
-	if (ProjectSettings::get_singleton()) {
-		msg = GLOBAL_GET("debug/settings/crash_handler/message");
-	}
+    String msg;
+    if (ProjectSettings::get_singleton()) {
+        msg = GLOBAL_GET("debug/settings/crash_handler/message");
+    }
 
-	// Tell MainLoop about the crash. This can be handled by users too in Node.
-	if (OS::get_singleton()->get_main_loop()) {
-		OS::get_singleton()->get_main_loop()->notification(MainLoop::NOTIFICATION_CRASH);
-	}
+    // Tell MainLoop about the crash. This can be handled by users too in Node.
+    if (OS::get_singleton()->get_main_loop()) {
+        OS::get_singleton()->get_main_loop()->notification(MainLoop::NOTIFICATION_CRASH);
+    }
 
-	print_error("\n================================================================");
-	print_error(vformat("%s: Program crashed with signal %d", __FUNCTION__, signal));
+    print_error("\n================================================================");
+    print_error(vformat("%s: Program crashed with signal %d", __FUNCTION__, signal));
 
-	// Print the engine version just before, so that people are reminded to include the version in backtrace reports.
-	if (String(GODOT_VERSION_HASH).is_empty()) {
-		print_error(vformat("Engine version: %s", GODOT_VERSION_FULL_NAME));
-	} else {
-		print_error(vformat("Engine version: %s (%s)", GODOT_VERSION_FULL_NAME, GODOT_VERSION_HASH));
-	}
-	print_error(vformat("Dumping the backtrace. %s", msg));
+    // Print the engine version just before, so that people are reminded to include the version in backtrace reports.
+    if (String(GODOT_VERSION_HASH).is_empty()) {
+        print_error(vformat("Engine version: %s", GODOT_VERSION_FULL_NAME));
+    } else {
+        print_error(vformat("Engine version: %s (%s)", GODOT_VERSION_FULL_NAME, GODOT_VERSION_HASH));
+    }
+    print_error(vformat("Dumping the backtrace. %s", msg));
 
-	String _execpath = OS::get_singleton()->get_executable_path();
+    String _execpath = OS::get_singleton()->get_executable_path();
 
-	// Load process and image info to determine ASLR addresses offset.
-	MODULEINFO mi;
-	GetModuleInformation(GetCurrentProcess(), GetModuleHandle(nullptr), &mi, sizeof(mi));
-	int64_t image_mem_base = reinterpret_cast<int64_t>(mi.lpBaseOfDll);
-	int64_t image_file_base = get_image_base(_execpath);
-	data.offset = image_mem_base - image_file_base;
+    // Load process and image info to determine ASLR addresses offset.
+    MODULEINFO mi;
+    GetModuleInformation(GetCurrentProcess(), GetModuleHandle(nullptr), &mi, sizeof(mi));
+    int64_t image_mem_base = reinterpret_cast<int64_t>(mi.lpBaseOfDll);
+    int64_t image_file_base = get_image_base(_execpath);
+    data.offset = image_mem_base - image_file_base;
 
-	if (FileAccess::exists(_execpath + ".debugsymbols")) {
-		_execpath = _execpath + ".debugsymbols";
-	}
-	_execpath = _execpath.replace_char('/', '\\');
+    if (FileAccess::exists(_execpath + ".debugsymbols")) {
+        _execpath = _execpath + ".debugsymbols";
+    }
+    _execpath = _execpath.replace_char('/', '\\');
 
-	CharString cs = _execpath.utf8(); // Note: should remain in scope during backtrace_simple call.
-	data.state = backtrace_create_state(cs.get_data(), 0, &error_callback, reinterpret_cast<void *>(&data));
-	if (data.state != nullptr) {
-		data.index = 1;
-		backtrace_simple(data.state, 1, &trace_callback, &error_callback, reinterpret_cast<void *>(&data));
-	}
+    CharString cs = _execpath.utf8(); // Note: should remain in scope during backtrace_simple call.
+    data.state = backtrace_create_state(cs.get_data(), 0, &error_callback, reinterpret_cast<void *>(&data));
+    if (data.state != nullptr) {
+        data.index = 1;
+        backtrace_simple(data.state, 1, &trace_callback, &error_callback, reinterpret_cast<void *>(&data));
+    }
 
-	print_error("-- END OF C++ BACKTRACE --");
-	print_error("================================================================");
+    print_error("-- END OF C++ BACKTRACE --");
+    print_error("================================================================");
 
-	for (const Ref<ScriptBacktrace> &backtrace : ScriptServer::capture_script_backtraces(false)) {
-		if (!backtrace->is_empty()) {
-			print_error(backtrace->format());
-			print_error(vformat("-- END OF %s BACKTRACE --", backtrace->get_language_name().to_upper()));
-			print_error("================================================================");
-		}
-	}
+    for (const Ref<ScriptBacktrace> &backtrace : ScriptServer::capture_script_backtraces(false)) {
+        if (!backtrace->is_empty()) {
+            print_error(backtrace->format());
+            print_error(vformat("-- END OF %s BACKTRACE --", backtrace->get_language_name().to_upper()));
+            print_error("================================================================");
+        }
+    }
+
+    // >>>>>>>>> ПОКАЗЫВАЕМ ДИАЛОГ <<<<<<<<<
+    // Используем публичный instance
+    if (CrashHandler::instance) {
+        String error_msg = "Signal: " + itos(signal);
+        error_msg += "\n\nThe error details are displayed in the console.";
+        CrashHandler::instance->show_crash_dialog(error_msg);
+    }
 }
 #endif
 
 CrashHandler::CrashHandler() {
-	disabled = false;
+    disabled = false;
+    // dialog_data уже инициализирован статически
+    instance = this;
 }
 
 CrashHandler::~CrashHandler() {
+    if (instance == this) {
+        instance = nullptr;
+    }
 }
 
 void CrashHandler::disable() {

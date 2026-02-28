@@ -1,0 +1,22 @@
+#include <windows.h>
+
+// Иконка
+101 ICON "godot.ico"
+
+// Диалог краша
+200 DIALOGEX 0, 0, 400, 300
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Real Engine - Critical error"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    ICON            101, -1, 15, 15, 20, 20
+    LTEXT           "A critical error has occurred in the Real Engine.", 1000, 45, 15, 340, 20
+    LTEXT           "Error text:", -1, 15, 45, 100, 10
+    EDITTEXT        1001, 15, 60, 370, 50, ES_MULTILINE | ES_READONLY | WS_VSCROLL | WS_BORDER
+
+    LTEXT           "The call stack:", -1, 15, 120, 100, 10
+    EDITTEXT        1002, 15, 135, 370, 100, ES_MULTILINE | ES_READONLY | WS_VSCROLL | WS_BORDER
+
+    PUSHBUTTON      "Report to support", 1003, 100, 250, 120, 25, WS_TABSTOP
+    PUSHBUTTON      "Close", 1004, 230, 250, 70, 25, WS_TABSTOP
+END

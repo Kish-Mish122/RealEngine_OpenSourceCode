@@ -27,7 +27,6 @@ DriverCheck::DriverCheck() {
     add_required_driver("AMD", "24.10.0", false);
     add_required_driver("Intel", "30.0.100", false);
     add_required_driver("Vulkan", "1.3.0", true);
-    add_required_driver("OpenGL", "3.3", true);
 
     // Проверка на базовый драйвер Windows
     DriverInfo basic;
@@ -147,11 +146,6 @@ String get_gpu_name() {
     }
     return "";
 }
-
-// TODO: Сделать проверку OpenGL. А сейчас просто return "3.3";
-String get_opengl_version() {
-    return "3.3";
-}
 #endif // WINDOWS_ENABLED
 
 String DriverCheck::get_system_driver_version(const String &p_driver_name) {
@@ -160,7 +154,6 @@ String DriverCheck::get_system_driver_version(const String &p_driver_name) {
     if (p_driver_name == "AMD") return get_amd_version();
     if (p_driver_name == "Intel") return get_intel_version();
     if (p_driver_name == "Vulkan") return get_vulkan_version();
-    if (p_driver_name == "OpenGL") return get_opengl_version();
 #endif
     return "";
 }
@@ -264,7 +257,7 @@ void DriverCheck::show_driver_warning(Control *p_parent) {
         message += "\n";
     }
 
-    // Сообщение "Драйвер - устарел"
+    // Сообщение "Драйвер(а) - устарел(и)"
     if (!outdated_drivers.is_empty() && !has_basic) {
         message += "[b][color=yellow]Outdated Drivers:[/color][/b]\n";
         for (const String &d : outdated_drivers) {
@@ -297,3 +290,5 @@ void DriverCheck::show_driver_warning(Control *p_parent) {
 void DriverCheck::_on_link_clicked(const String &p_url) {
     OS::get_singleton()->shell_open(p_url);
 }
+
+// OpenGL я решил не делать, так как слишком сложно. Лучше всего этого не делать, вместо того что перелопатить весь проект, сломать и снова переделывать.

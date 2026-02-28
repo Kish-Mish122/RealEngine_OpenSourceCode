@@ -33,6 +33,11 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+// Правильные include для Godot 4.x
+#include "core/typedefs.h"
+#include "core/string/ustring.h"
+#include "core/object/object.h"
+
 // Crash handler exception only enabled with MSVC
 #if defined(DEBUG_ENABLED)
 #define CRASH_HANDLER_EXCEPTION 1
@@ -41,17 +46,42 @@
 extern DWORD CrashHandlerException(EXCEPTION_POINTERS *ep);
 #endif
 
+// Для сигналов
+extern void CrashHandlerException(int signal);
+
 #endif
 
 class CrashHandler {
-	bool disabled;
+    // Предварительное объявление структуры
+    struct CrashDialogData;
+
+    bool disabled;
+    static CrashDialogData* dialog_data;
 
 public:
-	void initialize();
+    // Делаем instance публичным
+    static CrashHandler* instance;
 
-	void disable();
-	bool is_disabled() const { return disabled; }
+    void initialize();
+    void disable();
+    bool is_disabled() const { return disabled; }
 
-	CrashHandler();
-	~CrashHandler();
+    // Новые методы
+    void show_crash_dialog(const String &p_error_message);
+    static void open_support_url();
+
+    CrashHandler();
+    ~CrashHandler();
+
+private:
+    static DWORD WINAPI dialog_thread_proc(LPVOID lpParameter);
+    static INT_PTR CALLBACK dialog_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+};
+
+// Определение структуры после класса
+struct CrashHandler::CrashDialogData {
+    String error_message;
+    String stack_trace;
+    HANDLE dialog_thread;
+    HWND dialog_window;
 };

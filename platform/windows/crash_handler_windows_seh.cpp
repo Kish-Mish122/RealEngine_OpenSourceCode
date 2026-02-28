@@ -149,9 +149,9 @@ DWORD CrashHandlerException(EXCEPTION_POINTERS *ep) {
 
 	// Print the engine version just before, so that people are reminded to include the version in backtrace reports.
 	if (String(GODOT_VERSION_HASH).is_empty()) {
-		print_error(vformat("Engine version: %s", GODOT_VERSION_FULL_NAME));
+		print_error(vformat("Real Engine version: %s", GODOT_VERSION_FULL_NAME));
 	} else {
-		print_error(vformat("Engine version: %s (%s)", GODOT_VERSION_FULL_NAME, GODOT_VERSION_HASH));
+		print_error(vformat("Real Engine version: %s (%s)", GODOT_VERSION_FULL_NAME, GODOT_VERSION_HASH));
 	}
 	print_error(vformat("Dumping the backtrace. %s", msg));
 
@@ -226,7 +226,7 @@ DWORD CrashHandlerException(EXCEPTION_POINTERS *ep) {
 		}
 	} while (frame.AddrReturn.Offset != 0 && n < 256);
 
-	print_error("-- END OF C++ BACKTRACE --");
+	print_error("-- REAL ENGINE - CRASH SYSTEM END --");
 	print_error("================================================================");
 
 	SymCleanup(process);
@@ -234,29 +234,34 @@ DWORD CrashHandlerException(EXCEPTION_POINTERS *ep) {
 	for (const Ref<ScriptBacktrace> &backtrace : ScriptServer::capture_script_backtraces(false)) {
 		if (!backtrace->is_empty()) {
 			print_error(backtrace->format());
-			print_error(vformat("-- END OF %s BACKTRACE --", backtrace->get_language_name().to_upper()));
+			print_error(vformat("-- REAL ENGINE - CRASH SYSTEM END --", backtrace->get_language_name().to_upper()));
 			print_error("================================================================");
 		}
 	}
 
-	// Pass the exception to the OS
-	return EXCEPTION_CONTINUE_SEARCH;
+	    if (CrashHandler::instance) {
+                String error_msg = "Exception code: 0x" + String::num_int64(ep->ExceptionRecord->ExceptionCode, 16);
+                error_msg += "\nAddress: 0x" + String::num_int64((int64_t)ep->ExceptionRecord->ExceptionAddress, 16);
+                error_msg += "\n\nThe error details are displayed in the console.";
+                CrashHandler::instance->show_crash_dialog(error_msg);
+            }
+
+            return EXCEPTION_CONTINUE_SEARCH;
 }
 #endif
 
 CrashHandler::CrashHandler() {
 	disabled = false;
+    instance = this;
 }
 
 CrashHandler::~CrashHandler() {
 }
 
-void CrashHandler::disable() {
-	if (disabled) {
-		return;
-	}
-
-	disabled = true;
+CrashHandler::~CrashHandler() {
+    if (instance == this) {
+        instance = nullptr;
+    }
 }
 
 void CrashHandler::initialize() {
