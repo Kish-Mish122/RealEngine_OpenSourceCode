@@ -100,3 +100,6 @@ if env.editor_build:
 
     lib = env.add_library("editor", env.editor_sources)
     env.Prepend(LIBS=[lib])
+
+    if env["platform"] == "windows":
+        env.Append(LIBS=["pdh", "wbemuuid", "ole32", "oleaut32"])

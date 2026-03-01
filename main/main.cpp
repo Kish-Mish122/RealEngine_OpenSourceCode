@@ -34,6 +34,7 @@
 #include "core/core_globals.h"
 #include "core/crypto/crypto.h"
 #include "core/debugger/engine_debugger.h"
+#include "editor/system_monitor.h"
 #include "core/extension/extension_api_dump.h"
 #include "core/extension/gdextension_interface_dump.gen.h"
 #include "core/extension/gdextension_interface_header_generator.h"
@@ -4755,6 +4756,9 @@ int Main::start() {
 	OS::get_singleton()->benchmark_dump();
 
 	return EXIT_SUCCESS;
+
+	// Создаем синглтон мониторинга
+	SystemMonitor::create_singleton();
 }
 
 /* Main iteration

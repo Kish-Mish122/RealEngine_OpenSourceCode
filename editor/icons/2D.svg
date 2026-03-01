@@ -28,25 +28,21 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="28.963094"
-     inkscape:cx="15.519751"
-     inkscape:cy="11.721814"
+     inkscape:zoom="22.627417"
+     inkscape:cx="7.6676891"
+     inkscape:cy="5.1044271"
      inkscape:window-width="1920"
      inkscape:window-height="1009"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
      inkscape:current-layer="svg1" />
-  <path
-     fill="#e0e0e0"
-     d="m3.308 15-2-2a1 1 0 0 1 1.414-1.414l.293.293V3.293h8.586L11.308 3a1 1 0 0 1 1.415-1.414l2 2a1 1 0 0 1 0 1.414l-2 2a1 1 0 0 1-1.415-1.414l.293-.293H5.015v6.586l.294-.293A1 1 0 0 1 6.723 13l-2 2a1 1 0 0 1-1.414 0z"
-     id="path1" />
-  <text
-     xml:space="preserve"
-     id="text1"
-     style="text-align:start;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect1);fill:#e0e0e0;fill-opacity:1"
-     transform="matrix(0.5057417,0,0,0.52316813,7.3753624,6.6407938)"><tspan
-       x="-0.62109375"
-       y="10.740933"
-       id="tspan2">2D</tspan></text>
+  <rect
+     style="fill:#e0e0e0;fill-opacity:1"
+     id="rect7"
+     width="15.114408"
+     height="14.893436"
+     x="0.39774758"
+     y="0.61871845"
+     ry="0.44865483" />
 </svg>

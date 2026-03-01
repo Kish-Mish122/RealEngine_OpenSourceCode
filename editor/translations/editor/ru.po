@@ -6017,9 +6017,9 @@ msgstr "Перезагрузить с диска"
 msgid "Ignore external changes"
 msgstr "Игнорировать внешние изменения"
 
-msgid "Project data folder (.godot) is missing. Please restart editor."
+msgid "The important project data folder (.realengine) is damaged! Please restart the editor!"
 msgstr ""
-"Папка данных проекта (.godot) отсутствует. Пожалуйста, перезапустите редактор."
+"Важная папка проекта с данными (.realengine) повреждена! Пожалуйста, перезагрузите редактор!"
 
 msgid "Restart"
 msgstr "Перезапустить"

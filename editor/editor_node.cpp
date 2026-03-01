@@ -37,6 +37,7 @@
 #include "core/io/file_access.h"
 #include "core/io/image.h"
 #include "core/io/resource_loader.h"
+#include "system_monitor.h"
 #include "core/io/resource_saver.h"
 #include "core/object/class_db.h"
 #include "core/os/keyboard.h"
@@ -9233,7 +9234,7 @@ EditorNode::EditorNode() {
 	gui_base->add_child(disk_changed);
 
 	project_data_missing = memnew(ConfirmationDialog);
-	project_data_missing->set_text(TTRC("Project data folder (.realengine) is missing. Please restart editor."));
+	project_data_missing->set_text(TTRC("The important project data folder (.realengine) is damaged! Please restart the editor!"));
 	project_data_missing->connect(SceneStringName(confirmed), callable_mp(this, &EditorNode::restart_editor).bind(false));
 	project_data_missing->set_ok_button_text(TTRC("Restart"));
 
@@ -9492,6 +9493,12 @@ EditorNode::EditorNode() {
     callable_mp(this, &EditorNode::_run_startup_checks).call_deferred();
     print_line("[REAL CHECKER]: Started to work!");
 
+    // Стартуем проверку системы/Real Engine
+    print_line("[REAL SYSTEM CHECKER]: Starting to work...");
+    SystemMonitor::create_singleton();
+    SystemMonitor::get_singleton()->start_monitoring();
+    print_line("[REAL SYSTEM CHECKER]: Started to work!");
+
     // Можно было наоборот для пущей убедительности, ну а зачем?
 }
 
@@ -9528,6 +9535,12 @@ EditorNode::~EditorNode() {
 	singleton = nullptr;
 }
 
+void EditorNode::_start_system_monitoring() {
+    // FIXME: Не нужная функция! Можно удалить, но тогда нужно будет удалить из editor_node.h. Будет время - удали.
+}
+
+
+// Функция старта проверки драйверов и RAM
 void EditorNode::_run_startup_checks() {
     print_line("[REAL CHECKER]: Running startup checks...");
 
@@ -9544,6 +9557,7 @@ void EditorNode::_run_startup_checks() {
     }
 }
 
+// Функция СТАРТА горячей перезагрузки. Запускается именно тогда, когда запускается игра в редакторе
 void EditorNode::_start_hot_reload_timer() {
     if (!hot_reload_timer) {
         hot_reload_timer = memnew(Timer);
@@ -9556,6 +9570,7 @@ void EditorNode::_start_hot_reload_timer() {
     print_line("[REAL RELOAD]: Time Reload - Started!");
 }
 
+// Функция ОСТАНОВКИ горячей перезагрузки. Остановка происходит именно тогда, когда игра в редакторе останавливается
 void EditorNode::_stop_hot_reload_timer() {
     if (hot_reload_timer) {
         hot_reload_timer->stop();

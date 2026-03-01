@@ -103,13 +103,13 @@ TEST_CASE("[SceneTree][Node] Export GLTF with external texture and import") {
 }
 
 TEST_CASE("[SceneTree][Node][Editor] Import GLTF from .godot/imported folder with external texture") {
-	init("gltf_placed_in_dot_godot_imported", "res://.godot/imported");
+	init("gltf_placed_in_dot_godot_imported", "res://.realengine/imported");
 
 	EditorFileSystem *efs = memnew(EditorFileSystem);
 	EditorResourcePreview *erp = memnew(EditorResourcePreview);
 
 	ERR_PRINT_OFF
-	Node *loaded = gltf_import("res://.godot/imported/gltf_placed_in_dot_godot_imported.gltf");
+	Node *loaded = gltf_import("res://.realengine/imported/gltf_placed_in_dot_godot_imported.gltf");
 	Ref<Texture2D> texture = _check_texture(loaded);
 	ERR_PRINT_ON
 

@@ -35,7 +35,7 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="35.664698"
-     inkscape:cx="5.7339613"
+     inkscape:cx="5.7339614"
      inkscape:cy="6.9957132"
      inkscape:window-width="1920"
      inkscape:window-height="1009"
@@ -53,15 +53,7 @@
      style="text-align:start;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect1);fill:#ffffff"><tspan
        x="1.4277344"
        y="26.016323"
-       id="tspan4"><tspan
+       id="tspan2"><tspan
          dx="0 7.6289062"
-         id="tspan3">23</tspan></tspan></text>
-  <text
-     xml:space="preserve"
-     id="text2"
-     style="text-align:start;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect2);fill:#ffffff"
-     transform="matrix(0.38822578,0,0,0.38293864,9.2947702,11.542415)"><tspan
-       x="-14.636719"
-       y="0.46163568"
-       id="tspan5">3D</tspan></text>
+         id="tspan1">23</tspan></tspan></text>
 </svg>
