@@ -213,7 +213,7 @@ void DriverCheck::show_driver_warning(Control *p_parent) {
     }
 
     AcceptDialog *dialog = memnew(AcceptDialog);
-    dialog->set_title("Driver Warning");
+    dialog->set_title("Driver Warning"); // Добавляем титул "Ошибка драйвера"
     dialog->set_min_size(Size2(600, 400) * EDSCALE);
     dialog->set_exclusive(false);
 

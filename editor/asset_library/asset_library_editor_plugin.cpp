@@ -502,7 +502,7 @@ void EditorAssetLibraryItemDownload::configure(const String &p_title, int p_asse
 	icon->set_texture(p_preview);
 	asset_id = p_asset_id;
 	if (p_preview.is_null()) {
-		icon->set_texture(get_editor_theme_icon(SNAME("FileBrokenBigThumb")));
+		icon->set_texture(get_editor_theme_icon(SNAME("RealStoreErrFile")));
 	}
 	host = p_download_url;
 	sha256 = p_sha256_hash;
@@ -829,8 +829,8 @@ const char *EditorAssetLibrary::sort_text[SORT_MAX] = {
 	TTRC("Least Recently Updated"),
 	TTRC("Name (A-Z)"),
 	TTRC("Name (Z-A)"),
-	TTRC("License (A-Z)"), // "cost" stores the SPDX license name in the Godot Asset Library.
-	TTRC("License (Z-A)"), // "cost" stores the SPDX license name in the Godot Asset Library.
+	TTRC("License (A-Z)"), // "cost" stores the SPDX license name in the Real Engine Real Store.
+	TTRC("License (Z-A)"), // "cost" stores the SPDX license name in the Real Engine Real Store.
 };
 
 const char *EditorAssetLibrary::support_key[SUPPORT_MAX] = {
@@ -922,7 +922,7 @@ void EditorAssetLibrary::_image_update(bool p_use_cache, bool p_final, const Pac
 
 		if (parsed_image.is_null()) {
 			if (is_print_verbose_enabled()) {
-				ERR_PRINT(vformat("Asset Library: Invalid image downloaded from '%s' for asset # %d", image_queue[p_queue_id].image_url, image_queue[p_queue_id].asset_id));
+				ERR_PRINT(vformat("Real Store: Invalid image downloaded from '%s' for asset # %d", image_queue[p_queue_id].image_url, image_queue[p_queue_id].asset_id));
 			}
 		} else {
 			image->copy_internals_from(parsed_image);
@@ -961,7 +961,7 @@ void EditorAssetLibrary::_image_update(bool p_use_cache, bool p_final, const Pac
 	}
 
 	if (!image_set && p_final) {
-		obj->call("set_image", image_queue[p_queue_id].image_type, image_queue[p_queue_id].image_index, get_editor_theme_icon(SNAME("FileBrokenBigThumb")));
+		obj->call("set_image", image_queue[p_queue_id].image_type, image_queue[p_queue_id].image_index, get_editor_theme_icon(SNAME("RealStoreErrFile")));
 	}
 }
 
@@ -995,12 +995,12 @@ void EditorAssetLibrary::_image_request_completed(int p_status, int p_code, cons
 
 	} else {
 		if (is_print_verbose_enabled()) {
-			WARN_PRINT(vformat("Asset Library: Error getting image from '%s' for asset # %d.", image_queue[p_queue_id].image_url, image_queue[p_queue_id].asset_id));
+			WARN_PRINT(vformat("Real Store: Error getting image from '%s' for asset # %d.", image_queue[p_queue_id].image_url, image_queue[p_queue_id].asset_id));
 		}
 
 		Object *obj = ObjectDB::get_instance(image_queue[p_queue_id].target);
 		if (obj) {
-			obj->call("set_image", image_queue[p_queue_id].image_type, image_queue[p_queue_id].image_index, get_editor_theme_icon(SNAME("FileBrokenBigThumb")));
+			obj->call("set_image", image_queue[p_queue_id].image_type, image_queue[p_queue_id].image_index, get_editor_theme_icon(SNAME("RealStoreErrFile")));
 		}
 	}
 
@@ -1050,7 +1050,7 @@ void EditorAssetLibrary::_request_image(ObjectID p_for, int p_asset_id, String p
 	// Remove extra spaces around the URL. This isn't strictly valid, but recoverable.
 	String trimmed_url = p_image_url.strip_edges();
 	if (trimmed_url != p_image_url && is_print_verbose_enabled()) {
-		WARN_PRINT(vformat("Asset Library: Badly formatted image URL '%s' for asset # %d.", p_image_url, p_asset_id));
+		WARN_PRINT(vformat("Real Store: Badly formatted image URL '%s' for asset # %d.", p_image_url, p_asset_id));
 	}
 
 	// Validate the image URL first.
@@ -1063,12 +1063,12 @@ void EditorAssetLibrary::_request_image(ObjectID p_for, int p_asset_id, String p
 		Error err = trimmed_url.parse_url(url_scheme, url_host, url_port, url_path, url_fragment);
 		if (err != OK) {
 			if (is_print_verbose_enabled()) {
-				ERR_PRINT(vformat("Asset Library: Invalid image URL '%s' for asset # %d.", trimmed_url, p_asset_id));
+				ERR_PRINT(vformat("Real Store: Invalid image URL '%s' for asset # %d.", trimmed_url, p_asset_id));
 			}
 
 			Object *obj = ObjectDB::get_instance(p_for);
 			if (obj) {
-				obj->call("set_image", p_type, p_image_index, get_editor_theme_icon(SNAME("FileBrokenBigThumb")));
+				obj->call("set_image", p_type, p_image_index, get_editor_theme_icon(SNAME("RealStoreErrFile")));
 			}
 			return;
 		}
@@ -1271,7 +1271,7 @@ void EditorAssetLibrary::_api_request(const String &p_request, RequestType p_req
 	error_hb->hide();
 
 	if (loading_blocked) {
-		_set_library_message_with_action(TTRC("The Asset Library requires an online connection and involves sending data over the internet."), TTRC("Go Online"), callable_mp(this, &EditorAssetLibrary::_force_online_mode));
+		_set_library_message_with_action(TTRC("The Real Store requires an online connection and involves sending data over the internet."), TTRC("Go Online"), callable_mp(this, &EditorAssetLibrary::_force_online_mode));
 		return;
 	}
 

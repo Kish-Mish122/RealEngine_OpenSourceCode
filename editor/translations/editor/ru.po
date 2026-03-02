@@ -5731,6 +5731,9 @@ msgstr "Настройки управления версиями…"
 msgid "Pack Project as ZIP..."
 msgstr "Упаковать проект в ZIP…"
 
+msgid "Git Integration"
+msgstr "Git Интеграция"
+
 msgid "Install Android Build Template..."
 msgstr "Установить шаблон сборки Android…"
 
@@ -5748,6 +5751,30 @@ msgstr "Макет редактора"
 
 msgid "Screenshots are stored in the user data folder (\"user://\")."
 msgstr "Снимки экрана хранятся в папке пользовательских данных («user://»)."
+
+msgid "Init"
+msgstr "Инициализировать"
+
+msgid "Git Not Available"
+msgstr "Git Не Доступен"
+
+msgid "Git is not installed or not in PATH.\n\nPlease install Git from:\nhttps://git-scm.com/"
+msgstr "Git не установлен или же нет правильного пути.\n\nПожалуйста, установите Git на сайте:\nhttps://git-scm.com/"
+
+msgid "Repository initialized successfully!\n.gitignore file created."
+msgstr "Репозиторий иницилизирован успешно!\nфайл .gitignore создан."
+
+msgid "Git Error"
+msgstr "Ошибка Git"
+
+msgid "Commit message cannot be empty!"
+msgstr "Сообщение о коммите не может быть пустым!"
+
+msgid "Changes committed successfully!"
+msgstr "Изменения успешно зафиксированы!"
+
+msgid "Project: "
+msgstr "Проект: "
 
 msgid "Open Editor Data/Settings Folder"
 msgstr "Открыть папку данных/настроек редактора"

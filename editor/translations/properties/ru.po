@@ -12080,6 +12080,15 @@ msgstr "Файл клипа"
 msgid "Disable V-Sync"
 msgstr "Отключить верт. синхронизацию"
 
+msgid "Autosave Enabled"
+msgstr "Авто-сохранение"
+
+msgid "Autosave Interval"
+msgstr "Интервал Авто-сохранений"
+
+msgid "Autosave Notification"
+msgstr "Сообщение авто-сохранения"
+
 msgid "Metadata Flags"
 msgstr "Флаги метаданных"
 

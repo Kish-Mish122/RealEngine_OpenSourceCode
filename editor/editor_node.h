@@ -32,6 +32,7 @@
 
 #include "core/object/script_language.h"
 #include "core/templates/safe_refcount.h"
+#include "git_integration.h"
 #include "editor/editor_data.h"
 #include "editor/plugins/editor_plugin.h"
 #include "editor/settings/editor_folding.h"
@@ -168,6 +169,7 @@ public:
 		PROJECT_VERSION_CONTROL,
 		PROJECT_EXPORT,
 		PROJECT_PACK_AS_ZIP,
+		PROJECT_GIT,
 		PROJECT_INSTALL_ANDROID_SOURCE,
 		PROJECT_OPEN_USER_DATA_FOLDER,
 		PROJECT_RELOAD_CURRENT_PROJECT,
@@ -240,9 +242,9 @@ public:
 	};
 
 private:
-    void _run_startup_checks();
+    GitIntegration *git_integration;
 
-    void _start_system_monitoring();
+    void _run_startup_checks();
 
     HashMap<String, uint64_t> script_last_modified;
     Timer *hot_reload_timer = nullptr;

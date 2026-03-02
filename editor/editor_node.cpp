@@ -33,6 +33,7 @@
 #include "core/config/project_settings.h"
 #include "core/extension/gdextension_manager.h"
 #include "core/input/input.h"
+#include "git_integration.h"
 #include "core/io/config_file.h"
 #include "core/io/file_access.h"
 #include "core/io/image.h"
@@ -3390,6 +3391,14 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 		case SCENE_CLOSE: {
 			_scene_tab_closed(editor_data.get_edited_scene());
 		} break;
+		// Новая фича: PROJECT_GIT! Наконец можно это сделать!
+		case PROJECT_GIT: {
+            if (!git_integration) {
+                git_integration = memnew(GitIntegration);
+            }
+            git_integration->show_git_panel(get_gui_base());
+            break;
+        }
 		case SCENE_TAB_CLOSE:
 		case SCENE_SAVE_SCENE: {
 			int scene_idx = (p_option == SCENE_SAVE_SCENE) ? -1 : tab_closing_idx;
@@ -7969,6 +7978,7 @@ void EditorNode::_build_project_menu() {
 	project_menu->add_separator();
 	project_menu->add_shortcut(ED_GET_SHORTCUT("editor/export"), PROJECT_EXPORT);
 	project_menu->add_item(TTRC("Pack Project as ZIP..."), PROJECT_PACK_AS_ZIP);
+	project_menu->add_item(TTRC("Git Integration"), PROJECT_GIT); // А это продолжение git интеграции!
 	project_menu->add_item(TTRC("Install Android Build Template..."), PROJECT_INSTALL_ANDROID_SOURCE);
 #ifndef ANDROID_ENABLED
 	project_menu->add_item(TTRC("Open User Data Folder"), PROJECT_OPEN_USER_DATA_FOLDER);
@@ -9480,26 +9490,30 @@ EditorNode::EditorNode() {
 	follow_system_theme = EDITOR_GET("interface/theme/follow_system_theme");
 	use_system_accent_color = EDITOR_GET("interface/theme/use_system_accent_color");
 
+	// Смотрим, есть ли шаблон для сборки. Если нет, то спрашиваем, нужен ли пользователю он
 	callable_mp(this, &EditorNode::_check_templates_and_ask).call_deferred();
 
-	// Стартуем Hot Reload (горячую перезагрузку)
-	print_line("[REAL HOT RELOAD]: Starting to work...");
-    project_running = false;
-    hot_reload_timer = nullptr;
-    print_line("[REAL HOT RELOAD]: Started to work!");
+	// Стартуем проверку системы/Real Engine
+    print_line("[REAL SYSTEM CHECKER]: Starting to work...");
+    SystemMonitor::create_singleton();
+    SystemMonitor::get_singleton()->start_monitoring();
+    print_line("[REAL SYSTEM CHECKER]: Started to work!");
 
     // Стартуем проверку драйверов и оперативной памяти
     print_line("[REAL CHECKER]: Starting to work...");
     callable_mp(this, &EditorNode::_run_startup_checks).call_deferred();
     print_line("[REAL CHECKER]: Started to work!");
 
-    // Стартуем проверку системы/Real Engine
-    print_line("[REAL SYSTEM CHECKER]: Starting to work...");
-    SystemMonitor::create_singleton();
-    SystemMonitor::get_singleton()->start_monitoring();
-    print_line("[REAL SYSTEM CHECKER]: Started to work!");
+    // Стартуем Hot Reload
+    print_line("[REAL HOT RELOAD]: Starting to work...");
+    project_running = false;
+    hot_reload_timer = nullptr;
+    print_line("[REAL HOT RELOAD]: Started to work!");
 
-    // Можно было наоборот для пущей убедительности, ну а зачем?
+    // Git
+    print_line("[REAL GIT]: Starting to work...");
+    git_integration = nullptr;
+    print_line("[REAL GIT]: Started to work!");
 }
 
 EditorNode::~EditorNode() {
@@ -9534,11 +9548,6 @@ EditorNode::~EditorNode() {
 
 	singleton = nullptr;
 }
-
-void EditorNode::_start_system_monitoring() {
-    // FIXME: Не нужная функция! Можно удалить, но тогда нужно будет удалить из editor_node.h. Будет время - удали.
-}
-
 
 // Функция старта проверки драйверов и RAM
 void EditorNode::_run_startup_checks() {
@@ -9757,9 +9766,11 @@ void EditorNode::_download_templates_if_missing() {
 }
 
 void EditorNode::_check_templates_and_ask() {
+    print_line("[REAL CHECKER]: Check Templates...");
     String templates_dir = EditorPaths::get_singleton()->get_export_templates_dir().path_join(GODOT_VERSION_FULL_CONFIG);
 
     if (!DirAccess::exists(templates_dir)) {
+        print_line("[REAL CHECKER]: No build template found!");
         ConfirmationDialog *ask_dialog = memnew(ConfirmationDialog);
         ask_dialog->set_title(TTR("Real Engine - No build template found!"));
         ask_dialog->set_text(TTR("Real Engine did not detect a template for the build.\nMaybe you should download it automatically?"));
@@ -9771,6 +9782,8 @@ void EditorNode::_check_templates_and_ask() {
         add_child(ask_dialog);
         ask_dialog->popup_centered();
     }
+
+    print_line("[REAL CHECKER]: Checked Templates!");
 }
 
 void EditorNode::_open_template_manager() {
