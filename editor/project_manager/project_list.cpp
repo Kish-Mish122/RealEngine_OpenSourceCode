@@ -47,6 +47,8 @@
 #include "scene/gui/popup_menu.h"
 #include "scene/gui/progress_bar.h"
 #include "scene/gui/texture_button.h"
+#include "editor/project_timer.h"
+#include "scene/main/timer.h"
 #include "scene/gui/texture_rect.h"
 #include "scene/resources/image_texture.h"
 
@@ -539,6 +541,14 @@ void ProjectList::_notification(int p_what) {
 			DisplayServer::get_singleton()->accessibility_update_set_list_item_count(ae, _projects.size());
 			DisplayServer::get_singleton()->accessibility_update_set_flag(ae, DisplayServer::AccessibilityFlags::FLAG_MULTISELECTABLE, false);
 		}
+
+		case NOTIFICATION_READY: {
+                    Timer *timer = memnew(Timer);
+                    timer->set_wait_time(1.0);
+                    timer->connect("timeout", callable_mp(this, &ProjectList::_update_times));
+                    add_child(timer);
+                    timer->start();
+                } break;
 	}
 }
 
@@ -1058,6 +1068,35 @@ void ProjectList::_create_project_item_control(int p_index) {
 
 	project_list_vbox->add_child(hb);
 	item.control = hb;
+
+	if (EditorSettings::get_singleton()->get_setting("project_timer/show_in_project_list")) {
+        if (ProjectTimer::get_singleton()) {
+             String time = ProjectTimer::get_singleton()->get_time(_projects[p_index].path);
+
+             Label *time_label = memnew(Label);
+             time_label->set_text(time);
+             time_label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_RIGHT);
+             time_label->set_custom_minimum_size(Size2(100, 0));
+             time_label->set_name("project_time_" + itos(p_index));
+
+             _projects[p_index].control->add_child(time_label);
+        }
+    }
+}
+
+
+void ProjectList::_update_times() {
+    if (!ProjectTimer::get_singleton()) return;
+
+    for (int i = 0; i < _projects.size(); ++i) {
+        if (_projects[i].control) {
+            Node *node = _projects[i].control->get_node_or_null("project_time_" + itos(i));
+            Label *label = Object::cast_to<Label>(node);
+            if (label) {
+                label->set_text(ProjectTimer::get_singleton()->get_time(_projects[i].path));
+            }
+        }
+    }
 }
 
 void ProjectList::_toggle_project(int p_index) {
@@ -1508,14 +1547,17 @@ void ProjectList::_global_menu_new_window(const Variant &p_tag) {
 }
 
 void ProjectList::_global_menu_open_project(const Variant &p_tag) {
-	int idx = (int)p_tag;
+    int idx = (int)p_tag;
+    if (idx >= 0 && idx < _projects.size()) {
+        String project_path = _projects[idx].path;
+        print_line("[ProjectList] Opening project: " + project_path);
 
-	if (idx >= 0 && idx < _projects.size()) {
-		String conf = _projects[idx].path.path_join("project.rlengine");
-		List<String> args;
-		args.push_back(conf);
-		OS::get_singleton()->create_instance(args);
-	}
+        // Передаём путь в editor node через аргументы командной строки
+        String conf = project_path.path_join("project.rlengine");
+        List<String> args;
+        args.push_back(conf);
+        OS::get_singleton()->create_instance(args);
+    }
 }
 
 // Object methods.

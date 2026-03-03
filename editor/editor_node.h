@@ -242,6 +242,9 @@ public:
 	};
 
 private:
+    String get_project_path() const;
+    void _update_project_time();
+
     GitIntegration *git_integration;
 
     void _run_startup_checks();

@@ -203,6 +203,9 @@ public:
 	};
 
 private:
+    void _update_times();
+    void _update_project_time();
+
 	String _config_path;
 	ConfigFile _config;
 
