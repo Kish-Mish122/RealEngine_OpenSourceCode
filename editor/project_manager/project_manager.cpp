@@ -60,6 +60,7 @@
 #include "scene/gui/menu_bar.h"
 #include "scene/gui/option_button.h"
 #include "scene/gui/panel_container.h"
+#include "editor/project_timer.h"
 #include "scene/gui/rich_text_label.h"
 #include "scene/gui/separator.h"
 #include "scene/main/window.h"
@@ -1569,6 +1570,8 @@ void ProjectManager::_open_donate_page() {
 ProjectManager::ProjectManager() {
     print_line("[REAL MANAGER]: Loading Real Engine...");
 	singleton = this;
+
+	memnew(ProjectTimer);
 
 	// Turn off some servers we aren't going to be using in the Project Manager.
 	NavigationServer3D::get_singleton()->set_active(false);

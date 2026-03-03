@@ -10308,6 +10308,18 @@ msgstr "Контросвещение"
 msgid "Backlight"
 msgstr "Задняя подсветка"
 
+msgid "Project Timer"
+msgstr "Время проекта"
+
+msgid "Enable Timer"
+msgstr "Включить таймер"
+
+msgid "Auto Save Interval"
+msgstr "Интервал Авто-сохранений"
+
+msgid "Show in Project List"
+msgstr "Показывать время в списке проекта"
+
 msgid "Refraction"
 msgstr "Рефракция"
 

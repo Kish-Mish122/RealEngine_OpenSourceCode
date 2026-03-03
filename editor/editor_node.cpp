@@ -33,6 +33,7 @@
 #include "core/config/project_settings.h"
 #include "core/extension/gdextension_manager.h"
 #include "core/input/input.h"
+#include "editor/project_timer.h"
 #include "git_integration.h"
 #include "core/io/config_file.h"
 #include "core/io/file_access.h"
@@ -43,6 +44,7 @@
 #include "core/object/class_db.h"
 #include "core/os/keyboard.h"
 #include "core/os/os.h"
+#include "project_timer.h"
 #include "core/os/time.h"
 #include "core/string/print_string.h"
 #include "core/string/translation_server.h"
@@ -1069,6 +1071,15 @@ void EditorNode::_notification(int p_what) {
 		} break;
 
 		case NOTIFICATION_WM_CLOSE_REQUEST: {
+		    print_line("[REAL ENGINE] Closing editor...");
+
+            // Сохраняем время СРАЗУ и синхронно
+                if (ProjectTimer::get_singleton()) {
+                    ProjectTimer::get_singleton()->force_save();
+                }
+
+            // Небольшая задержка для гарантии записи
+            OS::get_singleton()->delay_usec(1000000);
 			_menu_option_confirm(SCENE_QUIT, false);
 		} break;
 
@@ -1602,7 +1613,29 @@ void EditorNode::_reload_modified_scenes() {
 }
 
 void EditorNode::_reload_project_settings() {
-	ProjectSettings::get_singleton()->setup(ProjectSettings::get_singleton()->get_resource_path(), String(), true, true);
+    print_line(">>>>>> _reload_project_settings CALLED");
+
+    String path = ProjectSettings::get_singleton()->get_resource_path();
+    print_line(">>>>>> Project path from settings: " + path);
+
+    if (path.is_empty()) {
+        print_line(">>>>>> ERROR: Project path is empty!");
+        return;
+    }
+
+    if (ProjectTimer::get_singleton()) {
+        print_line(">>>>>> Calling project_opened with path: " + path);
+        ProjectTimer::get_singleton()->project_opened(path);
+    } else {
+        print_line(">>>>>> ERROR: ProjectTimer is NULL!");
+    }
+}
+
+String EditorNode::get_project_path() const {
+    if (ProjectSettings::get_singleton()) {
+        return ProjectSettings::get_singleton()->get_resource_path();
+    }
+    return "";
 }
 
 void EditorNode::_vp_resized() {
@@ -9514,6 +9547,24 @@ EditorNode::EditorNode() {
     print_line("[REAL GIT]: Starting to work...");
     git_integration = nullptr;
     print_line("[REAL GIT]: Started to work!");
+
+    print_line("[REAL ENGINE] Creating ProjectTimer");
+
+    // Открылся проект? Запускаем Project_Timer.cpp!
+    memnew(ProjectTimer);
+
+    // Получаем текущий проект
+    String current_project_path = ProjectSettings::get_singleton()->get_resource_path();
+    if (!current_project_path.is_empty()) {
+       ProjectTimer::get_singleton()->project_opened(current_project_path);
+    }
+    Timer *timer = memnew(Timer);
+    timer->set_name("project_time_timer");
+    timer->set_wait_time(1.0);
+    timer->set_one_shot(false);
+    timer->connect("timeout", callable_mp(this, &EditorNode::_update_project_time));
+    add_child(timer);
+    timer->call_deferred("start");
 }
 
 EditorNode::~EditorNode() {
@@ -9547,6 +9598,27 @@ EditorNode::~EditorNode() {
 	file_dialogs.clear();
 
 	singleton = nullptr;
+}
+
+// Функция обновления Project_Timer.cpp
+void EditorNode::_update_project_time() {
+    // Проверяем, включён ли таймер
+    if (!EditorSettings::get_singleton()->get_setting("project_timer/enable_timer")) {
+        return; // Таймер отключён в настройках
+    }
+
+    if (ProjectTimer::get_singleton()) {
+        ProjectTimer::get_singleton()->update();
+
+        // Авто-сохранение
+        int interval = EditorSettings::get_singleton()->get_setting("project_timer/auto_save_interval");
+        static int counter = 0;
+        counter++;
+        if (counter >= interval) {
+            counter = 0;
+            ProjectTimer::get_singleton()->force_save();
+        }
+    }
 }
 
 // Функция старта проверки драйверов и RAM
