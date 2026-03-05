@@ -23,7 +23,7 @@ GitIntegration::GitIntegration() {
     singleton = this;
 
 #ifdef WINDOWS_ENABLED
-    git_path = "git.exe";
+    git_path = "git.exe"; // Узнаём путь к исполняемому файлу GIT
 #else
     git_path = "git";
 #endif
@@ -32,6 +32,7 @@ GitIntegration::GitIntegration() {
         project_path = ProjectSettings::get_singleton()->get_resource_path();
     }
 
+    // Проверим наличие GIT
     check_git_available();
 }
 
@@ -101,7 +102,7 @@ String GitIntegration::get_status() {
     if (!git_available) return "git not available";
     String status = execute_git_command("status -s");
     if (status.is_empty()) {
-        return "No changes"; // Если изменений в проекте нет, значит "Нет изменений"
+        return "No changes"; // Если изменений в проекте нет, значит возращаем "Нет изменений"
     }
     return status;
 }

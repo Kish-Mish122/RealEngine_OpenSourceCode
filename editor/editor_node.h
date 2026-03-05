@@ -242,6 +242,11 @@ public:
 	};
 
 private:
+    void _confirm_large_import();
+    void _cancel_large_import();
+    void _continue_asset_import(int p_status, int p_code, const PackedStringArray &p_headers, const PackedByteArray &p_data, const String &p_temp_file);
+    void _set_dont_ask_large_files(bool p_enabled);
+
     String get_project_path() const;
     void _update_project_time();
 

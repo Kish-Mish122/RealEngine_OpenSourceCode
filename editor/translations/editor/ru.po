@@ -15129,6 +15129,27 @@ msgstr "По горизонтали"
 msgid "Vertical"
 msgstr "По вертикали"
 
+msgid "Large File Warning"
+msgstr "Слишком большой файл"
+
+msgid ""
+"The file you are about to import is **" + size_str + "**.\n\n"
+"Importing large files may take several minutes and consume significant memory.\n\n"
+"Do you want to continue?"
+msgstr ""
+"Файл, который вы хотите импортировать с размером **" + size_str + "**.\n\n"
+"Он слишком большой, а это значит, что он будет занимать место и время.\n\n"
+"Вы точно хотите продолжить?"
+
+msgid "Yes, Import"
+msgstr "Да, импротировать"
+
+msgid "Cancel"
+msgstr "Закрыть"
+
+msgid "Don't ask again for files >1 GB"
+msgstr "Больше не спрашивать для файлов >1 ГБ"
+
 msgid "X Size"
 msgstr "Размер по X"
 
@@ -16755,6 +16776,15 @@ msgstr ""
 
 msgid "ShaderFile"
 msgstr "Файл шейдера"
+
+msgid "Not known"
+msgstr "Не известно"
+
+msgid "The file is broken!"
+msgstr "Файл сломан!"
+
+msgid "Modified: "
+msgstr "Изменён в: "
 
 msgid "Toggle ShaderFile Dock"
 msgstr "Переключить панель ShaderFile"

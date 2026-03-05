@@ -454,6 +454,9 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
     EDITOR_SETTING_BASIC(Variant::INT, PROPERTY_HINT_RANGE, "project_timer/auto_save_interval", 30, "1,3600,1,suffix:s")
     EDITOR_SETTING_BASIC(Variant::BOOL, PROPERTY_HINT_NONE, "project_timer/show_in_project_list", true, "")
 
+    EDITOR_SETTING_BASIC(Variant::BOOL, PROPERTY_HINT_NONE, "filesystem/import/dont_ask_large_files", false, "")
+    EDITOR_SETTING_BASIC(Variant::INT, PROPERTY_HINT_RANGE, "filesystem/import/large_file_threshold_mb", 1024, "100,10240,1,suffix:MB")
+
 	// Display what the Auto display scale setting effectively corresponds to.
 	const String display_scale_hint_string = vformat("Auto (%d%%),75%%,100%%,125%%,150%%,175%%,200%%,Custom", Math::round(get_auto_display_scale() * 100));
 	EDITOR_SETTING_USAGE(Variant::INT, PROPERTY_HINT_ENUM, "interface/editor/display_scale", 0, display_scale_hint_string, PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED | PROPERTY_USAGE_EDITOR_BASIC_SETTING)

@@ -38,6 +38,11 @@
 #include "editor/file_system/editor_paths.h"
 #include "editor/project_manager/project_manager.h"
 #include "editor/project_manager/project_tag.h"
+#include "scene/gui/separator.h"
+#include "scene/gui/label.h"
+#include "scene/gui/box_container.h"
+#include "editor/project_timer.h"
+#include "editor/settings/editor_settings.h"
 #include "editor/settings/editor_settings.h"
 #include "editor/themes/editor_scale.h"
 #include "scene/gui/button.h"
@@ -1082,6 +1087,63 @@ void ProjectList::_create_project_item_control(int p_index) {
              _projects[p_index].control->add_child(time_label);
         }
     }
+
+        while (_projects[p_index].control->get_child_count() > 0) {
+            _projects[p_index].control->remove_child(_projects[p_index].control->get_child(0));
+        }
+
+        VBoxContainer *main_vb = memnew(VBoxContainer);
+        main_vb->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+        _projects[p_index].control->add_child(main_vb);
+
+        HBoxContainer *title_hb = memnew(HBoxContainer);
+        title_hb->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+        main_vb->add_child(title_hb);
+
+        Label *name_label = memnew(Label);
+        name_label->set_text(_projects[p_index].project_name);
+        name_label->set_theme_type_variation("HeaderSmall");
+        name_label->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+        title_hb->add_child(name_label);
+
+        if (ProjectTimer::get_singleton() &&
+            EditorSettings::get_singleton()->get_setting("project_timer/show_in_project_list")) {
+
+            String time = ProjectTimer::get_singleton()->get_time(_projects[p_index].path);
+            Label *time_label = memnew(Label);
+            time_label->set_text(time);
+            time_label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_RIGHT);
+            time_label->set_custom_minimum_size(Size2(120, 0)); // Фиксированная ширина
+            time_label->set_name("project_time_" + itos(p_index));
+            title_hb->add_child(time_label);
+        }
+
+        HBoxContainer *path_hb = memnew(HBoxContainer);
+        path_hb->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+        main_vb->add_child(path_hb);
+
+        Label *path_label = memnew(Label);
+        path_label->set_text(_projects[p_index].path);
+        path_label->set_modulate(Color(0.7, 0.7, 0.7));
+        path_label->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+        path_label->set_autowrap_mode(TextServer::AUTOWRAP_OFF);
+        path_label->set_text_overrun_behavior(TextServer::OVERRUN_TRIM_ELLIPSIS);
+        path_hb->add_child(path_label);
+
+        if (ProjectTimer::get_singleton()) {
+            String modified = ProjectTimer::get_singleton()->get_last_modified(_projects[p_index].path);
+            Label *mod_label = memnew(Label);
+            mod_label->set_text("Modified: " + modified);
+            mod_label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_RIGHT);
+            mod_label->set_modulate(Color(0.6, 0.6, 0.6));
+            mod_label->set_custom_minimum_size(Size2(140, 0)); // Фиксированная ширина
+            mod_label->set_name("project_modified_" + itos(p_index));
+            path_hb->add_child(mod_label);
+        }
+
+        HSeparator *separator = memnew(HSeparator);
+        separator->set_modulate(Color(0.3, 0.3, 0.3, 0.3));
+        main_vb->add_child(separator);
 }
 
 
@@ -1090,10 +1152,20 @@ void ProjectList::_update_times() {
 
     for (int i = 0; i < _projects.size(); ++i) {
         if (_projects[i].control) {
-            Node *node = _projects[i].control->get_node_or_null("project_time_" + itos(i));
-            Label *label = Object::cast_to<Label>(node);
-            if (label) {
-                label->set_text(ProjectTimer::get_singleton()->get_time(_projects[i].path));
+            // Обновляем время
+            Node *time_node = _projects[i].control->get_node_or_null("project_time_" + itos(i));
+            Label *time_label = Object::cast_to<Label>(time_node);
+            if (time_label) {
+                String new_time = ProjectTimer::get_singleton()->get_time(_projects[i].path);
+                time_label->set_text("⏱ " + new_time);
+            }
+
+            // Обновляем дату
+            Node *mod_node = _projects[i].control->get_node_or_null("project_modified_" + itos(i));
+            Label *mod_label = Object::cast_to<Label>(mod_node);
+            if (mod_label) {
+                String new_mod = ProjectTimer::get_singleton()->get_last_modified(_projects[i].path);
+                mod_label->set_text("📅 " + new_mod);
             }
         }
     }

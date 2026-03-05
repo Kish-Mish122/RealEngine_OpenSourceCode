@@ -49,6 +49,7 @@ void DriverCheck::add_required_driver(const String &p_name, const String &p_min_
     required_drivers.push_back(info);
 }
 
+// Узнаём версии драйверов
 #ifdef WINDOWS_ENABLED
 String get_nvidia_version() {
     HKEY hKey;
@@ -69,6 +70,7 @@ String get_nvidia_version() {
     return "";
 }
 
+// Если есть AMD драйвера, то узнаём их версию
 String get_amd_version() {
     HKEY hKey;
     char version[256] = "";
@@ -87,6 +89,7 @@ String get_amd_version() {
     return "";
 }
 
+// Если есть Intel драйвера, то тоже получаем его версия
 String get_intel_version() {
     HKEY hKey;
     char version[256] = "";
@@ -105,6 +108,7 @@ String get_intel_version() {
     return "";
 }
 
+// Узнаём версию VULKAN через библиотеку DLL
 String get_vulkan_version() {
     HMODULE vulkan = LoadLibraryA("vulkan-1.dll");
     if (!vulkan) return "";
@@ -128,6 +132,7 @@ String get_vulkan_version() {
     return "";
 }
 
+// Узнаём имя видеокарты из реестра
 #ifdef WINDOWS_ENABLED
 String get_gpu_name() {
     HKEY hKey;
@@ -171,6 +176,7 @@ bool compare_versions(const String &p_version, const String &p_min_version) {
     return ver_parts.size() >= min_parts.size();
 }
 
+// Узнаём, является ли это стандартным видеоадаптером для Windows
 bool is_basic_display_driver() {
     String gpu_name = get_gpu_name().to_lower();
     print_line("[REAL DRIVER CHECK]: GPU name - " + gpu_name);

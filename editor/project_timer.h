@@ -11,7 +11,13 @@
 class ProjectTimer : public RefCounted {
     GDCLASS(ProjectTimer, RefCounted);
 
-    HashMap<String, uint64_t> projects_time;
+    struct ProjectData {
+        uint64_t total_seconds = 0;
+        uint64_t last_modified = 0;
+        uint64_t last_opened = 0;
+    };
+
+    HashMap<String, ProjectData> projects_data;
     String current_project;
     uint64_t session_start = 0;
     String file_path;
@@ -36,6 +42,12 @@ public:
     void force_save();
 
     String get_time(const String &p_path);
+    String get_last_modified(const String &p_path);
+    String get_last_opened(const String &p_path);
+    void update_last_modified(const String &p_path);
+
+    String format_seconds(uint64_t p_seconds);
+    String format_timestamp(uint64_t p_timestamp);
 };
 
 #endif // PROJECT_TIMER_H

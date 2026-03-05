@@ -2562,6 +2562,11 @@ void EditorNode::_save_scene(String p_file, int idx) {
 		_dialog_display_save_error(p_file, err);
 	}
 
+	if (ProjectTimer::get_singleton()) {
+         String project_path = ProjectSettings::get_singleton()->get_resource_path();
+         ProjectTimer::get_singleton()->update_last_modified(project_path);
+    }
+
 	scene->propagate_notification(NOTIFICATION_EDITOR_POST_SAVE);
 	_update_unsaved_cache();
 }
@@ -3862,33 +3867,24 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			command_palette->open_popup();
 		} break;
 		case HELP_DOCS: {
-			OS::get_singleton()->shell_open("https://www.k1shm1sh-realengine.ru/documentation.html");
-		} break;
-		case HELP_FORUM: {
-			OS::get_singleton()->shell_open("https://www.k1shm1sh-realengine.ru/documentation.html");
+			OS::get_singleton()->shell_open("https://docs.godotengine.org/ru/4.x/");
 		} break;
 		case HELP_REPORT_A_BUG: {
-			OS::get_singleton()->shell_open("https://www.k1shm1sh-realengine.ru/faq.html");
+			OS::get_singleton()->shell_open("https://docs.godotengine.org/ru/4.x/");
 		} break;
 		case HELP_COPY_SYSTEM_INFO: {
 		    print_line("[REAL EDITOR INFO]: System info are copied");
 			String info = _get_system_info();
 			DisplayServer::get_singleton()->clipboard_set(info);
 		} break;
-		case HELP_SUGGEST_A_FEATURE: {
-			OS::get_singleton()->shell_open("https://www.k1shm1sh-realengine.ru/faq.html");
-		} break;
-		case HELP_SEND_DOCS_FEEDBACK: {
-			OS::get_singleton()->shell_open("https://www.k1shm1sh-realengine.ru/faq.html");
-		} break;
 		case HELP_COMMUNITY: {
-			OS::get_singleton()->shell_open("https://www.k1shm1sh-realengine.ru/community.html");
+			OS::get_singleton()->shell_open("https://docs.godotengine.org/ru/4.x/");
 		} break;
 		case HELP_ABOUT: {
 			about->popup_centered(Size2(780, 500) * EDSCALE);
 		} break;
 		case HELP_SUPPORT_GODOT_DEVELOPMENT: {
-			OS::get_singleton()->shell_open("https://www.k1shm1sh-realengine.ru/donate.html");
+			OS::get_singleton()->shell_open("https://boosty.to/pizzasuper");
 		} break;
 		case HELP_VK: {
 		    OS::get_singleton()->shell_open("https://vk.com/k1shm1sh_rlengine");
@@ -3898,9 +3894,6 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 		}
 		case HELP_RUSCORD: {
 		    OS::get_singleton()->shell_open("https://ruscord.net/?code=emb5u1");
-		}
-		case HELP_SITE: {
-		    OS::get_singleton()->shell_open("https://www.k1shm1sh-realengine.ru");
 		}
 		case HELP_VKPLAY: {
 		    OS::get_singleton()->shell_open("mailrugames://show/0.2042297/?mode=lib");
@@ -9565,6 +9558,8 @@ EditorNode::EditorNode() {
     timer->connect("timeout", callable_mp(this, &EditorNode::_update_project_time));
     add_child(timer);
     timer->call_deferred("start");
+
+    print_line("[REAL ENGINE]: All data about the project, the engine and its version has been successfully uploaded!");
 }
 
 EditorNode::~EditorNode() {
@@ -9801,10 +9796,87 @@ void EditorNode::_import_asset_from_url(const String &p_url, const String &p_nam
 }
 
 void EditorNode::_import_asset_downloaded(int p_status, int p_code, const PackedStringArray &p_headers, const PackedByteArray &p_data, const String &p_temp_file) {
-    progress_dialog->task_step("import_asset", "Save...", 50);
+    // Смотрим настройки, если не стоит галочка "Не задавать больше вопросы о больших файлах"
+    bool dont_ask = EditorSettings::get_singleton()->get_setting("filesystem/import/dont_ask_large_files");
+
+    if (!dont_ask) {
+        Node *old_dialog = gui_base->get_node_or_null(NodePath("LargeFileConfirmDialog"));
+        if (old_dialog) {
+            old_dialog->queue_free();
+        }
+
+        // Смотрим размер файла
+        uint64_t file_size = p_data.size();
+        float size_mb = file_size / (1024.0f * 1024.0f);
+        float size_gb = file_size / (1024.0f * 1024.0f * 1024.0f);
+
+        // Показываем диалог
+        if (file_size > 1024 * 1024 * 1024) {
+            String size_str;
+            if (size_gb >= 1.0) {
+                size_str = String::num(size_gb, 2) + " GB";
+            } else {
+                size_str = String::num(size_mb, 0) + " MB";
+            }
+
+            ConfirmationDialog *dialog = memnew(ConfirmationDialog);
+            dialog->set_name("LargeFileConfirmDialog");
+            dialog->set_title("⚠️ Large File Warning");
+            dialog->set_text("The file you are about to import is **" + size_str + "**.\n\n"
+                             "Importing large files may take several minutes and consume significant memory.\n\n"
+                             "Do you want to continue?");
+            dialog->set_ok_button_text("Yes, Import");
+            dialog->set_cancel_button_text("Cancel");
+
+            // Remember data for later
+            dialog->set_meta("temp_file", p_temp_file);
+            dialog->set_meta("file_data", p_data);
+            dialog->set_meta("status", p_status);
+            dialog->set_meta("code", p_code);
+            dialog->set_meta("headers", p_headers);
+
+            // "Больше не показывать" - галочка
+            CheckBox *dont_ask_cb = memnew(CheckBox);
+            dont_ask_cb->set_text("Don't ask again for files >1 GB");
+            dont_ask_cb->connect("toggled", callable_mp(this, &EditorNode::_set_dont_ask_large_files));
+            dialog->add_child(dont_ask_cb);
+
+            dialog->connect("confirmed", callable_mp(this, &EditorNode::_confirm_large_import));
+            dialog->connect("canceled", callable_mp(this, &EditorNode::_cancel_large_import));
+
+            gui_base->add_child(dialog);
+            dialog->popup_centered(Size2(500, 250));
+            return;
+        }
+    }
+
+    // Если меньше 1 гб, то продолжим импорт
+    _continue_asset_import(p_status, p_code, p_headers, p_data, p_temp_file);
+}
+
+void EditorNode::_confirm_large_import() {
+    ConfirmationDialog *dialog = Object::cast_to<ConfirmationDialog>(gui_base->get_node_or_null(NodePath("LargeFileConfirmDialog")));
+    if (!dialog) return;
+
+    int status = dialog->get_meta("status");
+    int code = dialog->get_meta("code");
+    PackedStringArray headers = dialog->get_meta("headers");
+    PackedByteArray file_data = dialog->get_meta("file_data");
+    String temp_file = dialog->get_meta("temp_file");
+
+    _continue_asset_import(status, code, headers, file_data, temp_file);
+}
+
+void EditorNode::_cancel_large_import() {
+    print_line("Large file import cancelled by user");
+    progress_dialog->end_task("import_asset");
+}
+
+void EditorNode::_continue_asset_import(int p_status, int p_code, const PackedStringArray &p_headers, const PackedByteArray &p_data, const String &p_temp_file) {
+    progress_dialog->task_step("import_asset", "Saving...", 50);
 
     if (p_status != HTTPRequest::RESULT_SUCCESS || p_code != 200) {
-        EditorNode::get_singleton()->show_warning("Error when downloading an asset");
+        EditorNode::get_singleton()->show_warning("Error downloading asset");
         progress_dialog->end_task("import_asset");
         return;
     }
@@ -9813,13 +9885,18 @@ void EditorNode::_import_asset_downloaded(int p_status, int p_code, const Packed
     f->store_buffer(p_data.ptr(), p_data.size());
     f.unref();
 
-    progress_dialog->task_step("import_asset", "Import...", 80);
+    progress_dialog->task_step("import_asset", "Importing...", 80);
 
     EditorAssetInstaller *installer = memnew(EditorAssetInstaller);
     add_child(installer);
     installer->open_asset(p_temp_file);
 
     progress_dialog->end_task("import_asset");
+}
+
+void EditorNode::_set_dont_ask_large_files(bool p_enabled) {
+    EditorSettings::get_singleton()->set_setting("filesystem/import/dont_ask_large_files", p_enabled);
+    EditorSettings::get_singleton()->save();
 }
 
 void EditorNode::_check_templates_and_download() {
