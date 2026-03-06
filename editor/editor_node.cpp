@@ -181,6 +181,8 @@
 #include "editor/translations/packed_scene_translation_parser_plugin.h"
 #include "editor/version_control/version_control_editor_plugin.h"
 
+#include "discord_rpc.h"
+
 #ifdef VULKAN_ENABLED
 #include "editor/shader/shader_baker/shader_baker_export_plugin_platform_vulkan.h"
 #endif
@@ -1623,6 +1625,11 @@ void EditorNode::_reload_project_settings() {
         return;
     }
 
+        if (DiscordRPC::get_singleton()) {
+            String project_name = ProjectSettings::get_singleton()->get_setting("application/config/name", "Unnamed");
+            DiscordRPC::get_singleton()->update_project(project_name);
+        }
+
     if (ProjectTimer::get_singleton()) {
         print_line(">>>>>> Calling project_opened with path: " + path);
         ProjectTimer::get_singleton()->project_opened(path);
@@ -1713,13 +1720,23 @@ Error EditorNode::load_resource(const String &p_resource, bool p_ignore_broken_d
 }
 
 Error EditorNode::load_scene_or_resource(const String &p_path, bool p_ignore_broken_deps, bool p_change_scene_tab_if_already_open) {
-	if (ClassDB::is_parent_class(ResourceLoader::get_resource_type(p_path), "PackedScene")) {
-		if (!p_change_scene_tab_if_already_open && EditorNode::get_singleton()->is_scene_open(p_path)) {
-			return OK;
-		}
-		return EditorNode::get_singleton()->load_scene(p_path, p_ignore_broken_deps);
-	}
-	return EditorNode::get_singleton()->load_resource(p_path, p_ignore_broken_deps);
+    // Обновляем Discord перед загрузкой
+    if (DiscordRPC::get_singleton()) {
+        String project_name = ProjectSettings::get_singleton()->get_setting("application/config/name", "Unnamed Project");
+        DiscordRPC::get_singleton()->update_project(project_name);
+
+        if (DiscordRPC::get_singleton() && p_path.ends_with(".tscn")) {
+                DiscordRPC::get_singleton()->update_scene(p_path.get_file());
+            }
+    }
+
+    if (ClassDB::is_parent_class(ResourceLoader::get_resource_type(p_path), "PackedScene")) {
+        if (!p_change_scene_tab_if_already_open && EditorNode::get_singleton()->is_scene_open(p_path)) {
+            return OK;
+        }
+        return EditorNode::get_singleton()->load_scene(p_path, p_ignore_broken_deps);
+    }
+    return EditorNode::get_singleton()->load_resource(p_path, p_ignore_broken_deps);
 }
 
 void EditorNode::edit_node(Node *p_node) {
@@ -9546,6 +9563,9 @@ EditorNode::EditorNode() {
     // Открылся проект? Запускаем Project_Timer.cpp!
     memnew(ProjectTimer);
 
+    print_line("[REAL DISCORD] Creating DiscordRPC");
+    memnew(DiscordRPC);
+
     // Получаем текущий проект
     String current_project_path = ProjectSettings::get_singleton()->get_resource_path();
     if (!current_project_path.is_empty()) {
@@ -9821,7 +9841,7 @@ void EditorNode::_import_asset_downloaded(int p_status, int p_code, const Packed
 
             ConfirmationDialog *dialog = memnew(ConfirmationDialog);
             dialog->set_name("LargeFileConfirmDialog");
-            dialog->set_title("⚠️ Large File Warning");
+            dialog->set_title("Large File Warning");
             dialog->set_text("The file you are about to import is **" + size_str + "**.\n\n"
                              "Importing large files may take several minutes and consume significant memory.\n\n"
                              "Do you want to continue?");

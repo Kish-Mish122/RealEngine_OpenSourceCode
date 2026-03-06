@@ -52,6 +52,15 @@ if env["arch"] == "x86_64" and env["library_type"] == "executable":
     else:
         env.Append(LIBS=["kernel32", "user32", "gdi32", "winspool", "comdlg32", "advapi32", "shell32", "ole32", "oleaut32", "uuid", "odbc32", "odbccp32", "comctl32"])
 
+    if env.msvc:
+        env.Append(LINKFLAGS=["discord-rpc.lib"])
+        env.Append(LIBPATH=["#thirdparty/discord-rpc/lib"])
+    else:
+        env.Append(LIBS=["discord-rpc"])
+        env.Append(LIBPATH=["#thirdparty/discord-rpc/lib"])
+
+    env.Append(CPPPATH=["#thirdparty/discord-rpc/include"])
+
 
 def arrange_program_clean(prog):
     """

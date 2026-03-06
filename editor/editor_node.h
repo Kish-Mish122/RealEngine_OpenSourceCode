@@ -33,6 +33,7 @@
 #include "core/object/script_language.h"
 #include "core/templates/safe_refcount.h"
 #include "git_integration.h"
+#include "core/version.h"
 #include "editor/editor_data.h"
 #include "editor/plugins/editor_plugin.h"
 #include "editor/settings/editor_folding.h"
@@ -41,6 +42,7 @@ typedef void (*EditorNodeInitCallback)();
 typedef void (*EditorPluginInitializeCallback)();
 typedef bool (*EditorBuildCallback)();
 
+class DiscordRPC;
 class AcceptDialog;
 class ColorPicker;
 class ConfirmationDialog;
@@ -242,6 +244,9 @@ public:
 	};
 
 private:
+    uint64_t export_start_time;
+    void _on_export_completed(bool p_success);
+
     void _confirm_large_import();
     void _cancel_large_import();
     void _continue_asset_import(int p_status, int p_code, const PackedStringArray &p_headers, const PackedByteArray &p_data, const String &p_temp_file);
