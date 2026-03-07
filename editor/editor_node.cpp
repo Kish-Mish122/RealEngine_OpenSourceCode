@@ -5984,6 +5984,8 @@ String EditorNode::_get_system_info() const {
 		String hash = String(GODOT_VERSION_HASH);
 		hash = hash.is_empty() ? String("unknown") : vformat("(%s)", hash.left(9));
 		godot_version += " " + hash;
+		godot_version += " | Build: " + String(__DATE__);
+        godot_version += " | Git: " + String(__DATE__);
 	}
 
 	String display_session_type;
@@ -6518,7 +6520,7 @@ void EditorNode::run_editor_script(const Ref<Script> &p_script) {
 	if (!p_script->is_tool()) {
 		is_runnable = false;
 
-		if (p_script->get_class() == "GDScript") {
+		if (p_script->get_class() == "RLScript") {
 			EditorToaster::get_singleton()->popup_str(TTR("Cannot run the script because it's not a tool script (add the @tool annotation at the top)."), EditorToaster::SEVERITY_WARNING);
 		} else if (p_script->get_class() == "CSharpScript") {
 			EditorToaster::get_singleton()->popup_str(TTR("Cannot run the script because it's not a tool script (add the [Tool] attribute above the class definition)."), EditorToaster::SEVERITY_WARNING);
@@ -8118,7 +8120,6 @@ void EditorNode::_build_help_menu() {
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/vk"), HELP_VK);
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/discord"), HELP_DISCORD);
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/ruscord"), HELP_RUSCORD);
-	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/open_site"), HELP_SITE);
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/vkplay"), HELP_VKPLAY);
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/news"), HELP_NEWS);
 	help_menu->add_separator();
@@ -8911,7 +8912,6 @@ EditorNode::EditorNode() {
 	ED_SHORTCUT_AND_COMMAND("editor/discord", TTRC("Open a Discord Server"));
 	ED_SHORTCUT_AND_COMMAND("editor/ruscord", TTRC("Open a Ruscord Server"));
 	ED_SHORTCUT_AND_COMMAND("editor/about", TTRC("About Real Engine..."));
-	ED_SHORTCUT_AND_COMMAND("editor/open_site", TTRC("Open Site"));
 	ED_SHORTCUT_AND_COMMAND("editor/news", TTRC("News"));
 	ED_SHORTCUT_AND_COMMAND("editor/support_development", TTRC("Support Real Engine Development"));
 

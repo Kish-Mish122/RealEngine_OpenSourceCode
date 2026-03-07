@@ -84,6 +84,7 @@
 extern const char *const GODOT_VERSION_HASH;
 
 // Git commit date UNIX timestamp (in seconds), generated at build time in `core/version_hash.gen.cpp`.
+const char *get_version_build_date();
 // Set to 0 if unknown.
 extern const uint64_t GODOT_VERSION_TIMESTAMP;
 

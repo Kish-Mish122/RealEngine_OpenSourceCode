@@ -12915,6 +12915,15 @@ msgstr "Запечь окклюдеры"
 msgid "Select occluder bake file:"
 msgstr "Выберите файл запекания окклюдера:"
 
+msgid "Version:"
+msgstr "Версия:"
+
+msgid "Build date:"
+msgstr "Дата сборки:"
+
+msgid "Git hash:"
+msgstr "Хеш Git:"
+
 msgid "Generating Visibility AABB (Waiting for Particle Simulation)"
 msgstr "Генерация AABB видимости (ожидание симуляции частиц)"
 

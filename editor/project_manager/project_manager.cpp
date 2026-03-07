@@ -1974,22 +1974,28 @@ ProjectManager::ProjectManager() {
 
 	// Footer bar.
 	{
-		HBoxContainer *footer_bar = memnew(HBoxContainer);
-		footer_bar->set_alignment(BoxContainer::ALIGNMENT_END);
-		footer_bar->add_theme_constant_override("separation", 20 * EDSCALE);
-		main_vbox->add_child(footer_bar);
+        HBoxContainer *footer_bar = memnew(HBoxContainer);
+        footer_bar->set_alignment(BoxContainer::ALIGNMENT_END);
+        footer_bar->add_theme_constant_override("separation", 20 * EDSCALE);
+        main_vbox->add_child(footer_bar);
 
-#ifdef ENGINE_UPDATE_CHECK_ENABLED
-		EngineUpdateLabel *update_label = memnew(EngineUpdateLabel);
-		footer_bar->add_child(update_label);
-		update_label->connect("offline_clicked", callable_mp(this, &ProjectManager::_show_quick_settings));
-#endif
+    #ifdef ENGINE_UPDATE_CHECK_ENABLED
+        EngineUpdateLabel *update_label = memnew(EngineUpdateLabel);
+        footer_bar->add_child(update_label);
+        update_label->connect("offline_clicked", callable_mp(this, &ProjectManager::_show_quick_settings));
+    #endif
 
-		EditorVersionButton *version_btn = memnew(EditorVersionButton(EditorVersionButton::FORMAT_WITH_BUILD));
-		// Fade the version label to be less prominent, but still readable.
-		version_btn->set_self_modulate(Color(1, 1, 1, 0.6));
-		footer_bar->add_child(version_btn);
-	}
+        EditorVersionButton *version_btn = memnew(EditorVersionButton(EditorVersionButton::FORMAT_WITH_BUILD));
+        // Fade the version label to be less prominent, but still readable.
+        version_btn->set_self_modulate(Color(1, 1, 1, 0.6));
+
+        String tooltip = "Version: " + String(GODOT_VERSION_FULL_CONFIG) + "\n"; // Текст версии Real Engine
+        tooltip += "Build date: " + String(__DATE__) + " " + String(__TIME__) + "\n"; // Дата сборки
+        tooltip += "Git hash: " + String(GODOT_VERSION_HASH); // Хэш репозитория
+        version_btn->set_tooltip_text(tooltip);
+
+        footer_bar->add_child(version_btn);
+    }
 
 	// Dialogs.
 	{
@@ -2216,7 +2222,6 @@ delete_project_contents->connect(SceneStringName(toggled), callable_mp(this, &Pr
 	}
 
 	_update_size_limits();
-
 	print_line("[REAL MANAGER]: Done!");
 
 }

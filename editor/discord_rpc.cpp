@@ -1,9 +1,11 @@
 #include "discord_rpc.h"
 #include "core/string/print_string.h"
 #include "editor/editor_node.h"
-#include "editor/settings/editor_settings.h"
 #include "core/config/project_settings.h"
 #include "scene/main/timer.h"
+/*
+#include "editor/settings/editor_settings.h" <- Если нужно будет отключать discord в редакторе, то editor_settings нужно будет расскомментировать
+*/
 
 #ifdef WINDOWS_ENABLED
 #ifndef WIN32_LEAN_AND_MEAN
@@ -20,19 +22,12 @@ void DiscordRPC::_bind_methods() {
 
 DiscordRPC::DiscordRPC() {
     singleton = this;
-    enabled = false;
+    enabled = true;
     discord_connected = false;
     start_time = 0;
 
 #ifdef WINDOWS_ENABLED
-    // Загружаем настройки
-    if (EditorSettings::get_singleton()->has_setting("discord/enabled")) {
-        enabled = EditorSettings::get_singleton()->get_setting("discord/enabled");
-    }
-
-    if (enabled) {
-        callable_mp(this, &DiscordRPC::_delayed_init).call_deferred();
-    }
+    callable_mp(this, &DiscordRPC::_delayed_init).call_deferred();
 #endif
 }
 
@@ -58,6 +53,7 @@ void DiscordRPC::_delayed_init() {
 }
 
 void DiscordRPC::initialize() {
+print_line("[REAL DISCORD] Initializing...");
 #ifdef WINDOWS_ENABLED
     if (discord_connected) return;
 
@@ -78,6 +74,7 @@ void DiscordRPC::initialize() {
 
     print_line("[REAL DISCORD] Rich Presence initialized");
 #endif
+print_line("[REAL DISCORD] Done!");
 }
 
 void DiscordRPC::shutdown() {
@@ -135,19 +132,6 @@ void DiscordRPC::clear_presence() {
     if (!discord_connected) return;
     Discord_ClearPresence();
 #endif
-}
-
-void DiscordRPC::set_enabled(bool p_enabled) {
-    enabled = p_enabled;
-
-    if (enabled && !discord_connected) {
-        _delayed_init();
-    } else if (!enabled && discord_connected) {
-        shutdown();
-    }
-
-    EditorSettings::get_singleton()->set_setting("discord/enabled", enabled);
-    EditorSettings::get_singleton()->save();
 }
 
 void DiscordRPC::_update_callback() {

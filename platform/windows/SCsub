@@ -61,6 +61,25 @@ if env["arch"] == "x86_64" and env["library_type"] == "executable":
 
     env.Append(CPPPATH=["#thirdparty/discord-rpc/include"])
 
+steam_sdk_path = "#thirdparty/steamworks/sdk"
+
+if os.path.exists(os.path.join(Dir(steam_sdk_path).abspath, "public")):
+    # Путь к заголовочным файлам - добавляем public, чтобы #include "steam/steam_api.h" работало
+    env.Append(CPPPATH=[steam_sdk_path + "/public"])
+
+    # Путь к библиотекам (64-bit)
+    env.Append(LIBPATH=[steam_sdk_path + "/redistributable_bin/win64"])
+
+    # Библиотека
+    env.Append(LIBS=["steam_api64"])
+
+    # Определение макроса
+    env.Append(CPPDEFINES=["STEAM_ENABLED"])
+
+    print("Steamworks integration enabled")
+    print("  Include path: " + steam_sdk_path + "/public")
+    print("  Library path: " + steam_sdk_path + "/redistributable_bin/win64")
+
 
 def arrange_program_clean(prog):
     """

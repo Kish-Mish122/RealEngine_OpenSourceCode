@@ -35,7 +35,6 @@ public:
     void update_scene(const String &p_scene);
     void clear_presence();
 
-    void set_enabled(bool p_enabled);
     bool is_enabled() const { return enabled; }
     bool is_discord_connected() const { return discord_connected; }
 
