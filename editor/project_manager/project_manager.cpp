@@ -43,6 +43,7 @@
 #include "editor/gui/editor_file_dialog.h"
 #include "editor/gui/editor_title_bar.h"
 #include "editor/gui/editor_version_button.h"
+#include "editor/settings_migrator.h"
 #include "editor/inspector/editor_inspector.h"
 #include "editor/project_manager/engine_update_label.h"
 #include "editor/project_manager/project_dialog.h"
@@ -2223,6 +2224,9 @@ delete_project_contents->connect(SceneStringName(toggled), callable_mp(this, &Pr
 
 	_update_size_limits();
 	print_line("[REAL MANAGER]: Done!");
+
+    SettingsMigrator *migrator = memnew(SettingsMigrator);
+    migrator->migrate_all();
 
 }
 

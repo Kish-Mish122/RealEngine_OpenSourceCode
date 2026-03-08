@@ -1,18 +1,11 @@
 #include "git_integration.h"
-#include "editor/editor_node.h"
-#include "core/config/project_settings.h"
-#include "core/io/file_access.h"
-#include "core/os/os.h"
 #include "core/string/print_string.h"
-#include "scene/gui/button.h"
-#include "scene/gui/label.h"
-#include "scene/gui/line_edit.h"
-#include "scene/gui/scroll_container.h"
-#include "scene/gui/separator.h"
-
-#ifdef WINDOWS_ENABLED
-#include <windows.h>
-#endif
+#include "core/os/os.h"
+#include "editor/editor_node.h"
+#include "core/io/stream_peer_tls.h"
+#include "core/io/http_client_tcp.h"
+#include "core/os/time.h"
+#include "editor/settings/editor_settings.h"
 
 GitIntegration *GitIntegration::singleton = nullptr;
 
@@ -23,7 +16,7 @@ GitIntegration::GitIntegration() {
     singleton = this;
 
 #ifdef WINDOWS_ENABLED
-    git_path = "git.exe"; // Узнаём путь к исполняемому файлу GIT
+    git_path = "git.exe";
 #else
     git_path = "git";
 #endif
@@ -32,8 +25,17 @@ GitIntegration::GitIntegration() {
         project_path = ProjectSettings::get_singleton()->get_resource_path();
     }
 
-    // Проверим наличие GIT
     check_git_available();
+
+    if (EditorSettings::get_singleton()) {
+        if (EditorSettings::get_singleton()->has_setting("github/token")) {
+            String saved_token = EditorSettings::get_singleton()->get_setting("github/token");
+            if (!saved_token.is_empty()) {
+                print_line("[GitHub] Found saved token, attempting auto-login...");
+                github_login(saved_token);
+            }
+        }
+    }
 }
 
 GitIntegration::~GitIntegration() {
@@ -45,11 +47,6 @@ GitIntegration::~GitIntegration() {
 bool GitIntegration::check_git_available() {
     String result = execute_git_command("--version");
     git_available = !result.is_empty() && result.contains("git version");
-
-    if (git_available) {
-        print_line("[REAL GIT] Found: " + result.strip_edges());
-    }
-
     return git_available;
 }
 
@@ -66,7 +63,6 @@ String GitIntegration::execute_git_command(const String &p_command) {
 
     String output;
     int exitcode = 0;
-
     OS::get_singleton()->execute("cmd.exe", args, &output, &exitcode, true);
 
     return output;
@@ -74,154 +70,1088 @@ String GitIntegration::execute_git_command(const String &p_command) {
 
 void GitIntegration::init_repository() {
     if (!git_available) return;
-
     (void)execute_git_command("init");
-
-    String gitignore = project_path + "/.gitignore";
-    Ref<FileAccess> f = FileAccess::open(gitignore, FileAccess::WRITE);
-    if (f.is_valid()) {
-        f->store_line("# Real Engine");
-        f->store_line(".realengine/");
-        f->store_line(".godot/");
-        f->store_line("*.import");
-        f->store_line("export_presets.cfg");
-        f->store_line("");
-        f->store_line("# OS files");
-        f->store_line(".DS_Store");
-        f->store_line("Thumbs.db");
-    }
-}
-
-String GitIntegration::get_current_branch() {
-    if (!git_available) return "git not available";
-    String branch = execute_git_command("rev-parse --abbrev-ref HEAD");
-    return branch.strip_edges();
-}
-
-String GitIntegration::get_status() {
-    if (!git_available) return "git not available";
-    String status = execute_git_command("status -s");
-    if (status.is_empty()) {
-        return "No changes"; // Если изменений в проекте нет, значит возращаем "Нет изменений"
-    }
-    return status;
 }
 
 void GitIntegration::commit(const String &p_message) {
     if (!git_available || p_message.is_empty()) return;
-
-    (void)execute_git_command("add -A");
     (void)execute_git_command("commit -m \"" + p_message + "\"");
 }
 
-void GitIntegration::show_git_panel(Control *p_parent) {
-    if (!p_parent) return;
+void GitIntegration::add_all() {
+    if (!git_available) return;
+    (void)execute_git_command("add -A");
+}
 
-    if (!git_available) {
-        AcceptDialog *dialog = memnew(AcceptDialog);
-        dialog->set_title("Git Not Available");
-        dialog->set_text("Git is not installed or not in PATH.\n\nPlease install Git from:\nhttps://git-scm.com/");
-        p_parent->add_child(dialog);
-        dialog->popup_centered();
-        return;
+void GitIntegration::push() {
+    if (!git_available) return;
+    (void)execute_git_command("push");
+}
+
+void GitIntegration::pull() {
+    if (!git_available) return;
+    (void)execute_git_command("pull");
+}
+
+void GitIntegration::fetch() {
+    if (!git_available) return;
+    (void)execute_git_command("fetch");
+}
+
+String GitIntegration::get_current_branch() {
+    if (!git_available) return "main";
+    String branch = execute_git_command("rev-parse --abbrev-ref HEAD");
+    return branch.strip_edges();
+}
+
+String GitIntegration::get_current_repo_name() {
+    if (!git_available) return "";
+    String remote = execute_git_command("config --get remote.origin.url");
+    if (remote.is_empty()) return "";
+
+    Vector<String> parts = remote.split("/");
+    if (parts.size() > 0) {
+        String last = parts[parts.size() - 1];
+        return last.replace(".git", "");
+    }
+    return "";
+}
+
+// ==================== HTTP утилита ====================
+
+String GitIntegration::http_request(const String &p_url, const HashMap<String, String> &p_headers,
+                                    const String &p_method, const String &p_body) {
+    print_line("[HTTP] Request to: " + p_url);
+
+    Ref<HTTPClientTCP> client;
+    client.instantiate();
+
+    // Парсим URL
+    String host = p_url;
+    String path = "/";
+    bool use_ssl = p_url.begins_with("https://");
+
+    if (p_url.begins_with("https://")) {
+        host = p_url.substr(8);
+    } else if (p_url.begins_with("http://")) {
+        host = p_url.substr(7);
     }
 
+    int path_start = host.find_char('/');
+    if (path_start != -1) {
+        path = host.substr(path_start);
+        host = host.substr(0, path_start);
+    } else {
+        path = "/";
+    }
+
+    print_line("[HTTP] Connecting to host: " + host + ", SSL: " + (use_ssl ? "yes" : "no"));
+
+    // Добавляем TLS опции для HTTPS
+    Ref<TLSOptions> tls_options;
+    if (use_ssl) {
+        tls_options = TLSOptions::client();
+    }
+
+    Error err = client->connect_to_host(host, use_ssl ? 443 : 80, tls_options);
+    if (err != OK) {
+        print_line("[HTTP] Failed to connect: " + itos(err));
+        return "";
+    }
+
+    int attempts = 0;
+    while (client->get_status() == HTTPClient::STATUS_CONNECTING ||
+           client->get_status() == HTTPClient::STATUS_RESOLVING) {
+        client->poll();
+        OS::get_singleton()->delay_usec(10000);
+        attempts++;
+        if (attempts > 1000) { // Увеличим таймаут до 10 секунд
+            print_line("[HTTP] Connection timeout");
+            return "";
+        }
+    }
+
+    if (client->get_status() != HTTPClient::STATUS_CONNECTED) {
+        print_line("[HTTP] Not connected, status: " + itos(client->get_status()));
+        return "";
+    }
+
+    print_line("[HTTP] Connected successfully");
+
+    Vector<String> headers;
+    for (const KeyValue<String, String> &E : p_headers) {
+        headers.push_back(E.key + ": " + E.value);
+    }
+
+    HTTPClient::Method method = HTTPClient::METHOD_GET;
+    if (p_method == "POST") method = HTTPClient::METHOD_POST;
+    else if (p_method == "PUT") method = HTTPClient::METHOD_PUT;
+    else if (p_method == "DELETE") method = HTTPClient::METHOD_DELETE;
+    else if (p_method == "PATCH") method = HTTPClient::METHOD_PATCH;
+
+    if (p_body.is_empty()) {
+        client->request(method, path, headers, nullptr, 0);
+    } else {
+        CharString body_utf8 = p_body.utf8();
+        client->request(method, path, headers, (const uint8_t*)body_utf8.get_data(), body_utf8.length());
+    }
+
+    attempts = 0;
+    while (client->get_status() == HTTPClient::STATUS_REQUESTING) {
+        client->poll();
+        OS::get_singleton()->delay_usec(10000);
+        attempts++;
+        if (attempts > 500) {
+            print_line("[HTTP] Request timeout");
+            return "";
+        }
+    }
+
+    int response_code = client->get_response_code();
+    print_line("[HTTP] Response code: " + itos(response_code));
+
+    if (client->get_status() == HTTPClient::STATUS_BODY && client->has_response()) {
+        PackedByteArray response_data;
+        while (client->get_status() == HTTPClient::STATUS_BODY) {
+            client->poll();
+            PackedByteArray chunk = client->read_response_body_chunk();
+            response_data.append_array(chunk);
+        }
+        String result = String::utf8((const char*)response_data.ptr(), response_data.size());
+        print_line("[HTTP] Response length: " + itos(result.length()));
+        return result;
+    } else {
+        print_line("[HTTP] No response body, status: " + itos(client->get_status()));
+    }
+
+    return "";
+}
+
+// ==================== GitHub функции ====================
+
+bool GitIntegration::github_login(const String &p_token) {
+    print_line("[GitHub] Attempting login with token: " + p_token.substr(0, 4) + "****");
+
+    github_token = p_token;
+
+    HashMap<String, String> headers;
+    headers["Authorization"] = "token " + github_token;
+    headers["User-Agent"] = "Real-Engine/1.0";
+    headers["Accept"] = "application/vnd.github.v3+json";
+
+    String response = http_request("https://api.github.com/user", headers);
+
+    JSON json;
+    json.parse(response);
+    Dictionary data = json.get_data();
+
+    if (data.has("login")) {
+        github_logged_in = true;
+        current_username = data["login"];
+
+        // СОХРАНЯЕМ ТОКЕН В НАСТРОЙКИ
+        if (EditorSettings::get_singleton()) {
+            EditorSettings::get_singleton()->set_setting("github/token", p_token);
+            EditorSettings::get_singleton()->save();
+            print_line("[GitHub] Token saved to settings");
+        }
+
+        print_line("[GitHub] ✓ Logged in as: " + current_username);
+        return true;
+    }
+
+    return false;
+}
+
+void GitIntegration::github_logout() {
+    github_token = "";
+    github_logged_in = false;
+    current_username = "";
+    print_line("[GitHub] Logged out");
+}
+
+Vector<GitIntegration::RepoData> GitIntegration::github_list_repos() {
+    Vector<RepoData> repos;
+    if (!github_logged_in) return repos;
+
+    HashMap<String, String> headers;
+    headers["Authorization"] = "token " + github_token;
+    headers["User-Agent"] = "Real-Engine/1.0";
+
+    String response = http_request("https://api.github.com/user/repos?per_page=100&sort=updated", headers);
+
+    JSON json;
+    json.parse(response);
+    Array data = json.get_data();
+
+    for (int i = 0; i < data.size(); i++) {
+        Dictionary repo = data[i];
+        RepoData rd;
+        rd.name = repo["name"];
+        rd.full_name = repo["full_name"];
+        rd.description = repo.get("description", "");
+        rd.url = repo["html_url"];
+        rd.is_private = repo["private"];
+        repos.push_back(rd);
+    }
+
+    return repos;
+}
+
+bool GitIntegration::github_create_repo(const String &p_name, const String &p_description, bool p_private) {
+    if (!github_logged_in) return false;
+
+    HashMap<String, String> headers;
+    headers["Authorization"] = "token " + github_token;
+    headers["User-Agent"] = "Real-Engine/1.0";
+    headers["Content-Type"] = "application/json";
+
+    Dictionary body;
+    body["name"] = p_name;
+    body["description"] = p_description;
+    body["private"] = p_private;
+    body["auto_init"] = true;
+
+    String response = http_request("https://api.github.com/user/repos", headers, "POST", JSON::stringify(body));
+
+    JSON json;
+    json.parse(response);
+    Dictionary data = json.get_data();
+
+    if (data.has("id")) {
+        print_line("[GitHub] Repository created: " + p_name);
+        return true;
+    } else {
+        print_line("[GitHub] Failed to create repository");
+        return false;
+    }
+}
+
+bool GitIntegration::backup_project_to_github(const String &p_repo_name, const String &p_commit_message) {
+    if (!github_logged_in) {
+        print_line("[GitHub] Not logged in");
+        return false;
+    }
+
+    if (!git_available) {
+        print_line("[Git] Git not available");
+        return false;
+    }
+
+    print_line("[GitHub] Creating backup repository: " + p_repo_name);
+
+    // 1. Создаём репозиторий на GitHub
+    if (!github_create_repo(p_repo_name, "Backup of " + project_path.get_file(), true)) {
+        print_line("[GitHub] Failed to create repository");
+        return false;
+    }
+
+    // 2. Инициализируем локальный репозиторий если нужно
+    if (!FileAccess::exists(project_path + "/.git")) {
+        init_repository();
+    }
+
+    // 3. Добавляем все файлы
+    add_all();
+
+    // 4. Создаём коммит
+    commit(p_commit_message);
+
+    // 5. Связываем с удалённым репозиторием
+    String remote_url = "https://github.com/" + current_username + "/" + p_repo_name + ".git";
+
+    // Удаляем старый remote если есть
+    String remotes = execute_git_command("remote -v");
+    if (remotes.contains("origin")) {
+        (void)execute_git_command("remote remove origin"); // Игнорируем результат
+    }
+
+    (void)execute_git_command("remote add origin " + remote_url); // Игнорируем результат
+
+    // 6. Пушим
+    String branch = get_current_branch();
+    String push_result = execute_git_command("push -u origin " + branch);
+
+    if (push_result.contains("error")) {
+        print_line("[GitHub] Push failed: " + push_result);
+        return false;
+    }
+
+    print_line("[GitHub] Project backed up to: " + remote_url);
+    return true;
+}
+
+void GitIntegration::show_backup_dialog(Control *p_parent) {
     AcceptDialog *dialog = memnew(AcceptDialog);
-    dialog->set_title("Git Integration");
+    dialog->set_title("Backup Project to GitHub");
+    dialog->set_min_size(Size2(550, 400));
+    dialog->set_size(Size2(550, 400));
 
     VBoxContainer *vb = memnew(VBoxContainer);
     dialog->add_child(vb);
 
-    // Ветка
-    Label *branch_label = memnew(Label);
-    branch_label->set_text("Branch: " + get_current_branch());
-    vb->add_child(branch_label);
-
-    // Путь (коротко)
-    Label *path_label = memnew(Label);
-    String project_name = project_path.get_file();
-    path_label->set_text("Project: " + project_name);
-    vb->add_child(path_label);
+    // Информация о проекте
+    Label *info = memnew(Label);
+    info->set_text("Project: " + project_path.get_file());
+    info->set_theme_type_variation("HeaderSmall");
+    vb->add_child(info);
 
     vb->add_child(memnew(HSeparator));
 
-    // Статус (только первые 3 строки) чтобы не растягивалось окно до конца экрана если много изменений
-    String status = get_status();
-    Vector<String> lines = status.split("\n");
-    String short_status;
-    for (int i = 0; i < lines.size() && i < 3; i++) {
-        short_status += lines[i] + "\n";
-    }
-    if (lines.size() > 3) { // Если больше 3 строчек, то вместо длинного написания текста, просто пишем "..."
-        short_status += "...";
-    }
+    // Получаем список репозиториев
+    Vector<RepoData> repos = github_list_repos();
 
-    Label *status_label = memnew(Label);
-    status_label->set_text(short_status);
-    vb->add_child(status_label);
+    // Выбор существующего репозитория
+    Label *existing_label = memnew(Label);
+    existing_label->set_text("Select existing repository:");
+    vb->add_child(existing_label);
+
+    OptionButton *repo_select = memnew(OptionButton);
+    repo_select->add_item("-- Create new repository --", -1);
+    for (int i = 0; i < repos.size(); i++) {
+        String name = repos[i].name;
+        if (repos[i].is_private) {
+            name += " [PRIVATE]";
+        }
+        repo_select->add_item(name, i);
+    }
+    repo_select->select(0);
+    vb->add_child(repo_select);
 
     vb->add_child(memnew(HSeparator));
 
-    // Кнопки в одну строку
-    HBoxContainer *hb = memnew(HBoxContainer);
+    // Или создание нового
+    Label *new_label = memnew(Label);
+    new_label->set_text("Or create new:");
+    vb->add_child(new_label);
 
-    Button *init_btn = memnew(Button);
-    init_btn->set_text("Init");
-    init_btn->connect("pressed", callable_mp(this, &GitIntegration::_on_init_pressed).bind(dialog));
-    hb->add_child(init_btn);
+    HBoxContainer *name_hb = memnew(HBoxContainer);
+    name_hb->add_child(memnew(Label("Repo name:")));
+    LineEdit *repo_edit = memnew(LineEdit);
+    repo_edit->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+    repo_edit->set_text(project_path.get_file().to_lower().replace(" ", "-") + "-backup");
+    name_hb->add_child(repo_edit);
+    vb->add_child(name_hb);
 
-    Button *close_btn = memnew(Button);
-    close_btn->set_text("Close");
-    close_btn->connect("pressed", Callable(dialog, "hide"));
-    hb->add_child(close_btn);
+    // Сообщение коммита
+    HBoxContainer *msg_hb = memnew(HBoxContainer);
+    msg_hb->add_child(memnew(Label("Commit message:")));
+    LineEdit *msg_edit = memnew(LineEdit);
+    msg_edit->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 
-    vb->add_child(hb);
+    // Получаем текущее время
+    time_t rawtime;
+    time(&rawtime);
+    struct tm *timeinfo = localtime(&rawtime);
+    char buffer[80];
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
+
+    msg_edit->set_text("Backup " + String(buffer));
+    msg_hb->add_child(msg_edit);
+    vb->add_child(msg_hb);
+
+    // Приватность
+    CheckBox *private_cb = memnew(CheckBox);
+    private_cb->set_text("Private repository (for new repos)");
+    private_cb->set_pressed(true);
+    vb->add_child(private_cb);
+
+    // Информация
+    Label *info_label = memnew(Label);
+    info_label->set_text("Select an existing repo or enter a name for a new one.");
+    info_label->set_modulate(Color(0.7, 0.7, 0.7));
+    vb->add_child(info_label);
+
+    // Кнопки
+    HBoxContainer *btn_hb = memnew(HBoxContainer);
+    btn_hb->set_alignment(BoxContainer::ALIGNMENT_CENTER);
+
+    Button *backup_btn = memnew(Button);
+    backup_btn->set_text("Start Backup");
+    backup_btn->set_custom_minimum_size(Size2(150, 30));
+    backup_btn->connect("pressed", callable_mp(this, &GitIntegration::_on_enhanced_backup).bind(
+        repo_select, repo_edit, msg_edit, private_cb, dialog));
+    btn_hb->add_child(backup_btn);
+
+    Button *cancel_btn = memnew(Button);
+    cancel_btn->set_text("Cancel");
+    cancel_btn->set_custom_minimum_size(Size2(100, 30));
+    cancel_btn->connect("pressed", callable_mp((Window*)dialog, &Window::hide));
+    btn_hb->add_child(cancel_btn);
+
+    vb->add_child(btn_hb);
 
     p_parent->add_child(dialog);
     dialog->popup_centered();
 }
 
-void GitIntegration::_on_init_pressed(AcceptDialog *dialog) {
-    init_repository();
-
-    // Показываем сообщение
-    AcceptDialog *msg = memnew(AcceptDialog);
-    msg->set_title("Git");
-    msg->set_text("Repository initialized successfully!\n.gitignore file created.");
-    msg->set_min_size(Size2(350, 150));
-    EditorNode::get_singleton()->get_gui_base()->add_child(msg);
-    msg->popup_centered(Size2(350, 150));
-
-    // Обновляем диалог
+void GitIntegration::_on_enhanced_backup(OptionButton *repo_select, LineEdit *repo_edit,
+                                          LineEdit *msg_edit, CheckBox *private_cb,
+                                          AcceptDialog *dialog) {
     dialog->hide();
-    dialog->queue_free();
-    show_git_panel(EditorNode::get_singleton()->get_gui_base());
+
+    int selected_idx = repo_select->get_selected_id();
+    String commit_msg = msg_edit->get_text();
+
+    // Показываем прогресс
+    EditorNode::get_singleton()->show_accept("Starting backup...", "Please wait");
+
+    if (selected_idx >= 0) {
+        // Используем существующий репозиторий
+        Vector<RepoData> repos = github_list_repos();
+        if (selected_idx < repos.size()) {
+            String repo_name = repos[selected_idx].name;
+            bool success = backup_to_existing_repo(repo_name, commit_msg);
+
+            if (success) {
+                String message = "Backup completed successfully!\n\n";
+                message += "Repository: " + current_username + "/" + repo_name + "\n";
+                message += "Commit: " + commit_msg;
+                EditorNode::get_singleton()->show_accept(message, "Success");
+            } else {
+                EditorNode::get_singleton()->show_accept("Backup failed!\nCheck console for details.", "Error");
+            }
+        }
+    } else {
+        String new_repo = repo_edit->get_text();
+        bool is_private = private_cb->is_pressed();
+
+        if (github_create_repo(new_repo, "Backup of " + project_path.get_file(), is_private)) {
+            bool success = backup_to_existing_repo(new_repo, commit_msg);
+
+            if (success) {
+                String message = "New repository created and backed up!\n\n";
+                message += "Repository: " + current_username + "/" + new_repo + "\n";
+                message += "Commit: " + commit_msg;
+                EditorNode::get_singleton()->show_accept(message, "Success");
+            }
+        } else {
+            EditorNode::get_singleton()->show_accept("Failed to create repository!", "Error");
+        }
+    }
 }
 
-void GitIntegration::_on_commit_pressed(AcceptDialog *dialog, LineEdit *msg_edit) {
-    String msg = msg_edit->get_text();
-    if (msg.is_empty()) {
-        AcceptDialog *err = memnew(AcceptDialog);
-        err->set_title("Git Error");
-        err->set_text("Commit message cannot be empty!");
-        err->set_min_size(Size2(300, 100));
-        EditorNode::get_singleton()->get_gui_base()->add_child(err);
-        err->popup_centered(Size2(300, 100));
-        return;
+bool GitIntegration::backup_to_existing_repo(const String &p_repo_name, const String &p_commit_message) {
+    if (!github_logged_in) {
+        print_line("[GitHub] Not logged in");
+        return false;
     }
 
-    commit(msg);
+    if (!git_available) {
+        print_line("[Git] Git not available");
+        return false;
+    }
 
-    // Показываем сообщение
-    AcceptDialog *msg_dlg = memnew(AcceptDialog);
-    msg_dlg->set_title("Git");
-    msg_dlg->set_text("Changes committed successfully!");
-    msg_dlg->set_min_size(Size2(300, 100));
-    EditorNode::get_singleton()->get_gui_base()->add_child(msg_dlg);
-    msg_dlg->popup_centered(Size2(300, 100));
+    print_line("[GitHub] Backing up to: " + p_repo_name);
 
-    // Обновляем диалог
+    // 1. Инициализируем локальный репозиторий если нужно
+    if (!FileAccess::exists(project_path + "/.git")) {
+        init_repository();
+    }
+
+    // 2. Добавляем все файлы
+    add_all();
+
+    // 3. Создаём коммит
+    commit(p_commit_message);
+
+    // 4. Связываем с удалённым репозиторием
+    String remote_url = "https://github.com/" + current_username + "/" + p_repo_name + ".git";
+
+    // Удаляем старый remote если есть
+    String remotes = execute_git_command("remote -v");
+    if (remotes.contains("origin")) {
+        (void)execute_git_command("remote remove origin");
+    }
+
+    (void)execute_git_command("remote add origin " + remote_url);
+
+    // 5. Пушим
+    String branch = get_current_branch();
+    print_line("[GitHub] Pushing to " + remote_url + " branch " + branch);
+
+    String push_result = execute_git_command("push -u origin " + branch);
+
+    if (push_result.contains("error") || push_result.contains("failed")) {
+        print_line("[GitHub] Push failed: " + push_result);
+        return false;
+    }
+
+    print_line("[GitHub] Backup complete!");
+    return true;
+}
+
+void GitIntegration::_on_backup_confirm(LineEdit *repo_edit, LineEdit *msg_edit, CheckBox *private_cb, AcceptDialog *dialog) {
+    String repo_name = repo_edit->get_text();
+    String commit_msg = msg_edit->get_text();
+    bool is_private = private_cb->is_pressed();
+
     dialog->hide();
-    dialog->queue_free();
-    show_git_panel(EditorNode::get_singleton()->get_gui_base());
+
+    if (backup_project_to_github(repo_name, commit_msg)) {
+        String message = "Project backed up successfully!\n\n";
+        message += "Repository: " + current_username + "/" + repo_name + "\n";
+        message += "Commit: " + commit_msg;
+        EditorNode::get_singleton()->show_accept(message, "Success");
+    } else {
+        String message = "Backup failed!\n\n";
+        message += "Check console for details.";
+        EditorNode::get_singleton()->show_accept(message, "Error");
+    }
+}
+
+// ==================== UI Диалоги ====================
+
+void GitIntegration::show_github_dialog(Control *p_parent) {
+    AcceptDialog *dialog = memnew(AcceptDialog);
+    dialog->set_title("GitHub Integration");
+    dialog->set_min_size(Size2(500, 300));
+
+    VBoxContainer *vb = memnew(VBoxContainer);
+    dialog->add_child(vb);
+
+    if (!github_logged_in) {
+        Label *info = memnew(Label);
+        info->set_text("Enter your GitHub Personal Access Token\n"
+                      "Create one at: https://github.com/settings/tokens\n"
+                      "Required scopes: repo, read:user");
+        vb->add_child(info);
+
+        HBoxContainer *token_hb = memnew(HBoxContainer);
+        token_hb->add_child(memnew(Label("Token:")));
+        LineEdit *token_edit = memnew(LineEdit);
+        token_edit->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+        token_edit->set_secret(true);
+        token_hb->add_child(token_edit);
+        vb->add_child(token_hb);
+
+        Button *login_btn = memnew(Button);
+        login_btn->set_text("Login");
+        login_btn->connect("pressed", callable_mp(this, &GitIntegration::_on_github_login).bind(token_edit, dialog));
+        vb->add_child(login_btn);
+    } else {
+        Label *welcome = memnew(Label);
+        welcome->set_text("Logged in as: " + current_username);
+        vb->add_child(welcome);
+
+        Button *logout_btn = memnew(Button);
+        logout_btn->set_text("Logout");
+        logout_btn->connect("pressed", callable_mp(this, &GitIntegration::github_logout));
+        vb->add_child(logout_btn);
+    }
+
+    Button *close_btn = memnew(Button);
+    close_btn->set_text("Close");
+    close_btn->connect("pressed", callable_mp((Window*)dialog, &Window::hide));
+    vb->add_child(close_btn);
+
+    p_parent->add_child(dialog);
+    dialog->popup_centered();
+}
+
+void GitIntegration::_on_github_login(LineEdit *token_edit, AcceptDialog *dialog) {
+    String token = token_edit->get_text();
+    if (github_login(token)) {
+        dialog->hide();
+        // Используем EditorNode для получения parent
+        show_github_dialog(EditorNode::get_singleton()->get_gui_base());
+    }
+}
+
+// ==================== GitLab функции ====================
+
+bool GitIntegration::gitlab_login(const String &p_token, const String &p_url) {
+    gitlab_token = p_token;
+    gitlab_url = p_url;
+
+    HashMap<String, String> headers;
+    headers["Authorization"] = "Bearer " + gitlab_token;
+    headers["User-Agent"] = "Real-Engine/1.0";
+
+    String response = http_request(gitlab_url + "/api/v4/user", headers);
+
+    JSON json;
+    json.parse(response);
+    Dictionary data = json.get_data();
+
+    if (data.has("username")) {
+        gitlab_logged_in = true;
+        current_username = data["username"];
+        print_line("[GitLab] Logged in as: " + current_username);
+        return true;
+    }
+    return false;
+}
+
+void GitIntegration::gitlab_logout() {
+    gitlab_token = "";
+    gitlab_url = "";
+    gitlab_logged_in = false;
+    current_username = "";
+}
+
+Vector<GitIntegration::RepoData> GitIntegration::gitlab_list_repos() {
+    Vector<RepoData> repos;
+    if (!gitlab_logged_in) return repos;
+
+    HashMap<String, String> headers;
+    headers["Authorization"] = "Bearer " + gitlab_token;
+    headers["User-Agent"] = "Real-Engine/1.0";
+
+    String response = http_request(gitlab_url + "/api/v4/projects?membership=true&per_page=100", headers);
+
+    JSON json;
+    json.parse(response);
+    Array data = json.get_data();
+
+    for (int i = 0; i < data.size(); i++) {
+        Dictionary repo = data[i];
+        RepoData rd;
+        rd.name = repo["name"];
+        rd.full_name = repo["path_with_namespace"];
+        rd.description = repo.get("description", "");
+        rd.url = repo["web_url"];
+        rd.is_private = repo["visibility"] == "private";
+        repos.push_back(rd);
+    }
+
+    return repos;
+}
+
+bool GitIntegration::gitlab_create_repo(const String &p_name, const String &p_description, bool p_private) {
+    if (!gitlab_logged_in) return false;
+
+    HashMap<String, String> headers;
+    headers["Authorization"] = "Bearer " + gitlab_token;
+    headers["User-Agent"] = "Real-Engine/1.0";
+    headers["Content-Type"] = "application/json";
+
+    Dictionary body;
+    body["name"] = p_name;
+    body["description"] = p_description;
+    body["visibility"] = p_private ? "private" : "public";
+    body["initialize_with_readme"] = true;
+
+    String response = http_request(gitlab_url + "/api/v4/projects", headers, "POST", JSON::stringify(body));
+
+    JSON json;
+    json.parse(response);
+    Dictionary data = json.get_data();
+
+    if (data.has("id")) {
+        print_line("[GitLab] Repository created: " + p_name);
+        return true;
+    }
+    return false;
+}
+
+bool GitIntegration::backup_project_to_gitlab(const String &p_repo_name, const String &p_commit_message) {
+    if (!gitlab_logged_in) {
+        print_line("[GitLab] Not logged in");
+        return false;
+    }
+
+    if (!git_available) {
+        print_line("[Git] Git not available");
+        return false;
+    }
+
+    print_line("[GitLab] Creating backup repository: " + p_repo_name);
+
+    // 1. Создаём репозиторий на GitLab
+    if (!gitlab_create_repo(p_repo_name, "Backup of " + project_path.get_file(), true)) {
+        print_line("[GitLab] Failed to create repository");
+        return false;
+    }
+
+    // 2. Инициализируем локальный репозиторий если нужно
+    if (!FileAccess::exists(project_path + "/.git")) {
+        init_repository();
+    }
+
+    // 3. Добавляем все файлы
+    add_all();
+
+    // 4. Создаём коммит
+    commit(p_commit_message);
+
+    // 5. Связываем с удалённым репозиторием
+    String remote_url;
+    if (gitlab_url == "https://gitlab.com") {
+        remote_url = "https://gitlab.com/" + current_username + "/" + p_repo_name + ".git";
+    } else {
+        // Для self-hosted GitLab
+        remote_url = gitlab_url + "/" + current_username + "/" + p_repo_name + ".git";
+    }
+
+    // Удаляем старый remote если есть
+    String remotes = execute_git_command("remote -v");
+    if (remotes.contains("origin")) {
+        execute_git_command("remote remove origin");
+    }
+
+    execute_git_command("remote add origin " + remote_url);
+
+    // 6. Пушим
+    String branch = get_current_branch();
+    String push_result = execute_git_command("push -u origin " + branch);
+
+    if (push_result.contains("error")) {
+        print_line("[GitLab] Push failed: " + push_result);
+        return false;
+    }
+
+    print_line("[GitLab] Project backed up to: " + remote_url);
+    return true;
+}
+
+void GitIntegration::show_gitlab_backup_dialog(Control *p_parent) {
+    AcceptDialog *dialog = memnew(AcceptDialog);
+    dialog->set_title("Backup Project to GitLab");
+    dialog->set_min_size(Size2(500, 350));
+
+    VBoxContainer *vb = memnew(VBoxContainer);
+    dialog->add_child(vb);
+
+    // Информация о проекте
+    Label *info = memnew(Label);
+    info->set_text("Project: " + project_path.get_file());
+    vb->add_child(info);
+
+    // Название репозитория
+    HBoxContainer *name_hb = memnew(HBoxContainer);
+    name_hb->add_child(memnew(Label("Repo name:")));
+    LineEdit *repo_edit = memnew(LineEdit);
+    repo_edit->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+    repo_edit->set_text(project_path.get_file().to_lower().replace(" ", "-"));
+    name_hb->add_child(repo_edit);
+    vb->add_child(name_hb);
+
+    // Сообщение коммита
+    HBoxContainer *msg_hb = memnew(HBoxContainer);
+    msg_hb->add_child(memnew(Label("Commit message:")));
+    LineEdit *msg_edit = memnew(LineEdit);
+    msg_edit->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+    msg_edit->set_text("Backup " + Time::get_singleton()->get_datetime_string_from_system());
+    msg_hb->add_child(msg_edit);
+    vb->add_child(msg_hb);
+
+    // Приватность
+    CheckBox *private_cb = memnew(CheckBox);
+    private_cb->set_text("Private repository");
+    private_cb->set_pressed(true);
+    vb->add_child(private_cb);
+
+    // Информация о пользователе
+    if (gitlab_logged_in) {
+        Label *user_info = memnew(Label);
+        user_info->set_text("Logged in as: " + current_username);
+        user_info->set_modulate(Color(0.5, 1, 0.5));
+        vb->add_child(user_info);
+    }
+
+    // Кнопки
+    HBoxContainer *btn_hb = memnew(HBoxContainer);
+
+    Button *backup_btn = memnew(Button);
+    backup_btn->set_text("Create Backup");
+    backup_btn->connect("pressed", callable_mp(this, &GitIntegration::_on_gitlab_backup_confirm).bind(repo_edit, msg_edit, private_cb, dialog));
+    btn_hb->add_child(backup_btn);
+
+    Button *cancel_btn = memnew(Button);
+    cancel_btn->set_text("Cancel");
+    cancel_btn->connect("pressed", callable_mp((Window*)dialog, &Window::hide));
+    btn_hb->add_child(cancel_btn);
+
+    vb->add_child(btn_hb);
+
+    p_parent->add_child(dialog);
+    dialog->popup_centered();
+}
+
+void GitIntegration::_on_gitlab_backup_confirm(LineEdit *repo_edit, LineEdit *msg_edit, CheckBox *private_cb, AcceptDialog *dialog) {
+    String repo_name = repo_edit->get_text();
+    String commit_msg = msg_edit->get_text();
+    bool is_private = private_cb->is_pressed();
+
+    dialog->hide();
+
+    if (backup_project_to_gitlab(repo_name, commit_msg)) {
+        String message = "Project backed up to GitLab successfully!\n\n";
+        message += "Repository: " + current_username + "/" + repo_name + "\n";
+        message += "Commit: " + commit_msg;
+        EditorNode::get_singleton()->show_accept(message, "Success");
+    } else {
+        String message = "GitLab backup failed!\n\n";
+        message += "Check console for details.";
+        EditorNode::get_singleton()->show_accept(message, "Error");
+    }
+}
+
+// ==================== Issues функции ====================
+
+Vector<GitIntegration::IssueData> GitIntegration::list_issues(const String &p_repo) {
+    Vector<IssueData> issues;
+
+    if (!github_logged_in && !gitlab_logged_in) return issues;
+
+    HashMap<String, String> headers;
+    String url;
+
+    if (github_logged_in) {
+        headers["Authorization"] = "token " + github_token;
+        url = "https://api.github.com/repos/" + current_username + "/" + p_repo + "/issues?state=all&per_page=100";
+    } else if (gitlab_logged_in) {
+        headers["Authorization"] = "Bearer " + gitlab_token;
+        url = gitlab_url + "/api/v4/projects/" + current_username + "%2F" + p_repo + "/issues?per_page=100";
+    }
+
+    headers["User-Agent"] = "Real-Engine/1.0";
+
+    String response = http_request(url, headers);
+
+    JSON json;
+    json.parse(response);
+    Array data = json.get_data();
+
+    for (int i = 0; i < data.size(); i++) {
+        Dictionary issue = data[i];
+        IssueData id;
+        id.number = issue["number"];
+        id.title = issue["title"];
+        id.body = issue.get("body", "");
+        id.state = issue["state"];
+        issues.push_back(id);
+    }
+
+    return issues;
+}
+
+bool GitIntegration::create_issue(const String &p_repo, const String &p_title, const String &p_body) {
+    if (!github_logged_in && !gitlab_logged_in) return false;
+
+    HashMap<String, String> headers;
+    String url;
+    Dictionary body;
+    body["title"] = p_title;
+    body["body"] = p_body;
+
+    if (github_logged_in) {
+        headers["Authorization"] = "token " + github_token;
+        url = "https://api.github.com/repos/" + current_username + "/" + p_repo + "/issues";
+    } else if (gitlab_logged_in) {
+        headers["Authorization"] = "Bearer " + gitlab_token;
+        url = gitlab_url + "/api/v4/projects/" + current_username + "%2F" + p_repo + "/issues";
+    }
+
+    headers["User-Agent"] = "Real-Engine/1.0";
+    headers["Content-Type"] = "application/json";
+
+    String response = http_request(url, headers, "POST", JSON::stringify(body));
+
+    JSON json;
+    json.parse(response);
+    Dictionary data = json.get_data();
+
+    if (data.has("id") || data.has("number")) {
+        print_line("[Git] Issue created: " + p_title);
+        return true;
+    }
+    return false;
+}
+
+// ==================== UI Диалоги ====================
+
+void GitIntegration::show_gitlab_dialog(Control *p_parent) {
+    AcceptDialog *dialog = memnew(AcceptDialog);
+    dialog->set_title("GitLab Integration");
+    dialog->set_min_size(Size2(500, 350));
+
+    VBoxContainer *vb = memnew(VBoxContainer);
+    dialog->add_child(vb);
+
+    if (!gitlab_logged_in) {
+        Label *info = memnew(Label);
+        info->set_text("Enter your GitLab Personal Access Token\n"
+                      "Create one at: https://gitlab.com/-/profile/personal_access_tokens\n"
+                      "Required scopes: read_user, api");
+        vb->add_child(info);
+
+        HBoxContainer *token_hb = memnew(HBoxContainer);
+        token_hb->add_child(memnew(Label("Token:")));
+        LineEdit *token_edit = memnew(LineEdit);
+        token_edit->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+        token_edit->set_secret(true);
+        token_hb->add_child(token_edit);
+        vb->add_child(token_hb);
+
+        HBoxContainer *url_hb = memnew(HBoxContainer);
+        url_hb->add_child(memnew(Label("URL (optional):")));
+        LineEdit *url_edit = memnew(LineEdit);
+        url_edit->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+        url_edit->set_text("https://gitlab.com");
+        url_hb->add_child(url_edit);
+        vb->add_child(url_hb);
+
+        Button *login_btn = memnew(Button);
+        login_btn->set_text("Login");
+        login_btn->connect("pressed", callable_mp(this, &GitIntegration::_on_gitlab_login).bind(token_edit, url_edit, dialog));
+        vb->add_child(login_btn);
+    } else {
+        Label *welcome = memnew(Label);
+        welcome->set_text("Logged in as: " + current_username);
+        vb->add_child(welcome);
+
+        Button *logout_btn = memnew(Button);
+        logout_btn->set_text("Logout");
+        logout_btn->connect("pressed", callable_mp(this, &GitIntegration::gitlab_logout));
+        vb->add_child(logout_btn);
+    }
+
+    Button *close_btn = memnew(Button);
+    close_btn->set_text("Close");
+    close_btn->connect("pressed", callable_mp((Window*)dialog, &Window::hide));
+    vb->add_child(close_btn);
+
+    p_parent->add_child(dialog);
+    dialog->popup_centered();
+}
+
+void GitIntegration::show_create_repo_dialog(Control *p_parent) {
+    AcceptDialog *dialog = memnew(AcceptDialog);
+    dialog->set_title("Create Repository");
+    dialog->set_min_size(Size2(500, 400));
+
+    VBoxContainer *vb = memnew(VBoxContainer);
+    dialog->add_child(vb);
+
+    Label *platform_label = memnew(Label);
+    platform_label->set_text("Select platform:");
+    vb->add_child(platform_label);
+
+    OptionButton *platform_cb = memnew(OptionButton);
+    platform_cb->add_item("GitHub");
+    platform_cb->add_item("GitLab");
+    platform_cb->select(0);
+    vb->add_child(platform_cb);
+
+    HBoxContainer *name_hb = memnew(HBoxContainer);
+    name_hb->add_child(memnew(Label("Name:")));
+    LineEdit *name_edit = memnew(LineEdit);
+    name_edit->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+    name_hb->add_child(name_edit);
+    vb->add_child(name_hb);
+
+    Label *desc_label = memnew(Label("Description:"));
+    vb->add_child(desc_label);
+
+    TextEdit *desc_edit = memnew(TextEdit);
+    desc_edit->set_custom_minimum_size(Size2(0, 80));
+    vb->add_child(desc_edit);
+
+    CheckBox *private_cb = memnew(CheckBox);
+    private_cb->set_text("Private repository");
+    vb->add_child(private_cb);
+
+    Button *create_btn = memnew(Button);
+    create_btn->set_text("Create");
+    create_btn->connect("pressed", callable_mp(this, &GitIntegration::_on_create_repo).bind(name_edit, desc_edit, private_cb, platform_cb, dialog));
+    vb->add_child(create_btn);
+
+    Button *close_btn = memnew(Button);
+    close_btn->set_text("Cancel");
+    close_btn->connect("pressed", callable_mp((Window*)dialog, &Window::hide));
+    vb->add_child(close_btn);
+
+    p_parent->add_child(dialog);
+    dialog->popup_centered();
+}
+
+void GitIntegration::show_issues_dialog(Control *p_parent, const String &p_repo) {
+    AcceptDialog *dialog = memnew(AcceptDialog);
+    dialog->set_title("Issues - " + p_repo);
+    dialog->set_min_size(Size2(600, 400));
+
+    VBoxContainer *vb = memnew(VBoxContainer);
+    dialog->add_child(vb);
+
+    // Получаем список issues
+    Vector<IssueData> issues = list_issues(p_repo);
+
+    if (issues.size() == 0) { // Если нет никаких проблем, то пишем, что их нет, что логично!
+        Label *no_issues = memnew(Label);
+        no_issues->set_text("No issues found");
+        print_line("[REAL GIT/LAB]: issues not founded");
+        vb->add_child(no_issues);
+    } else {
+        Tree *tree = memnew(Tree);
+        tree->set_v_size_flags(Control::SIZE_EXPAND_FILL);
+        tree->set_columns(3);
+        tree->set_column_titles_visible(true);
+        tree->set_column_title(0, "#");
+        tree->set_column_title(1, "Title");
+        tree->set_column_title(2, "State");
+
+        TreeItem *root = tree->create_item();
+        for (int i = 0; i < issues.size(); i++) {
+            TreeItem *item = tree->create_item(root);
+            item->set_text(0, itos(issues[i].number));
+            item->set_text(1, issues[i].title);
+            item->set_text(2, issues[i].state);
+            if (issues[i].state == "open") {
+                item->set_custom_color(2, Color(0, 1, 0));
+            } else {
+                item->set_custom_color(2, Color(1, 0, 0));
+            }
+        }
+        vb->add_child(tree);
+    }
+
+    Button *close_btn = memnew(Button);
+    close_btn->set_text("Close");
+    close_btn->connect("pressed", callable_mp((Window*)dialog, &Window::hide));
+    vb->add_child(close_btn);
+
+    p_parent->add_child(dialog);
+    dialog->popup_centered();
+}
+
+// Обработчики
+void GitIntegration::_on_gitlab_login(LineEdit *token_edit, LineEdit *url_edit, AcceptDialog *dialog) {
+    String token = token_edit->get_text();
+    String url = url_edit->get_text();
+    if (gitlab_login(token, url)) {
+        dialog->hide();
+        show_gitlab_dialog(EditorNode::get_singleton()->get_gui_base());
+    }
+}
+
+void GitIntegration::_on_create_repo(LineEdit *name_edit, TextEdit *desc_edit, CheckBox *private_cb, OptionButton *platform_cb, AcceptDialog *dialog) {
+    String name = name_edit->get_text();
+    String desc = desc_edit->get_text();
+    bool is_private = private_cb->is_pressed();
+    int platform = platform_cb->get_selected();
+
+    bool success = false;
+    if (platform == 0 && github_logged_in) {
+        success = github_create_repo(name, desc, is_private);
+    } else if (platform == 1 && gitlab_logged_in) {
+        success = gitlab_create_repo(name, desc, is_private);
+    }
+
+    if (success) {
+        dialog->hide();
+        EditorNode::get_singleton()->show_accept("Repository created successfully!", "Success");
+        print_line("[REAL GIT]: Repo Created");
+    }
+}
+
+void GitIntegration::_on_create_issue(LineEdit *title_edit, TextEdit *body_edit, const String &p_repo, AcceptDialog *dialog) {
+    String title = title_edit->get_text();
+    String body = body_edit->get_text();
+
+    if (create_issue(p_repo, title, body)) {
+        dialog->hide();
+        show_issues_dialog(EditorNode::get_singleton()->get_gui_base(), p_repo);
+    }
 }

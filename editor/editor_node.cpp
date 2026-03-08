@@ -1076,9 +1076,9 @@ void EditorNode::_notification(int p_what) {
 		    print_line("[REAL ENGINE] Closing editor...");
 
             // Сохраняем время СРАЗУ и синхронно
-                if (ProjectTimer::get_singleton()) {
-                    ProjectTimer::get_singleton()->force_save();
-                }
+            if (ProjectTimer::get_singleton()) {
+                ProjectTimer::get_singleton()->force_save();
+            }
 
             // Небольшая задержка для гарантии записи
             OS::get_singleton()->delay_usec(1000000);
@@ -3451,9 +3451,64 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
             if (!git_integration) {
                 git_integration = memnew(GitIntegration);
             }
-            git_integration->show_git_panel(get_gui_base());
+            git_integration->show_github_dialog(get_gui_base());
             break;
         }
+        case PROJECT_BACKUP: {
+            if (!git_integration) {
+                git_integration = memnew(GitIntegration);
+            }
+            if (!git_integration->is_github_logged_in()) {
+                git_integration->show_github_dialog(get_gui_base());
+            } else {
+                git_integration->show_backup_dialog(get_gui_base());
+            }
+            break;
+        }
+        case PROJECT_BACKUP_GITLAB: {
+            if (!git_integration) {
+                git_integration = memnew(GitIntegration);
+            }
+            if (!git_integration->is_gitlab_logged_in()) {
+                git_integration->show_gitlab_dialog(get_gui_base());
+            } else {
+                git_integration->show_gitlab_backup_dialog(get_gui_base());
+            }
+            break;
+        }
+        case PROJECT_GITHUB: {
+                    if (!git_integration) {
+                        git_integration = memnew(GitIntegration);
+                    }
+                    git_integration->show_github_dialog(get_gui_base());
+                    break;
+                }
+
+                case PROJECT_GITLAB: {
+                    if (!git_integration) {
+                        git_integration = memnew(GitIntegration);
+                    }
+                    git_integration->show_gitlab_dialog(get_gui_base());
+                    break;
+                }
+
+                case PROJECT_CREATE_REPO: {
+                    if (!git_integration) {
+                        git_integration = memnew(GitIntegration);
+                    }
+                    git_integration->show_create_repo_dialog(get_gui_base());
+                    break;
+                }
+
+                case PROJECT_ISSUES: {
+                    if (!git_integration) {
+                        git_integration = memnew(GitIntegration);
+                    }
+                    // Получаем имя текущего репозитория
+                    String repo_name = git_integration->get_current_repo_name();
+                    git_integration->show_issues_dialog(get_gui_base(), repo_name);
+                    break;
+                }
 		case SCENE_TAB_CLOSE:
 		case SCENE_SAVE_SCENE: {
 			int scene_idx = (p_option == SCENE_SAVE_SCENE) ? -1 : tab_closing_idx;
@@ -8024,6 +8079,14 @@ void EditorNode::_build_project_menu() {
 	project_menu->add_shortcut(ED_GET_SHORTCUT("editor/export"), PROJECT_EXPORT);
 	project_menu->add_item(TTRC("Pack Project as ZIP..."), PROJECT_PACK_AS_ZIP);
 	project_menu->add_item(TTRC("Git Integration"), PROJECT_GIT); // А это продолжение git интеграции!
+	project_menu->add_separator(); // Разделитель
+    project_menu->add_item(TTRC("GitHub"), PROJECT_GITHUB);
+    project_menu->add_item(TTRC("GitLab"), PROJECT_GITLAB);
+    project_menu->add_separator();
+    project_menu->add_item(TTRC("Create Repository"), PROJECT_CREATE_REPO);
+    project_menu->add_item(TTRC("Issues"), PROJECT_ISSUES);
+    project_menu->add_item(TTRC("Backup to GitHub"), PROJECT_BACKUP);
+    project_menu->add_item(TTRC("Backup to GitLab"), PROJECT_BACKUP_GITLAB);
 	project_menu->add_item(TTRC("Install Android Build Template..."), PROJECT_INSTALL_ANDROID_SOURCE);
 #ifndef ANDROID_ENABLED
 	project_menu->add_item(TTRC("Open User Data Folder"), PROJECT_OPEN_USER_DATA_FOLDER);

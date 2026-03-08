@@ -18438,6 +18438,138 @@ msgstr "Список коммитов"
 msgid "Commit list size"
 msgstr "Размер списка коммитов"
 
+msgid "Backup Project to GitHub"
+msgstr "Бэкап проекта в GitHub"
+
+msgid "Select existing repository"
+msgstr "Выберите существующий репозиторий"
+
+msgid "-- Create new repository --"
+msgstr "-- Создать новый репозиторий --"
+
+msgid "private"
+msgstr "приватный"
+
+msgid "Or create new:"
+msgstr "Или создайте новый:"
+
+msgid "Repo name:"
+msgstr "Название репозитория:"
+
+msgid "Commit message:"
+msgstr "Сообщение о коммите:"
+
+msgid "Private repository (for new repos)"
+msgstr "Приватный репозиторий (для новых)"
+
+msgid "Select an existing repo or enter a name for a new one."
+msgstr "Выберите существующий репозиторий или создайте новый."
+
+msgid "Start Backup"
+msgstr "Начать бэкап"
+
+msgid "Starting backup..."
+msgstr "Начало бэкапа..."
+
+msgid "Please wait"
+msgstr "Пожалуйста подождите"
+
+msgid "Backup completed successfully!\n\n"
+msgstr "Бэкап успешно завершён!\n\n"
+
+msgid "Backup failed!\nCheck console for details."
+msgstr "Бэкап завершился не удачей!\nПроверьте консоль для деталей."
+
+msgid "New repository created and backed up!\n\n"
+msgstr "Новый репозиторий создан и бэкап завершён!\n\n"
+
+msgid "Failed to create repository!"
+msgstr "Ошибка создания репозитория!"
+
+msgid "Project backed up successfully!\n\n"
+msgstr "Проект бэкапнулся успешно!\n\n"
+
+msgid "Backup failed!\n\n"
+msgstr "Бэкап завершился не удачей!\n\n"
+
+msgid "GitHub Integration"
+msgstr "Github Интеграция"
+
+msgid ""
+"Enter your GitHub Personal Access Token\n"
+"Create one at: https://github.com/settings/tokens\n"
+"Required scopes: repo, read:user"
+msgstr ""
+"Войдите в ваш Github и создайте там Токен ключ\n"
+"Создать можно так: https://github.com/settings/tokens\n"
+"Поставте галочки: repo, read:user"
+
+msgid "Login"
+msgstr "Войти"
+
+msgid "Logged in as: "
+msgstr "Вошли как: "
+
+msgid "Logout"
+msgstr "Выйти"
+
+msgid "Backup Project to GitLab"
+msgstr "Бэкап Проекта в Gitlab"
+
+msgid "Project backed up to GitLab successfully!\n\n"
+msgstr "Проект бэкапнут в Gitlab успешно!\n\n"
+
+msgid "GitLab backup failed!\n\n"
+msgstr "Бэкап в Gitlab не удалось!\n\n"
+
+msgid "GitLab Integration"
+msgstr "GitLab Интергация"
+
+msgid ""
+"Enter your GitLab Personal Access Token\n"
+"Create one at: https://gitlab.com/-/profile/personal_access_tokens\n"
+"Required scopes: read_user, api"
+msgstr ""
+"Войдите в ваш GitLab и создайте Токен\n"
+"Создать можно так: https://gitlab.com/-/profile/personal_access_tokens\n"
+"Выберите галочки: read_user, api"
+
+msgid "Token:"
+msgstr "Токен:"
+
+msgid "Select platform:"
+msgstr "Выберите платформу:"
+
+msgid "Description:"
+msgstr "Описание:"
+
+msgid "Private repository"
+msgstr "Приватный репозиторий"
+
+msgid "Issues"
+msgstr "Проблемы"
+
+msgid "No issues found"
+msgstr "Проблем не найдено"
+
+msgid "Repository created successfully!"
+msgstr "Репозиторий создан успешно!"
+
+msgid "Backup to GitHub"
+msgstr "Бэкап в GitHub"
+
+msgid " [PRIVATE]"
+msgstr " [ПРИВАТНЫЙ]"
+
+msgid "Backup to GitLab"
+msgstr "Бэкап в GitLab"
+
+msgid "Select existing repository"
+msgstr "Выберите репозиторий"
+
+msgid "Create Repository"
+msgstr "Создать репозиторий"
+
 msgid "Branches"
 msgstr "Ветки"
 
