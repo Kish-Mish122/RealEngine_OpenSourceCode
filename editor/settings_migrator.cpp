@@ -135,7 +135,33 @@ void SettingsMigrator::migrate_editor_settings(const String &p_old_path) {
         "filesystem/directories/default_project_path",
         "interface/theme/icon_and_font_color",
         "interface/theme/base_color",
-        "interface/theme/accent_color"
+        "interface/theme/accent_color",
+        "text_editor/theme/highlighting/symbol_color",
+		"text_editor/theme/highlighting/keyword_color",
+		"text_editor/theme/highlighting/control_flow_keyword_color",
+		"text_editor/theme/highlighting/base_type_color",
+		"text_editor/theme/highlighting/engine_type_color",
+		"text_editor/theme/highlighting/user_type_color",
+		"text_editor/theme/highlighting/comment_color",
+		"text_editor/theme/highlighting/doc_comment_color",
+		"text_editor/theme/highlighting/string_color",
+		"text_editor/theme/highlighting/string_placeholder_color",
+		"text_editor/theme/highlighting/background_color",
+		"text_editor/theme/highlighting/text_color",
+		"text_editor/theme/highlighting/line_number_color",
+		"text_editor/theme/highlighting/safe_line_number_color",
+		"text_editor/theme/highlighting/caret_color",
+		"text_editor/theme/highlighting/caret_background_color",
+		"text_editor/theme/highlighting/text_selected_color",
+		"text_editor/theme/highlighting/selection_color",
+		"text_editor/theme/highlighting/brace_mismatch_color",
+		"text_editor/theme/highlighting/current_line_color",
+		"text_editor/theme/highlighting/line_length_guideline_color",
+		"text_editor/theme/highlighting/word_highlighted_color",
+		"text_editor/theme/highlighting/number_color",
+		"text_editor/theme/highlighting/function_color",
+		"text_editor/theme/highlighting/member_variable_color",
+		"text_editor/theme/highlighting/mark_color"
     };
 
     Vector<String> keys = old_settings->get_section_keys("init");
@@ -255,7 +281,7 @@ void SettingsMigrator::migrate_all() {
 
     migrate_from_version(latest.path);
 
-    cleanup_old_settings(true); // true = оставить самую новую старую версию
+    cleanup_old_settings(false); // true = оставить самую новую старую версию
 
     print_line("[Migrator] Migration complete");
 }

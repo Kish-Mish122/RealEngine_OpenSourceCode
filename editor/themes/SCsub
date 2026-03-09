@@ -17,4 +17,7 @@ env.CommandNoCache(
     env.Run(editor_theme_builders.make_fonts_header),
 )
 
-env.add_source_files(env.editor_sources, "*.cpp")
+# Добавляем ВСЕ .cpp файлы из директории themes
+cpp_files = Glob("*.cpp")
+print("Compiling theme sources:", [str(f) for f in cpp_files])
+env.add_source_files(env.editor_sources, cpp_files)

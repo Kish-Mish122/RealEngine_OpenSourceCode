@@ -68,6 +68,7 @@ public:
 	};
 
 private:
+    void _apply_real_engine_theme();
 	struct VariantContainer {
 		int order = 0;
 		Variant variant;

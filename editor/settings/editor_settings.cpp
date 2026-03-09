@@ -85,6 +85,16 @@ bool EditorSettings::_set(const StringName &p_name, const Variant &p_value) {
 		if (p_name == SNAME("interface/editor/editor_language")) {
 			setup_language(false);
 		}
+
+		        if (p_name == SNAME("interface/theme/color_preset")) {
+                    _apply_real_engine_theme();
+                }
+
+                emit_signal(SNAME("settings_changed"));
+
+                if (p_name == SNAME("interface/editor/editor_language")) {
+                    setup_language(false);
+                }
 	}
 	return true;
 }
@@ -441,6 +451,8 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	// Asset library
 	_initial_set("asset_library/use_threads", true);
 
+	_apply_real_engine_theme();
+
 	/* Interface */
 
 	// Editor
@@ -595,24 +607,52 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	EDITOR_SETTING_BASIC(Variant::BOOL, PROPERTY_HINT_NONE, "interface/inspector/color_picker_show_intensity", true, "");
 
 	// Theme
-	EDITOR_SETTING_BASIC(Variant::BOOL, PROPERTY_HINT_ENUM, "interface/theme/follow_system_theme", false, "")
-	EDITOR_SETTING_BASIC(Variant::STRING, PROPERTY_HINT_ENUM, "interface/theme/style", "Modern", "Modern,Classic")
-	EDITOR_SETTING_BASIC(Variant::STRING, PROPERTY_HINT_ENUM, "interface/theme/color_preset", "Default", "Default,Solarized (Dark),Solarized (Light),Custom")
-	EDITOR_SETTING_BASIC(Variant::STRING, PROPERTY_HINT_ENUM, "interface/theme/spacing_preset", "Default", "Compact,Default,Spacious,Custom")
-	EDITOR_SETTING(Variant::INT, PROPERTY_HINT_ENUM, "interface/theme/icon_and_font_color", 0, "Auto,Dark,Light")
-	EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "interface/theme/base_color", Color(0.14, 0.14, 0.14), "")
-	EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "interface/theme/accent_color", Color(0.34, 0.62, 1.0), "")
-	EDITOR_SETTING_BASIC(Variant::BOOL, PROPERTY_HINT_NONE, "interface/theme/use_system_accent_color", false, "")
-	EDITOR_SETTING_BASIC(Variant::FLOAT, PROPERTY_HINT_RANGE, "interface/theme/contrast", 0.3, "-1,1,0.01")
-	EDITOR_SETTING(Variant::BOOL, PROPERTY_HINT_NONE, "interface/theme/draw_extra_borders", false, "")
-	EDITOR_SETTING(Variant::FLOAT, PROPERTY_HINT_RANGE, "interface/theme/icon_saturation", 2.0, "0,2,0.01")
-	EDITOR_SETTING(Variant::INT, PROPERTY_HINT_ENUM, "interface/theme/draw_relationship_lines", (int32_t)EditorThemeManager::RELATIONSHIP_SELECTED_ONLY, "None,Selected Only,All")
-	EDITOR_SETTING(Variant::FLOAT, PROPERTY_HINT_RANGE, "interface/theme/relationship_line_opacity", 0.1, "0.00,1,0.01")
-	EDITOR_SETTING(Variant::INT, PROPERTY_HINT_RANGE, "interface/theme/border_size", 0, "0,2,1")
-	EDITOR_SETTING(Variant::INT, PROPERTY_HINT_RANGE, "interface/theme/corner_radius", 4, "0,6,1")
-	EDITOR_SETTING(Variant::INT, PROPERTY_HINT_RANGE, "interface/theme/base_spacing", 4, "0,8,1")
-	EDITOR_SETTING(Variant::INT, PROPERTY_HINT_RANGE, "interface/theme/additional_spacing", 0, "0,8,1")
-	EDITOR_SETTING_USAGE(Variant::STRING, PROPERTY_HINT_GLOBAL_FILE, "interface/theme/custom_theme", "", "*.res,*.tres,*.theme", PROPERTY_USAGE_DEFAULT)
+    EDITOR_SETTING_BASIC(Variant::BOOL, PROPERTY_HINT_ENUM, "interface/theme/follow_system_theme", false, "")
+    EDITOR_SETTING_BASIC(Variant::STRING, PROPERTY_HINT_ENUM, "interface/theme/color_preset","Real Engine", "Real Engine,Solarized (Dark),Solarized (Light),Custom")
+    EDITOR_SETTING_BASIC(Variant::STRING, PROPERTY_HINT_ENUM, "interface/theme/spacing_preset", "Default", "Compact,Default,Spacious,Custom")
+    EDITOR_SETTING(Variant::INT, PROPERTY_HINT_ENUM, "interface/theme/icon_and_font_color", 0, "Auto,Dark,Light")
+    EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "interface/theme/base_color", Color(0.14, 0.14, 0.14), "")
+    EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "interface/theme/accent_color", Color(0.34, 0.62, 1.0), "")
+    EDITOR_SETTING_BASIC(Variant::BOOL, PROPERTY_HINT_NONE, "interface/theme/use_system_accent_color", false, "")
+    EDITOR_SETTING_BASIC(Variant::FLOAT, PROPERTY_HINT_RANGE, "interface/theme/contrast", 0.3, "-1,1,0.01")
+    EDITOR_SETTING(Variant::BOOL, PROPERTY_HINT_NONE, "interface/theme/draw_extra_borders", false, "")
+    EDITOR_SETTING(Variant::FLOAT, PROPERTY_HINT_RANGE, "interface/theme/icon_saturation", 2.0, "0,2,0.01")
+    EDITOR_SETTING(Variant::INT, PROPERTY_HINT_ENUM, "interface/theme/draw_relationship_lines", (int32_t)EditorThemeManager::RELATIONSHIP_SELECTED_ONLY, "None,Selected Only,All")
+    EDITOR_SETTING(Variant::FLOAT, PROPERTY_HINT_RANGE, "interface/theme/relationship_line_opacity", 0.1, "0.00,1,0.01")
+    EDITOR_SETTING(Variant::INT, PROPERTY_HINT_RANGE, "interface/theme/border_size", 0, "0,2,1")
+    EDITOR_SETTING(Variant::INT, PROPERTY_HINT_RANGE, "interface/theme/corner_radius", 4, "0,6,1")
+    EDITOR_SETTING(Variant::INT, PROPERTY_HINT_RANGE, "interface/theme/base_spacing", 4, "0,8,1")
+    EDITOR_SETTING(Variant::INT, PROPERTY_HINT_RANGE, "interface/theme/additional_spacing", 0, "0,8,1")
+    EDITOR_SETTING_USAGE(Variant::STRING, PROPERTY_HINT_GLOBAL_FILE, "interface/theme/custom_theme", "", "*.res,*.tres,*.theme", PROPERTY_USAGE_DEFAULT)
+
+    // Real Engine - Основные цвета
+    EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine/theme/primary_color", Color(0.8, 0.6, 0.2), "") // Золотистый
+    EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine/theme/secondary_color", Color(0.3, 0.5, 0.9), "") // Синий
+    EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine/theme/success_color", Color(0.2, 0.8, 0.3), "") // Зеленый
+    EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine/theme/warning_color", Color(0.9, 0.6, 0.1), "") // Оранжевый
+    EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine/theme/error_color", Color(0.9, 0.2, 0.2), "") // Красный
+
+    // Real Engine - Фоны
+    EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine/theme/background_dark", Color(0.08, 0.08, 0.12), "")
+    EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine/theme/background_medium", Color(0.12, 0.12, 0.16), "")
+    EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine/theme/background_light", Color(0.18, 0.18, 0.22), "")
+
+    // Real Engine - Текст
+    EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine/theme/text_primary", Color(0.95, 0.95, 0.95), "")
+    EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine/theme/text_secondary", Color(0.7, 0.7, 0.7), "")
+    EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine/theme/text_disabled", Color(0.4, 0.4, 0.4), "")
+
+    // Real Engine - Панели
+    EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine/theme/panel_header", Color(0.15, 0.15, 0.2), "")
+    EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine/theme/panel_border", Color(0.25, 0.25, 0.3), "")
+    EDITOR_SETTING_BASIC(Variant::INT, PROPERTY_HINT_RANGE, "real_engine/theme/panel_corner_radius", 6, "0,12,1")
+
+    // Real Engine - Подсветка синтаксиса
+    EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine/syntax/keyword", Color(1.0, 0.5, 0.5), "")
+    EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine/syntax/function", Color(0.5, 0.8, 1.0), "")
+    EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine/syntax/comment", Color(0.4, 0.5, 0.4), "")
+    EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine/syntax/string", Color(0.7, 0.9, 0.5), "")
+    EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine/syntax/number", Color(0.8, 0.7, 0.4), "")
 
 	// Touchscreen
 	bool has_touchscreen_ui = DisplayServer::get_singleton()->is_touchscreen_available();
@@ -1169,6 +1209,10 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 			}
 		}
 	}
+
+	if (props.has("interface/theme/style")) {
+        props.erase("interface/theme/style");
+    }
 }
 
 void EditorSettings::_load_default_visual_shader_editor_theme() {
@@ -1266,6 +1310,32 @@ String EditorSettings::get_existing_settings_path() {
 String EditorSettings::get_newest_settings_path() {
 	const String config_file_name = vformat("editor_settings-%d.%d.tres", GODOT_VERSION_MAJOR, GODOT_VERSION_MINOR);
 	return EditorPaths::get_singleton()->get_config_dir().path_join(config_file_name);
+}
+
+void EditorSettings::_apply_real_engine_theme() {
+    // Применяем цвета Real Engine к стандартным настройкам темы
+    if (has_setting("interface/theme/color_preset") &&
+        String(get("interface/theme/color_preset")) == "Real Engine") {
+
+        // Основные цвета
+        set("interface/theme/base_color", get("real_engine/theme/background_dark"));
+        set("interface/theme/accent_color", get("real_engine/theme/primary_color"));
+        set("interface/theme/contrast", 0.4);
+
+        // Цвета для 3D редактора
+        set("editors/3d/primary_grid_color", Color(0.56, 0.56, 0.56, 0.3));
+        set("editors/3d/secondary_grid_color", Color(0.38, 0.38, 0.38, 0.2));
+        set("editors/3d/selection_box_color", get("real_engine/theme/primary_color"));
+
+        // Цвета для текстового редактора
+        set("text_editor/theme/highlighting/keyword_color", get("real_engine/syntax/keyword"));
+        set("text_editor/theme/highlighting/function_color", get("real_engine/syntax/function"));
+        set("text_editor/theme/highlighting/comment_color", get("real_engine/syntax/comment"));
+        set("text_editor/theme/highlighting/string_color", get("real_engine/syntax/string"));
+        set("text_editor/theme/highlighting/number_color", get("real_engine/syntax/number"));
+        set("text_editor/theme/highlighting/background_color", get("real_engine/theme/background_medium"));
+        set("text_editor/theme/highlighting/text_color", get("real_engine/theme/text_primary"));
+    }
 }
 
 void EditorSettings::create() {

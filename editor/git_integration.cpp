@@ -29,11 +29,16 @@ GitIntegration::GitIntegration() {
 
     if (EditorSettings::get_singleton()) {
         if (EditorSettings::get_singleton()->has_setting("github/token")) {
-            String saved_token = EditorSettings::get_singleton()->get_setting("github/token");
+            String saved_token = EditorSettings::get_singleton()->get("github/token");
             if (!saved_token.is_empty()) {
                 print_line("[GitHub] Found saved token, attempting auto-login...");
+                print_line("[GitHub] Token length: " + itos(saved_token.length()));
                 github_login(saved_token);
+            } else {
+                print_line("[GitHub] Saved token is empty");
             }
+        } else {
+            print_line("[GitHub] No saved token found");
         }
     }
 }
@@ -141,8 +146,6 @@ String GitIntegration::http_request(const String &p_url, const HashMap<String, S
     if (path_start != -1) {
         path = host.substr(path_start);
         host = host.substr(0, path_start);
-    } else {
-        path = "/";
     }
 
     print_line("[HTTP] Connecting to host: " + host + ", SSL: " + (use_ssl ? "yes" : "no"));
@@ -159,13 +162,14 @@ String GitIntegration::http_request(const String &p_url, const HashMap<String, S
         return "";
     }
 
+    // Ждём подключения
     int attempts = 0;
     while (client->get_status() == HTTPClient::STATUS_CONNECTING ||
            client->get_status() == HTTPClient::STATUS_RESOLVING) {
         client->poll();
-        OS::get_singleton()->delay_usec(10000);
+        OS::get_singleton()->delay_usec(100000); // 100ms
         attempts++;
-        if (attempts > 1000) { // Увеличим таймаут до 10 секунд
+        if (attempts > 50) { // 5 секунд таймаут
             print_line("[HTTP] Connection timeout");
             return "";
         }
@@ -178,59 +182,97 @@ String GitIntegration::http_request(const String &p_url, const HashMap<String, S
 
     print_line("[HTTP] Connected successfully");
 
+    // Формируем заголовки
     Vector<String> headers;
+    headers.push_back("Host: " + host);
+    headers.push_back("User-Agent: Real-Engine/1.0");
+    headers.push_back("Accept: application/json");
+
     for (const KeyValue<String, String> &E : p_headers) {
         headers.push_back(E.key + ": " + E.value);
     }
 
+    if (!p_body.is_empty()) {
+        headers.push_back("Content-Type: application/json");
+        headers.push_back("Content-Length: " + itos(p_body.utf8().length()));
+    }
+
+    // Выбираем метод
     HTTPClient::Method method = HTTPClient::METHOD_GET;
     if (p_method == "POST") method = HTTPClient::METHOD_POST;
     else if (p_method == "PUT") method = HTTPClient::METHOD_PUT;
     else if (p_method == "DELETE") method = HTTPClient::METHOD_DELETE;
     else if (p_method == "PATCH") method = HTTPClient::METHOD_PATCH;
 
+    // Отправляем запрос (всегда с 5 параметрами)
     if (p_body.is_empty()) {
-        client->request(method, path, headers, nullptr, 0);
+        err = client->request(method, path, headers, nullptr, 0);
     } else {
         CharString body_utf8 = p_body.utf8();
-        client->request(method, path, headers, (const uint8_t*)body_utf8.get_data(), body_utf8.length());
+        err = client->request(method, path, headers, (const uint8_t*)body_utf8.get_data(), body_utf8.length());
     }
 
+    if (err != OK) {
+        print_line("[HTTP] Request failed: " + itos(err));
+        return "";
+    }
+
+    // Ждём ответа
     attempts = 0;
     while (client->get_status() == HTTPClient::STATUS_REQUESTING) {
         client->poll();
-        OS::get_singleton()->delay_usec(10000);
+        OS::get_singleton()->delay_usec(100000); // 100ms
         attempts++;
-        if (attempts > 500) {
+        if (attempts > 50) { // 5 секунд таймаут
             print_line("[HTTP] Request timeout");
             return "";
         }
     }
 
+    // Проверяем код ответа
     int response_code = client->get_response_code();
     print_line("[HTTP] Response code: " + itos(response_code));
 
-    if (client->get_status() == HTTPClient::STATUS_BODY && client->has_response()) {
-        PackedByteArray response_data;
-        while (client->get_status() == HTTPClient::STATUS_BODY) {
-            client->poll();
-            PackedByteArray chunk = client->read_response_body_chunk();
-            response_data.append_array(chunk);
-        }
-        String result = String::utf8((const char*)response_data.ptr(), response_data.size());
-        print_line("[HTTP] Response length: " + itos(result.length()));
-        return result;
-    } else {
-        print_line("[HTTP] No response body, status: " + itos(client->get_status()));
+    if (response_code == 0) {
+        print_line("[HTTP] No response code");
+        return "";
     }
 
-    return "";
+    // Читаем заголовки ответа (нужен список для заполнения)
+    List<String> response_headers;
+    client->get_response_headers(&response_headers);
+
+    // Читаем тело ответа
+    PackedByteArray response_data;
+    while (client->get_status() == HTTPClient::STATUS_BODY) {
+        client->poll();
+        PackedByteArray chunk = client->read_response_body_chunk();
+        if (chunk.size() > 0) {
+            response_data.append_array(chunk);
+        } else {
+            OS::get_singleton()->delay_usec(100000); // 100ms
+        }
+    }
+
+    if (response_data.size() == 0) {
+        print_line("[HTTP] Empty response");
+        return "";
+    }
+
+    String result = String::utf8((const char*)response_data.ptr(), response_data.size());
+    print_line("[HTTP] Response received: " + itos(result.length()) + " bytes");
+
+    // Для отладки выведем первые 200 символов
+    String preview = result.substr(0, 200);
+    print_line("[HTTP] Preview: " + preview);
+
+    return result;
 }
 
 // ==================== GitHub функции ====================
 
 bool GitIntegration::github_login(const String &p_token) {
-    print_line("[GitHub] Attempting login with token: " + p_token.substr(0, 4) + "****");
+    print_line("[GitHub] Attempting login with token length: " + itos(p_token.length()));
 
     github_token = p_token;
 
@@ -241,8 +283,19 @@ bool GitIntegration::github_login(const String &p_token) {
 
     String response = http_request("https://api.github.com/user", headers);
 
+    if (response.is_empty()) {
+        print_line("[GitHub] Empty response");
+        return false;
+    }
+
     JSON json;
-    json.parse(response);
+    Error err = json.parse(response);
+    if (err != OK) {
+        print_line("[GitHub] Failed to parse JSON: " + json.get_error_message());
+        print_line("[GitHub] Response: " + response);
+        return false;
+    }
+
     Dictionary data = json.get_data();
 
     if (data.has("login")) {
@@ -251,13 +304,21 @@ bool GitIntegration::github_login(const String &p_token) {
 
         // СОХРАНЯЕМ ТОКЕН В НАСТРОЙКИ
         if (EditorSettings::get_singleton()) {
-            EditorSettings::get_singleton()->set_setting("github/token", p_token);
+            EditorSettings::get_singleton()->set("github/token", p_token);
             EditorSettings::get_singleton()->save();
-            print_line("[GitHub] Token saved to settings");
+
+            // Проверяем, что сохранилось
+            String check = EditorSettings::get_singleton()->get("github/token");
+            print_line("[GitHub] Token saved, check: " + String(check.is_empty() ? "FAILED" : "OK"));
         }
 
         print_line("[GitHub] ✓ Logged in as: " + current_username);
         return true;
+    } else {
+        print_line("[GitHub] Login failed - no 'login' field in response");
+        if (data.has("message")) {
+            print_line("[GitHub] Error message: " + (String)data["message"]);
+        }
     }
 
     return false;
@@ -787,10 +848,13 @@ bool GitIntegration::backup_project_to_gitlab(const String &p_repo_name, const S
     // Удаляем старый remote если есть
     String remotes = execute_git_command("remote -v");
     if (remotes.contains("origin")) {
-        execute_git_command("remote remove origin");
+        String result = execute_git_command("remote remove origin");
+        // Игнорируем результат, но переменная нужна чтобы убрать warning
+        if (result.is_empty()) {}
     }
 
-    execute_git_command("remote add origin " + remote_url);
+    String result = execute_git_command("remote add origin " + remote_url);
+    if (result.is_empty()) {}
 
     // 6. Пушим
     String branch = get_current_branch();
