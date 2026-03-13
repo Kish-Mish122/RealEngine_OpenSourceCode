@@ -10269,6 +10269,12 @@ msgstr "Прозрачное покрытие"
 msgid "Flowmap"
 msgstr "Карта потока"
 
+msgid "Enable break reminders"
+msgstr "Включить напоминание"
+
+msgid "Show system notifications"
+msgstr "Включить сообщение"
+
 msgid "Ambient Occlusion"
 msgstr "Окклюзия рассеяния"
 
