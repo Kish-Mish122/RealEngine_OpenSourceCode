@@ -35,6 +35,7 @@
 #include "core/input/input.h"
 #include "editor/project_timer.h"
 #include "git_integration.h"
+#include "themes/real_engine_plugin.h"
 #include "core/io/config_file.h"
 #include "core/io/file_access.h"
 #include "core/io/image.h"
@@ -9183,11 +9184,25 @@ EditorNode::EditorNode() {
 	const String docks_section = "docks";
 	default_layout.instantiate();
 	// Dock numbers are based on DockSlot enum value + 1.
-	default_layout->set_value(docks_section, "dock_3", "Scene,Import");
-	default_layout->set_value(docks_section, "dock_4", "History");
-	default_layout->set_value(docks_section, "dock_5", "Inspector");
-	default_layout->set_value(docks_section, "dock_6", "Signals,Groups");
-	default_layout->set_value(docks_section, "dock_9", "FileSystem,Output,Debugger,Audio,Animation,Shader Editor,Search Results,AnimationTree,ResourcePreloader,ShaderFile,SpriteFrames,Theme,Polygon,TileSet,TileMap,Replication,GridMap");
+    default_layout->set_value(docks_section, "dock_3", "Scene,Import"); // Главная панель (Со сценой, панелью импортом)
+    default_layout->set_value(docks_section, "dock_5", "Inspector"); // Правая панель (С инспектором объектов)
+    default_layout->set_value(docks_section, "dock_6", "History"); // Правый нижний угол (История изменений)
+    default_layout->set_value(docks_section, "dock_8", "Signals,Groups,Search Results,AnimationTree,ResourcePreloader,ShaderFile,SpriteFrames,Theme,Polygon,TileSet,TileMap,Replication,GridMap"); // Левое меню (Тут много всего)
+    default_layout->set_value(docks_section, "dock_9", "FileSystem,Output,Debugger,Audio,Animation,Shader Editor"); // Нижняя панель
+
+    /*
+    Чтобы изменить на свои настройки, и не страдать, как я раньше, надо:
+    1. Открыть файл с настройками панелей (Win+R -> %APPDATA%\RLEngine)
+    2. Далее, сохранить состояние всех окон редакторов через "Сохранить макет"
+    3. Далее, нужно открыть в папке файл editor_layouts
+    4. После открытия, смотрите, что в какой панеле находиться
+    */
+
+    // Не знаю, работает ли это, но вроде должно (а может и нет)
+    default_layout->set_value(docks_section, "dock_hsplit_1", 0);
+    default_layout->set_value(docks_section, "dock_hsplit_2", 280);
+    default_layout->set_value(docks_section, "dock_hsplit_3", -520);
+    default_layout->set_value(docks_section, "dock_hsplit_4", -246);
 
 	int hsplits[] = { 0, dock_hsize, -dock_hsize, 0 };
 	for (int i = 0; i < (int)std_size(hsplits); i++) {
@@ -9641,6 +9656,9 @@ EditorNode::EditorNode() {
     timer->connect("timeout", callable_mp(this, &EditorNode::_update_project_time));
     add_child(timer);
     timer->call_deferred("start");
+
+    print_line("[REAL ENGINE]: Add Real Engine Plugins...");
+    add_editor_plugin(memnew(RealEnginePlugin));
 
     print_line("[REAL ENGINE]: All data about the project, the engine and its version has been successfully uploaded!");
 }

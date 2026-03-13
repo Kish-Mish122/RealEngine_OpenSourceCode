@@ -34,6 +34,9 @@
 #include "editor/animation/animation_tree_editor_plugin.h"
 #include "editor/audio/audio_stream_editor_plugin.h"
 #include "editor/audio/audio_stream_randomizer_editor_plugin.h"
+#include "themes/real_engine_plugin.h"
+#include "themes/real_engine_theme.h"
+#include "themes/real_engine_theme_light.h"
 #include "editor/debugger/debug_adapter/debug_adapter_server.h"
 #include "editor/debugger/editor_debugger_plugin.h"
 #include "editor/docks/filesystem_dock.h"
@@ -50,6 +53,9 @@
 #include "editor/file_system/editor_file_system.h"
 #include "editor/file_system/editor_paths.h"
 #include "editor/gui/editor_file_dialog.h"
+#include "themes/real_engine_plugin.h"
+#include "themes/real_engine_theme.h"
+#include "themes/real_engine_theme_light.h"
 #include "editor/gui/editor_spin_slider.h"
 #include "editor/gui/editor_toaster.h"
 #include "editor/import/3d/resource_importer_obj.h"
@@ -88,6 +94,7 @@
 #include "editor/scene/2d/tiles/tiles_editor_plugin.h"
 #include "editor/scene/3d/bone_map_editor_plugin.h"
 #include "editor/scene/3d/camera_3d_editor_plugin.h"
+#include "themes/real_engine_plugin.h"
 #include "editor/scene/3d/gpu_particles_collision_sdf_editor_plugin.h"
 #include "editor/scene/3d/lightmap_gi_editor_plugin.h"
 #include "editor/scene/3d/mesh_editor_plugin.h"
@@ -212,8 +219,9 @@ void register_editor_types() {
 	GDREGISTER_CLASS(ResourceImporterTexture);
 	GDREGISTER_CLASS(ResourceImporterTextureAtlas);
 	GDREGISTER_CLASS(ResourceImporterWAV);
-	GDREGISTER_CLASS(RealEngineTheme);
-    GDREGISTER_CLASS(RealEnginePlugin);
+	GDREGISTER_CLASS(RealEnginePlugin);
+    GDREGISTER_CLASS(RealEngineTheme);
+    GDREGISTER_CLASS(RealEngineThemeLight);
 
 	// This list is alphabetized, and plugins that depend on Node2D are in their own section below.
 	EditorPlugins::add_by_type<AnimationTreeEditorPlugin>();
