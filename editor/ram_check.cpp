@@ -11,11 +11,25 @@
 #endif
 
 RAMCheck *RAMCheck::singleton = nullptr;
+bool RAMCheck::settings_initialized = false; // Статическая переменная
+
+void RAMCheck::_init_settings() {
+    if (settings_initialized) return;
+    settings_initialized = true;
+
+    Ref<EditorSettings> es = EditorSettings::get_singleton();
+    if (!es->has_setting("application/check_ram_on_startup")) {
+        es->set_setting("application/check_ram_on_startup", true);
+        // Не нужно add_property_info для bool
+        es->save(); // Сохраняем при первом запуске
+    }
+}
 
 void RAMCheck::_bind_methods() {}
 
 RAMCheck::RAMCheck() {
     singleton = this;
+    _init_settings();
 }
 
 RAMCheck::~RAMCheck() {
@@ -49,7 +63,6 @@ uint64_t RAMCheck::get_available_ram_mb() {
 }
 
 void RAMCheck::show_ram_warning(Control *p_parent) {
-
     uint64_t total = get_total_ram_mb();
     uint64_t available = get_available_ram_mb();
 
@@ -71,7 +84,6 @@ void RAMCheck::show_ram_warning(Control *p_parent) {
     vb->add_child(info);
 
     String message;
-
     if (total < min_ram_mb) {
         message += "[b][color=red]CRITICAL:[/color][/b]\n";
         message += "Your system has less than the minimum required RAM (" + itos(min_ram_mb) + " MB).\n";
@@ -88,7 +100,13 @@ void RAMCheck::show_ram_warning(Control *p_parent) {
 
     info->append_text(message);
 
-    dialog->connect(SceneStringName(confirmed), Callable(dialog, "queue_free"));
+    CheckBox *cb = memnew(CheckBox);
+    cb->set_text("Do not show this warning again");
+    vb->add_child(cb);
+
+    dialog->set_meta("dont_show_checkbox", Variant(cb));
+
+    dialog->connect("confirmed", callable_mp(this, &RAMCheck::_on_ram_warning_confirmed));
 
     if (p_parent) {
         p_parent->add_child(dialog);
@@ -97,6 +115,25 @@ void RAMCheck::show_ram_warning(Control *p_parent) {
     dialog->call_deferred("popup_centered");
 }
 
+void RAMCheck::_on_ram_warning_confirmed(Object *p_button) {
+    AcceptDialog *dialog = Object::cast_to<AcceptDialog>(p_button);
+    if (!dialog) return;
+
+    // Исправлено: передаём Variant(), а не nullptr
+    Variant default_variant;
+    CheckBox *cb = Object::cast_to<CheckBox>(dialog->get_meta("dont_show_checkbox", default_variant));
+    if (cb && cb->is_pressed()) {
+        EditorSettings::get_singleton()->set_setting("application/check_ram_on_startup", false);
+        EditorSettings::get_singleton()->save();
+    }
+
+    dialog->queue_free();
+}
+
 void RAMCheck::check_ram_at_startup(Control *p_parent) {
+    bool check_enabled = (bool)EDITOR_GET("application/check_ram_on_startup");
+    if (!check_enabled) {
+        return;
+    }
     show_ram_warning(p_parent);
 }

@@ -151,13 +151,13 @@ extern void CrashHandlerException(int signal) {
     }
 
     print_error("\n================================================================");
-    print_error(vformat("%s: Program crashed with signal %d", __FUNCTION__, signal));
+    print_error(vformat("%s: The Real Engine was unexpectedly shut down with a signal %d", __FUNCTION__, signal));
 
     // Print the engine version just before, so that people are reminded to include the version in backtrace reports.
     if (String(GODOT_VERSION_HASH).is_empty()) {
-        print_error(vformat("Engine version: %s", GODOT_VERSION_FULL_NAME));
+        print_error(vformat("Real Engine version: %s", GODOT_VERSION_FULL_NAME));
     } else {
-        print_error(vformat("Engine version: %s (%s)", GODOT_VERSION_FULL_NAME, GODOT_VERSION_HASH));
+        print_error(vformat("Real Engine version: %s (%s)", GODOT_VERSION_FULL_NAME, GODOT_VERSION_HASH));
     }
     print_error(vformat("Dumping the backtrace. %s", msg));
 
@@ -182,13 +182,13 @@ extern void CrashHandlerException(int signal) {
         backtrace_simple(data.state, 1, &trace_callback, &error_callback, reinterpret_cast<void *>(&data));
     }
 
-    print_error("-- END OF C++ BACKTRACE --");
+    print_error("Real Engine - Crashed! Wait to quit...");
     print_error("================================================================");
 
     for (const Ref<ScriptBacktrace> &backtrace : ScriptServer::capture_script_backtraces(false)) {
         if (!backtrace->is_empty()) {
             print_error(backtrace->format());
-            print_error(vformat("-- END OF %s BACKTRACE --", backtrace->get_language_name().to_upper()));
+            print_error(vformat("Real Engine - Crashed! Wait to quit...", backtrace->get_language_name().to_upper()));
             print_error("================================================================");
         }
     }

@@ -258,6 +258,8 @@ private:
     void _continue_asset_import(int p_status, int p_code, const PackedStringArray &p_headers, const PackedByteArray &p_data, const String &p_temp_file);
     void _set_dont_ask_large_files(bool p_enabled);
 
+	void _real_engine_started();
+
     String get_project_path() const;
     void _update_project_time();
 

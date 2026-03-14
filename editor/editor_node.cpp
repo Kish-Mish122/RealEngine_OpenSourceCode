@@ -248,6 +248,11 @@ EditorProgress::~EditorProgress() {
 	}
 }
 
+void EditorNode::_real_engine_started()
+{
+	print_line("[REAL EDITOR INFO]: Real Engine - Starting!");
+}
+
 void EditorNode::disambiguate_filenames(const Vector<String> p_full_paths, Vector<String> &r_filenames) {
 	ERR_FAIL_COND_MSG(p_full_paths.size() != r_filenames.size(), vformat("disambiguate_filenames requires two string vectors of same length (%d != %d).", p_full_paths.size(), r_filenames.size()));
 
@@ -394,7 +399,6 @@ void EditorNode::_update_unsaved_cache() {
         unsaved_cache = is_unsaved;
         _update_title();
 
-        // РЎР±СЂРѕСЃРёС‚СЊ С‚Р°Р№РјРµСЂС‹ РїСЂРё РёР·РјРµРЅРµРЅРёРё СЃРѕСЃС‚РѕСЏРЅРёСЏ СЃС†РµРЅС‹
         if (autosave_timer && autosave_notification_timer) {
             autosave_timer->start();
             autosave_notification_timer->start();

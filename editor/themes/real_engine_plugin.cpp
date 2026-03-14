@@ -1,6 +1,5 @@
 #include "real_engine_plugin.h"
 #include "real_engine_theme.h"
-#include "real_engine_theme_light.h"
 #include "editor/editor_node.h"
 #include "editor/settings/editor_settings.h"
 #include "core/string/print_string.h"
@@ -51,13 +50,7 @@ void RealEnginePlugin::_apply_theme() {
 
     Ref<Theme> theme;
 
-    if (preset == "Real Engine Light") {
-        Ref<RealEngineThemeLight> light_theme;
-        light_theme.instantiate();
-        light_theme->apply_light_theme();
-        theme = light_theme;
-        print_line("[REAL ENGINE]: Light theme created");
-    } else {
+    if (preset == "Real Engine") {
         Ref<RealEngineTheme> dark_theme;
         dark_theme.instantiate();
         dark_theme->apply_real_engine_theme();

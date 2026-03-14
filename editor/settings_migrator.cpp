@@ -161,7 +161,9 @@ void SettingsMigrator::migrate_editor_settings(const String &p_old_path) {
 		"text_editor/theme/highlighting/number_color",
 		"text_editor/theme/highlighting/function_color",
 		"text_editor/theme/highlighting/member_variable_color",
-		"text_editor/theme/highlighting/mark_color"
+		"text_editor/theme/highlighting/mark_color",
+        "editor/driver_warning_disabled",
+        "application/check_ram_on_startup"
     };
 
     Vector<String> keys = old_settings->get_section_keys("init");

@@ -382,25 +382,25 @@ bool EditorLog::_check_display_message(LogMessage &p_message) {
 
 void EditorLog::_add_log_line(LogMessage &p_message, bool p_replace_previous) {
 	if (!is_inside_tree()) {
-		// The log will be built all at once when it enters the tree and has its theme items.
 		return;
 	}
 
 	if (unlikely(log->is_updating())) {
-		// The new message arrived during log RTL text processing/redraw (invalid BiDi control characters / font error), ignore it to avoid RTL data corruption.
 		return;
 	}
 
-	// Only add the message to the log if it passes the filters.
 	if (!_check_display_message(p_message)) {
 		return;
 	}
 
 	if (p_replace_previous) {
-		// Remove last line if replacing, as it will be replace by the next added line.
-		// Why "- 2"? RichTextLabel is weird. When you add a line with add_newline(), it also adds an element to the list of lines which is null/blank,
-		// but it still counts as a line. So if you remove the last line (count - 1) you are actually removing nothing...
 		log->remove_paragraph(log->get_paragraph_count() - 2);
+	}
+
+	String display_text = p_message.text;
+
+	if (p_message.type == MSG_TYPE_STD || p_message.type == MSG_TYPE_STD_RICH) {
+		display_text = " LOG: " + display_text;
 	}
 
 	switch (p_message.type) {
@@ -441,10 +441,11 @@ void EditorLog::_add_log_line(LogMessage &p_message, bool p_replace_previous) {
 
 	// Note that errors and warnings only support BBCode in the file part of the message.
 	if (p_message.type == MSG_TYPE_STD_RICH || p_message.type == MSG_TYPE_ERROR || p_message.type == MSG_TYPE_WARNING) {
-		log->append_text(p_message.text);
-	} else {
-		log->add_text(p_message.text);
-	}
+    log->append_text(display_text);
+} else {
+    log->add_text(display_text);
+}
+
 	if (p_message.clear || p_message.type != MSG_TYPE_STD_RICH) {
 		log->pop_all(); // Pop all unclosed tags.
 	}
@@ -616,7 +617,7 @@ EditorLog::EditorLog() {
 	vb_right->add_child(editor_filter->toggle_button);
 	type_filter_map.insert(MSG_TYPE_EDITOR, editor_filter);
 
-	add_message(GODOT_VERSION_FULL_NAME " (c) 2007-present Juan Linietsky, Ariel Manzur & Godot Contributors.");
+	add_message(GODOT_VERSION_FULL_NAME " K1sh-M1sh Studio (2025-2026).");
 
 	eh.errfunc = _error_handler;
 	eh.userdata = this;

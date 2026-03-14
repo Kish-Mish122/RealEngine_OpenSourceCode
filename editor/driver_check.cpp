@@ -18,7 +18,12 @@
 
 DriverCheck *DriverCheck::singleton = nullptr;
 
-void DriverCheck::_bind_methods() {}
+void DriverCheck::_bind_methods() {
+    ClassDB::bind_method(D_METHOD("_on_link_clicked", "url"), &DriverCheck::_on_link_clicked);
+    ClassDB::bind_method(D_METHOD("_on_dialog_confirmed"), &DriverCheck::_on_dialog_confirmed);
+    ClassDB::bind_method(D_METHOD("_on_dialog_popup_hide"), &DriverCheck::_on_dialog_popup_hide);
+    ClassDB::bind_method(D_METHOD("_on_dont_show_toggled", "pressed"), &DriverCheck::_on_dont_show_toggled);
+}
 
 DriverCheck::DriverCheck() {
     singleton = this;
@@ -28,7 +33,6 @@ DriverCheck::DriverCheck() {
     add_required_driver("Intel", "30.0.100", false);
     add_required_driver("Vulkan", "1.3.0", true);
 
-    // Проверка на базовый драйвер Windows
     DriverInfo basic;
     basic.name = "Microsoft Basic Display Adapter";
     basic.min_version = "0.0";
@@ -49,66 +53,64 @@ void DriverCheck::add_required_driver(const String &p_name, const String &p_min_
     required_drivers.push_back(info);
 }
 
-// Узнаём версии драйверов
 #ifdef WINDOWS_ENABLED
+
+String get_registry_string(HKEY hRootKey, const char* pSubKey, const char* pValueName) {
+    HKEY hKey;
+    char buffer[512] = {0};
+    DWORD size = sizeof(buffer);
+
+    LONG result = RegOpenKeyExA(hRootKey, pSubKey, 0, KEY_READ | KEY_WOW64_64KEY, &hKey);
+    if (result != ERROR_SUCCESS) {
+        return "";
+    }
+
+    result = RegQueryValueExA(hKey, pValueName, nullptr, nullptr, (LPBYTE)buffer, &size);
+    RegCloseKey(hKey);
+
+    if (result != ERROR_SUCCESS) {
+        return "";
+    }
+
+    return String(buffer);
+}
+
 String get_nvidia_version() {
-    HKEY hKey;
-    char version[256] = "";
-    DWORD size = sizeof(version);
-
-    if (RegOpenKeyExA(HKEY_LOCAL_MACHINE,
+    String version = get_registry_string(HKEY_LOCAL_MACHINE,
         "SOFTWARE\\NVIDIA Corporation\\Global\\DriverVersion",
-        0, KEY_READ, &hKey) == ERROR_SUCCESS) {
-
-        if (RegQueryValueExA(hKey, "DriverVersion", nullptr, nullptr, (LPBYTE)version, &size) == ERROR_SUCCESS) {
-            RegCloseKey(hKey);
-            print_line("[REAL DRIVER CHECK]: get drivers version (nvidia) - " + String(version));
-            return String(version);
-        }
-        RegCloseKey(hKey);
+        "DriverVersion");
+    if (!version.is_empty()) {
+        print_line("[REAL DRIVER CHECK]: NVIDIA Driver Version - " + version);
     }
-    return "";
+    return version;
 }
 
-// Если есть AMD драйвера, то узнаём их версию
 String get_amd_version() {
-    HKEY hKey;
-    char version[256] = "";
-    DWORD size = sizeof(version);
-
-    if (RegOpenKeyExA(HKEY_LOCAL_MACHINE,
-        "SOFTWARE\\AMD\\Driver", 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
-
-        if (RegQueryValueExA(hKey, "DriverVersion", nullptr, nullptr, (LPBYTE)version, &size) == ERROR_SUCCESS) {
-            RegCloseKey(hKey);
-            print_line("[REAL DRIVER CHECK]: get drivers version (amd) - " + String(version));
-            return String(version);
-        }
-        RegCloseKey(hKey);
+    String version = get_registry_string(HKEY_LOCAL_MACHINE,
+        "SOFTWARE\\AMD\\Driver", "DriverVersion");
+    if (version.is_empty()) {
+        version = get_registry_string(HKEY_LOCAL_MACHINE,
+            "SOFTWARE\\AMD\\RyzenChipset", "DriverVersion");
     }
-    return "";
+    if (!version.is_empty()) {
+        print_line("[REAL DRIVER CHECK]: AMD Driver Version - " + version);
+    }
+    return version;
 }
 
-// Если есть Intel драйвера, то тоже получаем его версия
 String get_intel_version() {
-    HKEY hKey;
-    char version[256] = "";
-    DWORD size = sizeof(version);
-
-    if (RegOpenKeyExA(HKEY_LOCAL_MACHINE,
-        "SOFTWARE\\Intel\\Display", 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
-
-        if (RegQueryValueExA(hKey, "DriverVersion", nullptr, nullptr, (LPBYTE)version, &size) == ERROR_SUCCESS) {
-            RegCloseKey(hKey);
-            print_line("[REAL DRIVER CHECK]: get drivers version (intel) - " + String(version));
-            return String(version);
-        }
-        RegCloseKey(hKey);
+    String version = get_registry_string(HKEY_LOCAL_MACHINE,
+        "SOFTWARE\\Intel\\GMM", "DriverVersion");
+    if (version.is_empty()) {
+        version = get_registry_string(HKEY_LOCAL_MACHINE,
+            "SOFTWARE\\WOW6432Node\\Intel\\GMM", "DriverVersion");
     }
-    return "";
+    if (!version.is_empty()) {
+        print_line("[REAL DRIVER CHECK]: Intel Driver Version - " + version);
+    }
+    return version;
 }
 
-// Узнаём версию VULKAN через библиотеку DLL
 String get_vulkan_version() {
     HMODULE vulkan = LoadLibraryA("vulkan-1.dll");
     if (!vulkan) return "";
@@ -118,40 +120,68 @@ String get_vulkan_version() {
         (PFN_vkEnumerateInstanceVersion)GetProcAddress(vulkan, "vkEnumerateInstanceVersion");
 
     uint32_t version = 0;
+    bool success = false;
+
     if (vkEnumerateInstanceVersion && vkEnumerateInstanceVersion(&version) == 0) {
-        FreeLibrary(vulkan);
-        uint32_t major = version >> 22;
-        uint32_t minor = (version >> 12) & 0x3FF;
-        uint32_t patch = version & 0xFFF;
-        String ver = vformat("%d.%d.%d", major, minor, patch);
-        print_line("[REAL DRIVER CHECK]: get drivers version (vulkan) - " + ver);
-        return ver;
+        success = true;
+    } else {
+        version = VK_MAKE_VERSION(1, 0, 0);
+        success = true;
     }
 
     FreeLibrary(vulkan);
-    return "";
-}
 
-// Узнаём имя видеокарты из реестра
-#ifdef WINDOWS_ENABLED
-String get_gpu_name() {
-    HKEY hKey;
-    char gpu_name[256] = "";
-    DWORD size = sizeof(gpu_name);
-
-    if (RegOpenKeyExA(HKEY_LOCAL_MACHINE,
-        "SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}\\0000",
-        0, KEY_READ, &hKey) == ERROR_SUCCESS) {
-
-        if (RegQueryValueExA(hKey, "DriverDesc", nullptr, nullptr, (LPBYTE)gpu_name, &size) == ERROR_SUCCESS) {
-            RegCloseKey(hKey);
-            return String(gpu_name);
-        }
-        RegCloseKey(hKey);
+    if (success) {
+        uint32_t major = VK_VERSION_MAJOR(version);
+        uint32_t minor = VK_VERSION_MINOR(version);
+        uint32_t patch = VK_VERSION_PATCH(version);
+        String ver = vformat("%d.%d.%d", major, minor, patch);
+        print_line("[REAL DRIVER CHECK]: Vulkan Version - " + ver);
+        return ver;
     }
+
     return "";
 }
+
+String get_gpu_name() {
+    for (int i = 0; i < 5; i++) {
+        char subkey[256];
+        sprintf_s(subkey, "SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}\\%04d", i);
+
+        String name = get_registry_string(HKEY_LOCAL_MACHINE, subkey, "DriverDesc");
+        if (!name.is_empty()) {
+            print_line("[REAL DRIVER CHECK]: GPU Adapter %d: %s", i, name.utf8().get_data());
+            return name;
+        }
+    }
+    return "Unknown GPU";
+}
+
+bool is_basic_display_driver() {
+    String gpu_name = get_gpu_name().to_lower();
+    print_line("[REAL DRIVER CHECK]: Detected GPU: " + gpu_name);
+
+    return gpu_name.contains("microsoft basic display") ||
+           gpu_name.contains("standard vga") ||
+           gpu_name.contains("basic display") ||
+           gpu_name.contains("svga");
+}
+
 #endif // WINDOWS_ENABLED
+
+bool DriverCheck::compare_versions(const String &p_version, const String &p_min_version) {
+    Vector<String> ver_parts = p_version.split(".");
+    Vector<String> min_parts = p_min_version.split(".");
+
+    int count = MAX(ver_parts.size(), min_parts.size());
+    for (int i = 0; i < count; i++) {
+        float v = (i < ver_parts.size()) ? ver_parts[i].to_float() : 0;
+        float m = (i < min_parts.size()) ? min_parts[i].to_float() : 0;
+        if (v < m) return false;
+        if (v > m) return true;
+    }
+    return true;
+}
 
 String DriverCheck::get_system_driver_version(const String &p_driver_name) {
 #ifdef WINDOWS_ENABLED
@@ -159,42 +189,21 @@ String DriverCheck::get_system_driver_version(const String &p_driver_name) {
     if (p_driver_name == "AMD") return get_amd_version();
     if (p_driver_name == "Intel") return get_intel_version();
     if (p_driver_name == "Vulkan") return get_vulkan_version();
-#endif
     return "";
-}
-
-bool compare_versions(const String &p_version, const String &p_min_version) {
-    Vector<String> ver_parts = p_version.split(".");
-    Vector<String> min_parts = p_min_version.split(".");
-
-    for (int i = 0; i < min_parts.size() && i < ver_parts.size(); i++) {
-        float v = ver_parts[i].to_float();
-        float m = min_parts[i].to_float();
-        if (v < m) return false;
-        if (v > m) return true;
-    }
-    return ver_parts.size() >= min_parts.size();
-}
-
-// Узнаём, является ли это стандартным видеоадаптером для Windows
-bool is_basic_display_driver() {
-    String gpu_name = get_gpu_name().to_lower();
-    print_line("[REAL DRIVER CHECK]: GPU name - " + gpu_name);
-
-    return gpu_name.contains("microsoft basic display") ||
-           gpu_name.contains("standard vga") ||
-           gpu_name.contains("basic display");
-}
+#else
+    return ""; // Для Linux/macOS — заглушка
 #endif
+}
 
 void DriverCheck::check_drivers() {
     missing_drivers.clear();
     outdated_drivers.clear();
 
-    // Проверка базового драйвера Windows
+#ifdef WINDOWS_ENABLED
     if (is_basic_display_driver()) {
         outdated_drivers.push_back("Microsoft Basic Display Adapter (No hardware acceleration)");
     }
+#endif
 
     for (const DriverInfo &info : required_drivers) {
         if (info.is_basic) continue;
@@ -206,8 +215,34 @@ void DriverCheck::check_drivers() {
                 missing_drivers.push_back(info.name);
             }
         } else if (!compare_versions(version, info.min_version)) {
-            outdated_drivers.push_back(info.name + " (v" + version + " < " + info.min_version + ")");
+            outdated_drivers.push_back(vformat("%s (v%s < %s)", info.name, version, info.min_version));
         }
+    }
+}
+
+void DriverCheck::_on_link_clicked(const String &p_url) {
+    OS::get_singleton()->shell_open(p_url);
+}
+
+void DriverCheck::_on_dialog_confirmed() {
+    if (current_dialog) {
+        current_dialog->hide();
+    }
+}
+
+void DriverCheck::_on_dialog_popup_hide() {
+    if (current_dialog) {
+        current_dialog->queue_free();
+        current_dialog = nullptr;
+    }
+}
+
+void DriverCheck::_on_dont_show_toggled(bool p_pressed) {
+    Ref<EditorSettings> settings = EditorSettings::get_singleton();
+    if (settings.is_valid() && p_pressed) {
+        settings->set("editor/driver_warning_disabled", true);
+        settings->save();
+        print_line("[REAL DRIVER CHECKER]: Checker driver - off!");
     }
 }
 
@@ -219,8 +254,8 @@ void DriverCheck::show_driver_warning(Control *p_parent) {
     }
 
     AcceptDialog *dialog = memnew(AcceptDialog);
-    dialog->set_title("Driver Warning"); // Добавляем титул "Ошибка драйвера"
-    dialog->set_min_size(Size2(600, 400) * EDSCALE);
+    dialog->set_title("Driver Warning");
+    dialog->set_min_size(Size2(600, 400) * MAX(1.0f, EDSCALE));
     dialog->set_exclusive(false);
 
     VBoxContainer *vb = memnew(VBoxContainer);
@@ -233,7 +268,6 @@ void DriverCheck::show_driver_warning(Control *p_parent) {
 
     String message;
 
-    // Проверяем наличие базового драйвера
     bool has_basic = false;
     for (const String &d : outdated_drivers) {
         if (d.contains("Microsoft Basic Display Adapter")) {
@@ -242,19 +276,16 @@ void DriverCheck::show_driver_warning(Control *p_parent) {
         }
     }
 
-    // Опа-па... Стандартный драйвер обнаружен! Показываем ошибку!
     if (has_basic) {
         message += "[b][color=red]ERROR: The Standard Windows Video Driver Has Been Detected![/color][/b]\n\n";
-        message += "Real Engine has discovered the Standard Windows Video Driver! You need it to display images, even if you don't have a driver for the graphics card!\n\n";
-        message += "But it gets in the way a lot!\n\n";
-        message += "Please download the driver to your graphics card for the full functionality of the Real Engine!\n\n";
-        message += "[b]REQUIRED ACTION:[/b] You can download it here:\n";
+        message += "Real Engine has detected the Standard Windows Video Driver.\n";
+        message += "This driver provides only basic display functionality and no hardware acceleration.\n\n";
+        message += "[b]ACTION REQUIRED:[/b] Install proper GPU drivers:\n";
         message += "  • [url=https://www.nvidia.com/Download/index.aspx]NVIDIA Drivers[/url]\n";
         message += "  • [url=https://www.amd.com/en/support]AMD Drivers[/url]\n";
         message += "  • [url=https://www.intel.com/content/www/us/en/support/detect.html]Intel Drivers[/url]\n\n";
     }
 
-    // Сообщение - "Драйвера - нет"
     if (!missing_drivers.is_empty()) {
         message += "[b][color=orange]Missing Drivers:[/color][/b]\n";
         for (const String &d : missing_drivers) {
@@ -263,7 +294,6 @@ void DriverCheck::show_driver_warning(Control *p_parent) {
         message += "\n";
     }
 
-    // Сообщение "Драйвер(а) - устарел(и)"
     if (!outdated_drivers.is_empty() && !has_basic) {
         message += "[b][color=yellow]Outdated Drivers:[/color][/b]\n";
         for (const String &d : outdated_drivers) {
@@ -272,29 +302,32 @@ void DriverCheck::show_driver_warning(Control *p_parent) {
         message += "\n";
     }
 
-    message += "[color=white]For optimal performance, please install the latest drivers from your GPU manufacturer's website.[/color]";
+    message += "For optimal performance, install the latest drivers from your GPU manufacturer.";
 
-    info->append_text(message);
-
-    // Добавляем ссылки как кликабельные
+    info->set_text(message);
     info->connect("meta_clicked", callable_mp(this, &DriverCheck::_on_link_clicked));
 
     CheckBox *dont_show = memnew(CheckBox);
     dont_show->set_text("Don't show this warning again");
     vb->add_child(dont_show);
 
-    dialog->connect(SceneStringName(confirmed), Callable(dialog, "queue_free"));
+    Ref<EditorSettings> settings = EditorSettings::get_singleton();
+    String setting_key = "editor/driver_warning_disabled";
+
+    if (settings.is_valid() && settings->has_setting(setting_key) && bool(settings->get(setting_key))) {
+        memdelete(dialog);
+        return;
+    }
+
+    current_dialog = dialog;
+    dialog->connect("confirmed", callable_mp(this, &DriverCheck::_on_dialog_confirmed));
+    dialog->connect("popup_hide", callable_mp(this, &DriverCheck::_on_dialog_popup_hide));
+    dont_show->connect("toggled", callable_mp(this, &DriverCheck::_on_dont_show_toggled));
 
     if (p_parent) {
         p_parent->add_child(dialog);
+        dialog->popup_centered_clamped(Size2(600, 400) * EDSCALE, 0.8);
+    } else {
+        dialog->popup_centered();
     }
-
-    dialog->call_deferred("popup_centered");
 }
-
-// Добавьте обработчик кликов по ссылкам
-void DriverCheck::_on_link_clicked(const String &p_url) {
-    OS::get_singleton()->shell_open(p_url);
-}
-
-// OpenGL я решил не делать, так как слишком сложно. Лучше всего этого не делать, вместо того что перелопатить весь проект, сломать и снова переделывать.

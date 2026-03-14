@@ -8,11 +8,16 @@ class RAMCheck : public RefCounted {
     GDCLASS(RAMCheck, RefCounted);
 
     static RAMCheck *singleton;
-    uint64_t min_ram_mb = 2048; // Самый минимум - 2GB. Это пипец вообще...
-    uint64_t warning_ram_mb = 4096; // Предупреждение - 4GB. Стандарт, но мало...
+    uint64_t min_ram_mb = 2048;
+    uint64_t warning_ram_mb = 4096;
+
+    // Добавь это:
+    static bool settings_initialized;
+    static void _init_settings();
 
 protected:
     static void _bind_methods();
+    void _on_ram_warning_confirmed(Object *p_checkbox);
 
 public:
     static RAMCheck *get_singleton() { return singleton; }
