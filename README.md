@@ -80,3 +80,8 @@ SCons - программа с открытым исходным кодом дл�
 
 ### ***Пробуйте, создавайте и делитесь вместе с Real Engine!***
 
+#### Поддержка
+*По вопросам поддержки/помощи: help.k1shm1sh@gmail.com*
+
+*По личным вопросам: Discord: .k1shm1shic, Ruscord: 7_slashgames, VK: https://vk.com/kishmish_official*
+
