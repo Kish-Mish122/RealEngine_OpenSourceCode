@@ -1,3 +1,6 @@
+/* Real Engine - K1sh-M1sh Studio */
+/* License - MIT */
+
 #include "ram_check.h"
 #include "core/os/os.h"
 #include "editor/editor_node.h"
@@ -42,7 +45,7 @@ uint64_t RAMCheck::get_total_ram_mb() {
     status.dwLength = sizeof(status);
     GlobalMemoryStatusEx(&status);
     uint64_t total = status.ullTotalPhys / (1024 * 1024);
-    print_line("[REAL CHECK RAM]: total RAM: " + itos(total) + " MB");
+    print_line("[REAL CHECK RAM]: Total RAM: " + itos(total) + " MB");
     return total;
 #else
     return 8192;
@@ -55,7 +58,7 @@ uint64_t RAMCheck::get_available_ram_mb() {
     status.dwLength = sizeof(status);
     GlobalMemoryStatusEx(&status);
     uint64_t available = status.ullAvailPhys / (1024 * 1024);
-    print_line("[REAL CHECK RAM]: available RAM: " + itos(available) + " MB");
+    print_line("[REAL CHECK RAM]: Available RAM: " + itos(available) + " MB");
     return available;
 #else
     return 4096;

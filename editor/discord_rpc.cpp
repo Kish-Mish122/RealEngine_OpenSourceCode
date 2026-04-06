@@ -1,10 +1,13 @@
+/* Real Engine - K1sh-M1sh Studio */
+/* License - MIT */
+
 #include "discord_rpc.h"
 #include "core/string/print_string.h"
 #include "editor/editor_node.h"
 #include "core/config/project_settings.h"
 #include "scene/main/timer.h"
 /*
-#include "editor/settings/editor_settings.h" <- Если нужно будет отключать discord в редакторе, то editor_settings нужно будет расскомментировать
+#include "editor/settings/editor_settings.h" <- Если нужно будет отключать discord rpc в редакторе, то editor_settings нужно будет расскомментировать
 */
 
 #ifdef WINDOWS_ENABLED
@@ -42,6 +45,8 @@ void DiscordRPC::_delayed_init() {
 #ifdef WINDOWS_ENABLED
     // Проверяем наличие DLL
     HMODULE test = LoadLibraryA("discord-rpc.dll");
+
+    // Это конечно не нужно, так как при отсутствии DLL Real Engine даже не запуститься, но, всё таки, вдруг нужно
     if (!test) {
         print_line("[Discord] discord-rpc.dll not found");
         return;

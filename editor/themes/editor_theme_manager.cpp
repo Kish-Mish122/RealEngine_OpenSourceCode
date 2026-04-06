@@ -40,9 +40,8 @@
 #include "editor/themes/editor_icons.h"
 #include "editor/themes/editor_scale.h"
 #include "editor/themes/editor_theme.h"
+#include "editor/themes/theme_classic.h"
 #include "editor/themes/theme_modern.h"
-// Удаляем include для ThemeClassic
-// #include "editor/themes/theme_classic.h"
 #include "scene/resources/style_box_flat.h"
 #include "scene/resources/style_box_line.h"
 #include "scene/resources/style_box_texture.h"
@@ -176,16 +175,8 @@ Ref<EditorTheme> EditorThemeManager::_create_base_theme(const Ref<EditorTheme> &
 
 	print_verbose(vformat("EditorTheme: Generating new theme for the config '%d'.", theme->get_generated_hash()));
 
-	// ===== ВСЕГДА ИСПОЛЬЗУЕМ MODERN =====
-	// Проверяем, выбрана ли тема Real Engine
-	if (config.preset == "Real Engine") {
-		print_line("[REAL ENGINE]: Generating Real Engine theme");
-		// Для Real Engine используем Modern стили
-		ThemeModern::populate_shared_styles(theme, config);
-	} else {
-		// Для всех остальных тоже используем Modern
-		ThemeModern::populate_shared_styles(theme, config);
-	}
+	// Use the selected theme style.
+	ThemeModern::populate_shared_styles(theme, config);
 
 	// Register icons.
 	{
@@ -225,16 +216,8 @@ Ref<EditorTheme> EditorThemeManager::_create_base_theme(const Ref<EditorTheme> &
 
 	print_verbose("EditorTheme: Generating new styles.");
 
-	// ===== ВСЕГДА MODERN =====
-	if (config.preset == "Real Engine") {
-		// Для Real Engine используем Modern стили
-		ThemeModern::populate_standard_styles(theme, config);
-		ThemeModern::populate_editor_styles(theme, config);
-	} else {
-		// Для всех остальных тоже Modern
-		ThemeModern::populate_standard_styles(theme, config);
-		ThemeModern::populate_editor_styles(theme, config);
-	}
+	ThemeModern::populate_standard_styles(theme, config);
+     ThemeModern::populate_editor_styles(theme, config);
 
 	_populate_text_editor_styles(theme, config);
 	_populate_visual_shader_styles(theme, config);
@@ -248,10 +231,7 @@ EditorThemeManager::ThemeConfiguration EditorThemeManager::_create_theme_config(
 
 	// Basic properties.
 
-	// Принудительно устанавливаем Modern стиль (убираем выбор)
 	config.style = "Modern";
-
-	// Эти настройки читаем из редактора
 	config.preset = EDITOR_GET("interface/theme/color_preset");
 	config.spacing_preset = EDITOR_GET("interface/theme/spacing_preset");
 
@@ -278,10 +258,11 @@ EditorThemeManager::ThemeConfiguration EditorThemeManager::_create_theme_config(
 	config.subresource_hue_tint = EDITOR_GET("docks/property_editor/subresource_hue_tint");
 	config.dragging_hover_wait_msec = (float)EDITOR_GET("interface/editor/dragging_hover_wait_seconds") * 1000;
 
-	// Handle theme style - теперь всегда Modern, убираем проверку
-	// Просто устанавливаем значения по умолчанию
-	config.draw_relationship_lines = config.default_relationship_lines;
-	config.corner_radius = config.default_corner_radius;
+	// Handle theme style.
+	if (config.style == "Classic") {
+		config.draw_relationship_lines = config.default_relationship_lines;
+		config.corner_radius = config.default_corner_radius;
+	}
 
 	// Handle color preset.
 	{
@@ -352,15 +333,22 @@ EditorThemeManager::ThemeConfiguration EditorThemeManager::_create_theme_config(
 				preset_accent_color = Color(0.15, 0.55, 0.82);
 				preset_base_color = Color(0.89, 0.86, 0.79);
 				preset_contrast = light_contrast;
-			} else if (config.preset == "Real Engine") {
-				// Цвета Real Engine с зелеными иконками
-				preset_accent_color = Color(0.3, 0.8, 0.3);      // Зелёный (Основной цвет Real Engine)
-				preset_base_color = Color(0.08, 0.08, 0.15);     // Темно-синий фон
-				preset_contrast = 0.4;
-				preset_icon_saturation = 2.0;
+               } else if (config.preset == "Real Engine") {
+                    preset_accent_color = Color(0.3, 0.8, 0.3);
+                    preset_base_color = Color(0.08, 0.08, 0.15);
+                    preset_contrast = 0.4;
+                    preset_icon_saturation = 2.0;
+               } else if (config.preset == "Real Black") {
+                    preset_accent_color = Color(0.3, 0.8, 0.3);
+                    preset_base_color = Color(0, 0, 0);
+                    preset_contrast = 0.4;
+                    preset_icon_saturation = 1.5;
+               } else if (config.preset == "Real White") {
+                    preset_accent_color = Color(0.3, 0.8, 0.3);
+                    preset_base_color = Color (256, 256, 256);
 			} else { // Default
-				preset_accent_color = Color(0.337, 0.62, 1.0);
-				preset_base_color = Color(0.161, 0.161, 0.161);
+				preset_accent_color = Color(0.3, 0.8, 0.3);
+				preset_base_color = Color(0.08, 0.08, 0.15);
 			}
 
 			config.accent_color = preset_accent_color;

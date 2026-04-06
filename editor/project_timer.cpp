@@ -1,3 +1,6 @@
+/* Real Engine - K1sh-M1sh Studio */
+/* License - MIT */
+
 #include "project_timer.h"
 #include "core/string/print_string.h"
 #include "core/io/dir_access.h"
@@ -18,7 +21,7 @@ ProjectTimer::ProjectTimer() {
         data_dir = OS::get_singleton()->get_user_data_dir();
     }
 
-    String real_dir = data_dir + "/RLEngine/app_userdata/project_times"; // Насильно задаём путь, чтобы был путь C:/Users/NAME/AppData/Roaming/RLEngine
+    String real_dir = data_dir + "/RLEngine/app_userdata/project_times"; // Насильно задаём путь, чтобы был именно C:/Users/NAME/AppData/Roaming/RLEngine
     DirAccess::make_dir_recursive_absolute(real_dir);
 
     file_path = real_dir + "/times.json"; // Название файла

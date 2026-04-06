@@ -1,3 +1,6 @@
+/* Real Engine - K1sh-M1sh Studio */
+/* License - MIT */
+
 #ifndef SETTINGS_MIGRATOR_H
 #define SETTINGS_MIGRATOR_H
 

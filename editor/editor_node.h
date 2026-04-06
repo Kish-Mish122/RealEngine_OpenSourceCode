@@ -33,6 +33,7 @@
 #include "core/object/script_language.h"
 #include "core/templates/safe_refcount.h"
 #include "git_integration.h"
+#include "real_memory/real_memory.h"
 #include "core/version.h"
 #include "editor/editor_data.h"
 #include "editor/plugins/editor_plugin.h"
@@ -122,6 +123,7 @@ class EditorNode : public Node {
 	GDCLASS(EditorNode, Node);
 
 public:
+      RealMemory *get_real_memory() const { return real_memory; }
 	enum SceneNameCasing {
 		SCENE_NAME_CASING_AUTO,
 		SCENE_NAME_CASING_PASCAL_CASE,
@@ -250,6 +252,11 @@ public:
 	};
 
 private:
+    RealMemory *real_memory = nullptr;
+    
+    void _node_created(Node *p_node);
+    void _property_changed(Object *p_obj, const String &p_prop, const Variant &p_value);
+
     uint64_t export_start_time;
     void _on_export_completed(bool p_success);
 
@@ -258,7 +265,7 @@ private:
     void _continue_asset_import(int p_status, int p_code, const PackedStringArray &p_headers, const PackedByteArray &p_data, const String &p_temp_file);
     void _set_dont_ask_large_files(bool p_enabled);
 
-	void _real_engine_started();
+    void _real_engine_started();
 
     String get_project_path() const;
     void _update_project_time();

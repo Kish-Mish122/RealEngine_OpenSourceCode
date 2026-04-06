@@ -43,7 +43,7 @@ bool EngineUpdateLabel::_can_check_updates() const {
 void EngineUpdateLabel::_check_update() {
 	checked_update = true;
 	_set_status(UpdateStatus::BUSY);
-	http->request("https://raw.githubusercontent.com/Kish-Mish122/realengine/main/version.json");
+	http->request("https://raw.githubusercontent.com/Kish-Mish122/realengine/main/version.json"); // Тут нужно поменять на ваш сервер, где храниться ваш JSON-файл с версией
 }
 
 void EngineUpdateLabel::_http_request_completed(int p_result, int p_response_code, const PackedStringArray &p_headers, const PackedByteArray &p_body) {

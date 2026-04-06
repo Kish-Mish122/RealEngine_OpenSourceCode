@@ -1,0 +1,9 @@
+#!/usr/bin/env python
+
+Import("env")
+
+real_memory_sources = [
+    "real_memory.cpp",
+]
+
+env.add_source_files(env.editor_sources, real_memory_sources)

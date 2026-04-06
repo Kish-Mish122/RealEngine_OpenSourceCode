@@ -34,8 +34,7 @@
 #include "editor/animation/animation_tree_editor_plugin.h"
 #include "editor/audio/audio_stream_editor_plugin.h"
 #include "editor/audio/audio_stream_randomizer_editor_plugin.h"
-#include "themes/real_engine_plugin.h"
-#include "themes/real_engine_theme.h"
+#include "real_todo/real_todo_plugin.h"
 #include "editor/debugger/debug_adapter/debug_adapter_server.h"
 #include "editor/debugger/editor_debugger_plugin.h"
 #include "editor/docks/filesystem_dock.h"
@@ -52,8 +51,6 @@
 #include "editor/file_system/editor_file_system.h"
 #include "editor/file_system/editor_paths.h"
 #include "editor/gui/editor_file_dialog.h"
-#include "themes/real_engine_plugin.h"
-#include "themes/real_engine_theme.h"
 #include "editor/gui/editor_spin_slider.h"
 #include "editor/gui/editor_toaster.h"
 #include "editor/import/3d/resource_importer_obj.h"
@@ -92,7 +89,6 @@
 #include "editor/scene/2d/tiles/tiles_editor_plugin.h"
 #include "editor/scene/3d/bone_map_editor_plugin.h"
 #include "editor/scene/3d/camera_3d_editor_plugin.h"
-#include "themes/real_engine_plugin.h"
 #include "editor/scene/3d/gpu_particles_collision_sdf_editor_plugin.h"
 #include "editor/scene/3d/lightmap_gi_editor_plugin.h"
 #include "editor/scene/3d/mesh_editor_plugin.h"
@@ -101,8 +97,6 @@
 #include "editor/scene/3d/multimesh_editor_plugin.h"
 #include "editor/scene/3d/node_3d_editor_gizmos.h"
 #include "editor/scene/3d/occluder_instance_3d_editor_plugin.h"
-#include "editor/themes/real_engine_theme.h"
-#include "editor/themes/real_engine_plugin.h"
 #include "editor/scene/3d/particles_3d_editor_plugin.h"
 #include "editor/scene/3d/path_3d_editor_plugin.h"
 #include "editor/scene/3d/physics/physical_bone_3d_editor_plugin.h"
@@ -217,8 +211,7 @@ void register_editor_types() {
 	GDREGISTER_CLASS(ResourceImporterTexture);
 	GDREGISTER_CLASS(ResourceImporterTextureAtlas);
 	GDREGISTER_CLASS(ResourceImporterWAV);
-	GDREGISTER_CLASS(RealEnginePlugin);
-    GDREGISTER_CLASS(RealEngineTheme);
+     GDREGISTER_CLASS(RealTodoPlugin);
 
 	// This list is alphabetized, and plugins that depend on Node2D are in their own section below.
 	EditorPlugins::add_by_type<AnimationTreeEditorPlugin>();

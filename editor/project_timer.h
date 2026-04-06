@@ -1,3 +1,6 @@
+/* Real Engine - K1sh-M1sh Studio */
+/* Licnese - MIT */
+
 #ifndef PROJECT_TIMER_H
 #define PROJECT_TIMER_H
 

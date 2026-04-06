@@ -1,0 +1,11 @@
+#!/usr/bin/env python
+
+Import("env")
+
+real_todo_sources = [
+    "real_todo_item.cpp",
+    "real_todo_dock.cpp",
+    "real_todo_plugin.cpp",
+]
+
+env.add_source_files(env.editor_sources, real_todo_sources)

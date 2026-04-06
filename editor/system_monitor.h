@@ -1,3 +1,6 @@
+/* Real Engine - K1sh-M1sh Studio */
+/* License - MIT */
+
 #ifndef SYSTEM_MONITOR_H
 #define SYSTEM_MONITOR_H
 

@@ -32,10 +32,12 @@
 
 #include "core/config/project_settings.h"
 #include "core/extension/gdextension_manager.h"
+#include "themes/unreal_colors.h"
 #include "core/input/input.h"
+#include "editor/docks/dock_constants.h"
 #include "editor/project_timer.h"
+#include "real_todo/real_todo_dock.h"
 #include "git_integration.h"
-#include "themes/real_engine_plugin.h"
 #include "core/io/config_file.h"
 #include "core/io/file_access.h"
 #include "core/io/image.h"
@@ -110,6 +112,7 @@
 #include "editor/export/project_zip_packer.h"
 #include "editor/export/register_exporters.h"
 #include "editor/export/shader_baker_export_plugin.h"
+#include "real_memory/real_memory.h"
 #include "editor/file_system/dependency_editor.h"
 #include "editor/file_system/editor_paths.h"
 #include "editor/gui/editor_about.h"
@@ -9193,7 +9196,6 @@ EditorNode::EditorNode() {
     default_layout->set_value(docks_section, "dock_6", "History"); // Правый нижний угол (История изменений)
     default_layout->set_value(docks_section, "dock_8", "Signals,Groups,Search Results,AnimationTree,ResourcePreloader,ShaderFile,SpriteFrames,Theme,Polygon,TileSet,TileMap,Replication,GridMap"); // Левое меню (Тут много всего)
     default_layout->set_value(docks_section, "dock_9", "FileSystem,Output,Debugger,Audio,Animation,Shader Editor"); // Нижняя панель
-
     /*
     Чтобы изменить на свои настройки, и не страдать, как я раньше, надо:
     1. Открыть файл с настройками панелей (Win+R -> %APPDATA%\RLEngine)
@@ -9207,6 +9209,14 @@ EditorNode::EditorNode() {
     default_layout->set_value(docks_section, "dock_hsplit_2", 280);
     default_layout->set_value(docks_section, "dock_hsplit_3", -520);
     default_layout->set_value(docks_section, "dock_hsplit_4", -246);
+
+    RealTodoDock *todo_dock = memnew(RealTodoDock);
+    editor_dock_manager->add_dock(todo_dock);
+
+    static bool todo_added = false;
+    if (!todo_added) {
+        todo_added = true;
+    }
 
 	int hsplits[] = { 0, dock_hsize, -dock_hsize, 0 };
 	for (int i = 0; i < (int)std_size(hsplits); i++) {
@@ -9661,9 +9671,6 @@ EditorNode::EditorNode() {
     add_child(timer);
     timer->call_deferred("start");
 
-    print_line("[REAL ENGINE]: Add Real Engine Plugins...");
-    add_editor_plugin(memnew(RealEnginePlugin));
-
     print_line("[REAL ENGINE]: All data about the project, the engine and its version has been successfully uploaded!");
 }
 
@@ -9719,6 +9726,32 @@ void EditorNode::_update_project_time() {
             ProjectTimer::get_singleton()->force_save();
         }
     }
+}
+
+void EditorNode::_node_created(Node *p_node) {
+    Dictionary props;
+    props["type"] = p_node->get_class();
+    props["parent"] = p_node->get_parent()->get_path();
+    real_memory->record_action("create_node", p_node->get_class(), props);
+}
+
+// При изменении свойства:
+void EditorNode::_property_changed(Object *p_obj, const String &p_prop, const Variant &p_value) {
+    if (!real_memory || !p_obj) return;
+    
+    Dictionary props;
+    
+    // Проверяем, является ли объект Node (у него есть путь)
+    Node *node = Object::cast_to<Node>(p_obj);
+    if (node) {
+        props["object"] = node->get_path();  // Только у Node есть get_path()
+    } else {
+        props["object"] = p_obj->get_class(); // Для других объектов сохраняем класс
+    }
+    
+    props["property"] = p_prop;
+    props["value"] = p_value;
+    real_memory->record_action("property_change", p_prop, props);
 }
 
 // Функция старта проверки драйверов и RAM
@@ -9959,6 +9992,7 @@ void EditorNode::_import_asset_downloaded(int p_status, int p_code, const Packed
     _continue_asset_import(p_status, p_code, p_headers, p_data, p_temp_file);
 }
 
+// Confirm Large Import
 void EditorNode::_confirm_large_import() {
     ConfirmationDialog *dialog = Object::cast_to<ConfirmationDialog>(gui_base->get_node_or_null(NodePath("LargeFileConfirmDialog")));
     if (!dialog) return;
@@ -10028,8 +10062,8 @@ void EditorNode::_check_templates_and_ask() {
         ConfirmationDialog *ask_dialog = memnew(ConfirmationDialog);
         ask_dialog->set_title(TTR("Real Engine - No build template found!"));
         ask_dialog->set_text(TTR("Real Engine did not detect a template for the build.\nMaybe you should download it automatically?"));
-        ask_dialog->set_ok_button_text(TTR("Download Templates"));
-        ask_dialog->set_cancel_button_text(TTR("Later"));
+        ask_dialog->set_ok_button_text(TTR("Download Templates")); // Кнопка "Скачать шаблон"
+        ask_dialog->set_cancel_button_text(TTR("Later")); // Кнопка "Позже"
 
         ask_dialog->connect(SceneStringName(confirmed), callable_mp(this, &EditorNode::_open_template_manager));
 

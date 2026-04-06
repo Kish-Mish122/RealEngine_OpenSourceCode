@@ -68,6 +68,7 @@ SCons - программа с открытым исходным кодом дл�
 2. *[Inkscape](https://inkscape.org/ru/)* - программа для рисования иконок для вашего движка. Сразу можно выбрать формат иконок 16x16, 32x32, 64x64, 128x128, специальный раздел с иконками. Можно сразу же форматировать в SVG, что нужно для движка. Также **Open Source**
 3. *[Visual Studio](https://visualstudio.microsoft.com/ru/)* и *[Visual Studio Code](https://code.visualstudio.com/)* - замена *[OpenIDE](https://openide.ru/)*. Популярная программа для программирования. Также, Visual Studio Coude тоже **Open Source**!
 4. *[Krita](https://krita.org/en/)* - замена *[Inkscape](https://inkscape.org/ru/)*. Минусы: нельзя сразу форматировать SVG и довольно низкое качества просмотра.
+5. *[RealCode](https://github.com/Kish-Mish122/RealCode)* - программа для редактирования кода, от K1sh-M1sh Studio. Самое крутое, что можно редактировать скрипты Real Engine в RealCode! Также **Open Source**!
 
 Удачи в создании ваших движков!
 
@@ -79,4 +80,4 @@ SCons - программа с открытым исходным кодом дл�
 **[Ruscord](https://ruscord.net/?code=y1c7x8)**;
 
 ### ***Пробуйте, создавайте и делитесь вместе с Real Engine!***
-
+## Под лицензией MIT

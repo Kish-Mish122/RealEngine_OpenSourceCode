@@ -85,6 +85,8 @@ if env.editor_build:
     SConscript("gui/SCsub")
     SConscript("icons/SCsub")
     SConscript("inspector/SCsub")
+    SConscript("real_todo/SCsub")
+    SConscript("real_memory/SCsub")
     SConscript("import/SCsub")
     SConscript("plugins/SCsub")
     SConscript("project_manager/SCsub")

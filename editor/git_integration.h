@@ -1,3 +1,6 @@
+/* Real Engine - K1sh-M1sh Studio */
+/* License - MIT */
+
 #ifndef GIT_INTEGRATION_H
 #define GIT_INTEGRATION_H
 

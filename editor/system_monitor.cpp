@@ -1,3 +1,6 @@
+/* Real Engine - K1sh-M1sh Studio */
+/* License - MIT */
+
 #include "system_monitor.h"
 #include "editor/editor_node.h"
 #include "scene/gui/rich_text_label.h"

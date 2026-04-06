@@ -204,7 +204,7 @@ Label *EditorAbout::_create_section(Control *p_parent, const String &p_name, con
 }
 
 EditorAbout::EditorAbout() {
-	set_title(TTRC("Thank you for using the Real Engine!"));
+	set_title(TTRC("Real Engine - Thank you for trusting me!"));
 	set_hide_on_ok(true);
 
 	VBoxContainer *vbc = memnew(VBoxContainer);

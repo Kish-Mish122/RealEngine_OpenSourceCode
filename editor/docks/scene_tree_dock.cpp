@@ -329,6 +329,14 @@ void SceneTreeDock::_perform_instantiate_scenes(const Vector<String> &p_files, N
 			}
 		}
 
+           if (EditorNode::get_singleton()) {
+                Dictionary props;
+                props["type"] = instantiated_scene->get_class();
+                props["file"] = p_files[i];
+                props["parent"] = p_parent->get_path();
+                EditorNode::get_singleton()->get_real_memory()->record_action("instantiate_scene", instantiated_scene->get_class(), props);
+           }
+
 		instantiated_scene->set_scene_file_path(ProjectSettings::get_singleton()->localize_path(p_files[i]));
 
 		instances.push_back(instantiated_scene);

@@ -1,3 +1,6 @@
+/* Real Engine - K1sh-M1sh Studio */
+/* License - MIT */
+
 #ifndef RAM_CHECK_H
 #define RAM_CHECK_H
 

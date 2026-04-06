@@ -1,3 +1,6 @@
+/* Real Engine - K1sh-M1sh Studio */
+/* License - MIT */
+
 #include "real_coffee.h"
 #include "editor/editor_node.h"
 #include "editor/settings/editor_settings.h"
@@ -46,6 +49,7 @@ void RealCoffee::_notification(int p_what) {
 }
 
 void RealCoffee::_load_settings() {
+    print_line("[REAL COFFEE]: Loading Settings...");
     EditorSettings *settings = EditorSettings::get_singleton();
     if (!settings) return;
 
@@ -113,7 +117,6 @@ void RealCoffee::_on_timer_timeout() {
 void RealCoffee::_show_notification() {
     if (!show_notifications) return;
 
-    print_line("[REAL COFFEE]: Time for a break!");
 
 #ifdef WINDOWS_ENABLED
     // Get window handle
@@ -121,7 +124,7 @@ void RealCoffee::_show_notification() {
 
     // Simple message box for now (easier than toast notifications)
     MessageBoxW(hwnd,
-                L"You've been working for an hour!\nTake a short break and grab some coffee.",
+                L"Take a short break and grab some coffee.",
                 L"Real Engine - Take a Break",
                 MB_OK | MB_ICONINFORMATION);
 #endif

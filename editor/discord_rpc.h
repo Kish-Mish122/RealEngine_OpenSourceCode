@@ -1,3 +1,6 @@
+/* Real Engine - K1sh-M1sh Studio */
+/* License - MIT */
+
 #ifndef DISCORD_RPC_H
 #define DISCORD_RPC_H
 

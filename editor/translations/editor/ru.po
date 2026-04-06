@@ -7349,8 +7349,8 @@ msgstr "Двойной клик для открытия в браузере."
 msgid "No distractions for this, close that game first."
 msgstr "Не отвлекайтесь, сначала закройте ту игру."
 
-msgid "Thank you for using the Real Engine!"
-msgstr "Спасибо, что используете Real Engine!"
+msgid "Real Engine - Thank you for trusting me!"
+msgstr "Real Engine - Спасибо, что доверяете мне!"
 
 msgid "Authors"
 msgstr "Авторы"
@@ -7586,12 +7586,17 @@ msgstr ""
 msgid "No import ID"
 msgstr "Нет ID импорта"
 
+msgid "Also delete project folder from disk (cannot be undone!)"
+msgstr "Удалить все файлы проекта с диска (нельзя отменить!)"
+
+msgid "Warning: This will permanently delete all project files!"
+msgstr "Внимание: Это удалит все файлы проекта с диска!"
+
 msgid ""
 "Material has no name nor any other way to identify on re-import.\n"
 "Please name it or ensure it is exported with an unique ID."
 msgstr ""
-"У материала нет ни имени, ни другого способа идентификации при повторном "
-"импорте.\n"
+"У материала нет ни имени, ни другого способа идентификации при ре-импорте.\n"
 "Присвойте ему имя или обеспечьте его экспорт с уникальным идентификатором."
 
 msgid "Extract Materials to Resource Files"
@@ -8893,6 +8898,12 @@ msgstr "Имя проекта"
 msgid "Project Path"
 msgstr "Путь к проекту"
 
+msgid "Please note: This project was last edited %s. Opening may change some of the functions or the project may not start at all. Run with the Real Engine version %s?\n\n"
+msgstr "Обратите внимание: Данный проект редактировался последний раз в версии %s. Открытие проект может изменить некоторые функции или вообще не запустить проект. Открыть с Real Engine версии %s?\n\n"
+
+msgid "Pay attention: You are trying to launch a project with C# support, but the Real Engine does not have the function to launch or create a project with C#, which means you are trying to launch a project in the Godot format. Please create a project in the Real Engine and transfer all the project files there!"
+msgstr "Обратите внимание: Вы пытаетесь запустить проект с поддержкой C#, но в Real Engine нет функции запуска или создания проекта с C#, значит, вы пытаетесь запустить проект в формате Godot. Пожалуйста, создайте проект именно в Real Engine и перенесите все файлы проекта туда!"
+
 msgid "This project was last edited in a different Godot version: "
 msgstr "В последний раз проект был изменён в другой версии Godot: "
 
@@ -8953,11 +8964,13 @@ msgid "You don't have any projects yet."
 msgstr "Проектов ещё нет."
 
 msgid ""
-"It's time to create a new project.\n"
-"Create one using the button or import an existing one"
+"It's time to create your first masterpiece project!\n"
+"If you don't have a project, then it's time to create one!\n"
+"Or if you're like K1sh-M1sh, then you can download it and import it."
 msgstr ""
-"Пора создать новый проект.\n"
-"Или если уже есть, можно его импортировать его."
+"Время создать ваш первый шедевро-проект!\n"
+"Если у вас пока нет проекта, то время его создать!\n"
+"Или, если вы как K1sh-M1sh, то вы можете скачать его и импортировать."
 
 msgid "Go Online and Open Asset Library"
 msgstr "Войти в сеть и открыть библиотеку ассетов"
@@ -8967,6 +8980,9 @@ msgstr "Действительно запустить проекты (%d) одн
 
 msgid "Open Real Store"
 msgstr "Открыть Real Store"
+
+msgid "I noticed you often create " + E.key + ". Create a template?"
+msgstr "Замечали, что вы создаёте одинаковый объект уже " + E.key ". Создать шаблон?"
 
 msgid ""
 "Can't run project: Project has no main scene defined.\n"
@@ -17615,6 +17631,42 @@ msgstr ""
 "Возвращает результат побитовой операции смещения влево (a << b) над "
 "беззнаковым целым числом."
 
+msgid "To Do"
+msgstr "Список задач"
+
+msgid "Filter tasks..."
+msgstr "Филтр задач..."
+
+msgid "Add Task"
+msgstr "Добавить задачу"
+
+msgid "New Task"
+msgstr "Новая задача"
+
+msgid "Task:"
+msgstr "Задача:"
+
+msgid "What needs to be done?"
+msgstr "Что нужно сделать позже?"
+
+msgid "Due Date:"
+msgstr "Дата"
+
+msgid "YYYY-MM-DD"
+msgstr "ГГГГ-ММ-ДД"
+
+msgid "Today"
+msgstr "Сегодня"
+
+msgid "Create"
+msgstr "Создать"
+
+msgid "Cancel"
+msgstr "Закрыть"
+
+msgid "Due: "
+msgstr "До: "
+
 msgid "Returns the result of bitwise OR (a | b) operation for two integers."
 msgstr ""
 "Возвращает результат побитовой операции OR (a | b) над двумя целыми числами."
@@ -18420,8 +18472,17 @@ msgstr "Эту операцию НЕЛЬЗЯ ОТМЕНИТЬ. Ваши изме
 msgid "Permanentally delete my changes"
 msgstr "Навсегда удалить мои изменения"
 
+msgid "The last time the Real Engine was unexpectedly closed. Your project may be corrupted. Don't panic and try to open it in Recovery Mode, which should usually help."
+msgstr "Последний раз Real Engine был неожиданно закрыт. Ваш проект, возможно, был повреждён. Не паникуйте и попробуйте открыть проект в Режиме Восстановления, обычно, он может помочь вам с решением вашей проблемы."
+
+msgid "Couldn't open the %s project. It may have been lost or the project.rlengine file was corrupted or unreadable."
+msgstr "Не получилось открыть проект %s. Возможно, он был потерян или файл project.rlengine был повреждён или он нечитаем." 
+
 msgid "Stage all changes"
 msgstr "Индексировать все изменения"
+
+msgid "New Project"
+msgstr "Новый проект"
 
 msgid "Unstage all changes"
 msgstr "Убрать из индекса все изменения"

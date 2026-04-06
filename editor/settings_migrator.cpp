@@ -1,3 +1,6 @@
+/* Real Engine - K1sh-M1sh Studio */
+/* License - MIT */
+
 #include "settings_migrator.h"
 #include "core/string/print_string.h"
 #include "core/version.h"
@@ -125,6 +128,7 @@ void SettingsMigrator::migrate_editor_settings(const String &p_old_path) {
         new_settings->load(new_path);
     }
 
+    print_line("[REAL MIGRATOR]: Loading the list of all important settings...");
     // Список важных настроек для переноса
     Vector<String> important_settings = {
         "github/token",
@@ -137,31 +141,37 @@ void SettingsMigrator::migrate_editor_settings(const String &p_old_path) {
         "interface/theme/base_color",
         "interface/theme/accent_color",
         "text_editor/theme/highlighting/symbol_color",
-		"text_editor/theme/highlighting/keyword_color",
-		"text_editor/theme/highlighting/control_flow_keyword_color",
-		"text_editor/theme/highlighting/base_type_color",
-		"text_editor/theme/highlighting/engine_type_color",
-		"text_editor/theme/highlighting/user_type_color",
-		"text_editor/theme/highlighting/comment_color",
-		"text_editor/theme/highlighting/doc_comment_color",
-		"text_editor/theme/highlighting/string_color",
-		"text_editor/theme/highlighting/string_placeholder_color",
-		"text_editor/theme/highlighting/background_color",
-		"text_editor/theme/highlighting/text_color",
-		"text_editor/theme/highlighting/line_number_color",
-		"text_editor/theme/highlighting/safe_line_number_color",
-		"text_editor/theme/highlighting/caret_color",
-		"text_editor/theme/highlighting/caret_background_color",
-		"text_editor/theme/highlighting/text_selected_color",
-		"text_editor/theme/highlighting/selection_color",
-		"text_editor/theme/highlighting/brace_mismatch_color",
-		"text_editor/theme/highlighting/current_line_color",
-		"text_editor/theme/highlighting/line_length_guideline_color",
-		"text_editor/theme/highlighting/word_highlighted_color",
-		"text_editor/theme/highlighting/number_color",
-		"text_editor/theme/highlighting/function_color",
-		"text_editor/theme/highlighting/member_variable_color",
-		"text_editor/theme/highlighting/mark_color",
+	     "text_editor/theme/highlighting/keyword_color",
+	     "text_editor/theme/highlighting/control_flow_keyword_color",
+		  "text_editor/theme/highlighting/base_type_color",
+		  "text_editor/theme/highlighting/engine_type_color",
+		  "text_editor/theme/highlighting/user_type_color",
+		  "text_editor/theme/highlighting/comment_color",
+		  "text_editor/theme/highlighting/doc_comment_color",
+		  "text_editor/theme/highlighting/string_color",
+		  "text_editor/theme/highlighting/string_placeholder_color",
+		  "text_editor/theme/highlighting/background_color",
+		  "text_editor/theme/highlighting/text_color",
+		  "text_editor/theme/highlighting/line_number_color",
+		  "text_editor/theme/highlighting/safe_line_number_color",
+		  "text_editor/theme/highlighting/caret_color",
+		  "text_editor/theme/highlighting/caret_background_color",
+		  "text_editor/theme/highlighting/text_selected_color",
+		  "text_editor/theme/highlighting/selection_color",
+		  "text_editor/theme/highlighting/brace_mismatch_color",
+		  "text_editor/theme/highlighting/current_line_color",
+		  "text_editor/theme/highlighting/line_length_guideline_color",
+		  "text_editor/theme/highlighting/word_highlighted_color",
+		  "text_editor/theme/highlighting/number_color",
+		  "text_editor/theme/highlighting/function_color",
+		  "text_editor/theme/highlighting/member_variable_color",
+		  "text_editor/theme/highlighting/mark_color",
+        "real_coffee/enable",
+        "real_coffee/interval",
+        "interface/editor/autosave_enabled",
+        "interface/editor/autosave_interval",
+        "interface/editor/autosave_notification",
+        "real_coffee/show_notifications",
         "editor/driver_warning_disabled",
         "application/check_ram_on_startup"
     };
@@ -287,3 +297,13 @@ void SettingsMigrator::migrate_all() {
 
     print_line("[Migrator] Migration complete");
 }
+/*
+Для чего нужен мигратор настроек:
+Изначально, в Godot нет функции импортирования всех настроек в новую версию, ну или как минимум, я не замечал.
+Решил я сделать мигратор собственными ручками, которые и так уже устали, но всё же.
+Для чего он нужен:
+1. Импортирование старых настроек в новую версию - нахождение старой версии editor_settings-** и импортирование в новую версию editor_settings
+2. Удаление или наоборот сохранение самой новой старой версии - после импоритрования, вы можете либо оставить, либо удалить самую новую старую версию editor_settings.
+Где же это найти:
+Строчка: 293 есть комментарий чтобы вы уж точно поняли
+*/

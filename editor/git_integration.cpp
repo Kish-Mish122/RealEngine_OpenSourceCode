@@ -1,3 +1,6 @@
+/* Real Engine - K1sh-M1sh Studio */
+/* License - MIT */
+
 #include "git_integration.h"
 #include "core/string/print_string.h"
 #include "core/os/os.h"
@@ -31,14 +34,14 @@ GitIntegration::GitIntegration() {
         if (EditorSettings::get_singleton()->has_setting("github/token")) {
             String saved_token = EditorSettings::get_singleton()->get("github/token");
             if (!saved_token.is_empty()) {
-                print_line("[GitHub] Found saved token, attempting auto-login...");
-                print_line("[GitHub] Token length: " + itos(saved_token.length()));
+                print_line("[REAL GITHUB] Found saved token, attempting auto-login...");
+                print_line("[REAL GITHUB] Token length: " + itos(saved_token.length()));
                 github_login(saved_token);
             } else {
-                print_line("[GitHub] Saved token is empty");
+                print_line("[REAL GITHUB] Saved token is empty");
             }
         } else {
-            print_line("[GitHub] No saved token found");
+            print_line("[REAL GITHUB] No saved token found");
         }
     }
 }
@@ -272,7 +275,7 @@ String GitIntegration::http_request(const String &p_url, const HashMap<String, S
 // ==================== GitHub функции ====================
 
 bool GitIntegration::github_login(const String &p_token) {
-    print_line("[GitHub] Attempting login with token length: " + itos(p_token.length()));
+    print_line("[REAL GITHUB] Attempting login with token length: " + itos(p_token.length()));
 
     github_token = p_token;
 
@@ -291,8 +294,8 @@ bool GitIntegration::github_login(const String &p_token) {
     JSON json;
     Error err = json.parse(response);
     if (err != OK) {
-        print_line("[GitHub] Failed to parse JSON: " + json.get_error_message());
-        print_line("[GitHub] Response: " + response);
+        print_line("[REAL GITHUB] Failed to parse JSON: " + json.get_error_message());
+        print_line("[REAL GITHUB] Response: " + response);
         return false;
     }
 
@@ -309,15 +312,15 @@ bool GitIntegration::github_login(const String &p_token) {
 
             // Проверяем, что сохранилось
             String check = EditorSettings::get_singleton()->get("github/token");
-            print_line("[GitHub] Token saved, check: " + String(check.is_empty() ? "FAILED" : "OK"));
+            print_line("[REAL GITHUB] Token saved, check: " + String(check.is_empty() ? "FAILED" : "OK"));
         }
 
-        print_line("[GitHub] ✓ Logged in as: " + current_username);
+        print_line("[REAL GITHUB] ✓ Logged in as: " + current_username);
         return true;
     } else {
-        print_line("[GitHub] Login failed - no 'login' field in response");
+        print_line("[REAL GITHUB] Login failed - no 'login' field in response");
         if (data.has("message")) {
-            print_line("[GitHub] Error message: " + (String)data["message"]);
+            print_line("[REAL GITHUB] Error message: " + (String)data["message"]);
         }
     }
 
@@ -328,7 +331,7 @@ void GitIntegration::github_logout() {
     github_token = "";
     github_logged_in = false;
     current_username = "";
-    print_line("[GitHub] Logged out");
+    print_line("[REAL GITHUB] Logged out");
 }
 
 Vector<GitIntegration::RepoData> GitIntegration::github_list_repos() {
@@ -380,45 +383,40 @@ bool GitIntegration::github_create_repo(const String &p_name, const String &p_de
     Dictionary data = json.get_data();
 
     if (data.has("id")) {
-        print_line("[GitHub] Repository created: " + p_name);
+        print_line("[REAL GITHUB] Repository created: " + p_name);
         return true;
     } else {
-        print_line("[GitHub] Failed to create repository");
+        print_line("[REAL GITHUB] Failed to create repository");
         return false;
     }
 }
 
 bool GitIntegration::backup_project_to_github(const String &p_repo_name, const String &p_commit_message) {
     if (!github_logged_in) {
-        print_line("[GitHub] Not logged in");
+        print_line("[REAL GITHUB] Not logged in");
         return false;
     }
 
     if (!git_available) {
-        print_line("[Git] Git not available");
+        print_line("[REAL GIT] Git not available");
         return false;
     }
 
-    print_line("[GitHub] Creating backup repository: " + p_repo_name);
+    print_line("[REAL GITHUB] Creating backup repository: " + p_repo_name);
 
-    // 1. Создаём репозиторий на GitHub
     if (!github_create_repo(p_repo_name, "Backup of " + project_path.get_file(), true)) {
-        print_line("[GitHub] Failed to create repository");
+        print_line("[REAL GITHUB] Failed to create repository");
         return false;
     }
 
-    // 2. Инициализируем локальный репозиторий если нужно
     if (!FileAccess::exists(project_path + "/.git")) {
         init_repository();
     }
 
-    // 3. Добавляем все файлы
     add_all();
 
-    // 4. Создаём коммит
     commit(p_commit_message);
 
-    // 5. Связываем с удалённым репозиторием
     String remote_url = "https://github.com/" + current_username + "/" + p_repo_name + ".git";
 
     // Удаляем старый remote если есть
@@ -429,7 +427,6 @@ bool GitIntegration::backup_project_to_github(const String &p_repo_name, const S
 
     (void)execute_git_command("remote add origin " + remote_url); // Игнорируем результат
 
-    // 6. Пушим
     String branch = get_current_branch();
     String push_result = execute_git_command("push -u origin " + branch);
 
@@ -438,7 +435,7 @@ bool GitIntegration::backup_project_to_github(const String &p_repo_name, const S
         return false;
     }
 
-    print_line("[GitHub] Project backed up to: " + remote_url);
+    print_line("[REAL GITHUB] Project backed up to: " + remote_url);
     return true;
 }
 
@@ -594,29 +591,25 @@ void GitIntegration::_on_enhanced_backup(OptionButton *repo_select, LineEdit *re
 
 bool GitIntegration::backup_to_existing_repo(const String &p_repo_name, const String &p_commit_message) {
     if (!github_logged_in) {
-        print_line("[GitHub] Not logged in");
+        print_line("[REAL GITHUB] Not logged in");
         return false;
     }
 
     if (!git_available) {
-        print_line("[Git] Git not available");
+        print_line("[REAL GIT] Git not available");
         return false;
     }
 
-    print_line("[GitHub] Backing up to: " + p_repo_name);
+    print_line("[REAL GITHUB] Backing up to: " + p_repo_name);
 
-    // 1. Инициализируем локальный репозиторий если нужно
     if (!FileAccess::exists(project_path + "/.git")) {
         init_repository();
     }
 
-    // 2. Добавляем все файлы
     add_all();
 
-    // 3. Создаём коммит
     commit(p_commit_message);
 
-    // 4. Связываем с удалённым репозиторием
     String remote_url = "https://github.com/" + current_username + "/" + p_repo_name + ".git";
 
     // Удаляем старый remote если есть
@@ -627,7 +620,6 @@ bool GitIntegration::backup_to_existing_repo(const String &p_repo_name, const St
 
     (void)execute_git_command("remote add origin " + remote_url);
 
-    // 5. Пушим
     String branch = get_current_branch();
     print_line("[GitHub] Pushing to " + remote_url + " branch " + branch);
 
@@ -738,7 +730,7 @@ bool GitIntegration::gitlab_login(const String &p_token, const String &p_url) {
     if (data.has("username")) {
         gitlab_logged_in = true;
         current_username = data["username"];
-        print_line("[GitLab] Logged in as: " + current_username);
+        print_line("[REAL GITLAB] Logged in as: " + current_username);
         return true;
     }
     return false;
@@ -808,35 +800,30 @@ bool GitIntegration::gitlab_create_repo(const String &p_name, const String &p_de
 
 bool GitIntegration::backup_project_to_gitlab(const String &p_repo_name, const String &p_commit_message) {
     if (!gitlab_logged_in) {
-        print_line("[GitLab] Not logged in");
+        print_line("[REAL GITLAB] Not logged in");
         return false;
     }
 
     if (!git_available) {
-        print_line("[Git] Git not available");
+        print_line("[REAL GIT] Git not available");
         return false;
     }
 
-    print_line("[GitLab] Creating backup repository: " + p_repo_name);
+    print_line("[REAL GITLAB] Creating backup repository: " + p_repo_name);
 
-    // 1. Создаём репозиторий на GitLab
     if (!gitlab_create_repo(p_repo_name, "Backup of " + project_path.get_file(), true)) {
-        print_line("[GitLab] Failed to create repository");
+        print_line("[REAL GITLAB] Failed to create repository");
         return false;
     }
 
-    // 2. Инициализируем локальный репозиторий если нужно
     if (!FileAccess::exists(project_path + "/.git")) {
         init_repository();
     }
 
-    // 3. Добавляем все файлы
     add_all();
 
-    // 4. Создаём коммит
     commit(p_commit_message);
 
-    // 5. Связываем с удалённым репозиторием
     String remote_url;
     if (gitlab_url == "https://gitlab.com") {
         remote_url = "https://gitlab.com/" + current_username + "/" + p_repo_name + ".git";
@@ -856,16 +843,15 @@ bool GitIntegration::backup_project_to_gitlab(const String &p_repo_name, const S
     String result = execute_git_command("remote add origin " + remote_url);
     if (result.is_empty()) {}
 
-    // 6. Пушим
     String branch = get_current_branch();
     String push_result = execute_git_command("push -u origin " + branch);
 
     if (push_result.contains("error")) {
-        print_line("[GitLab] Push failed: " + push_result);
+        print_line("[REAL GITLAB] Push failed: " + push_result);
         return false;
     }
 
-    print_line("[GitLab] Project backed up to: " + remote_url);
+    print_line("[REAL GITLAB] Project backed up to: " + remote_url);
     return true;
 }
 
@@ -1018,7 +1004,7 @@ bool GitIntegration::create_issue(const String &p_repo, const String &p_title, c
     Dictionary data = json.get_data();
 
     if (data.has("id") || data.has("number")) {
-        print_line("[Git] Issue created: " + p_title);
+        print_line("[REAL GIT] Issue created: " + p_title);
         return true;
     }
     return false;
@@ -1145,7 +1131,6 @@ void GitIntegration::show_issues_dialog(Control *p_parent, const String &p_repo)
     if (issues.size() == 0) { // Если нет никаких проблем, то пишем, что их нет, что логично!
         Label *no_issues = memnew(Label);
         no_issues->set_text("No issues found");
-        print_line("[REAL GIT/LAB]: issues not founded");
         vb->add_child(no_issues);
     } else {
         Tree *tree = memnew(Tree);

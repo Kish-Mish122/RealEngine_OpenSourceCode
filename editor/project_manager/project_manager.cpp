@@ -114,10 +114,10 @@ void ProjectManager::_notification(int p_what) {
 
 		case NOTIFICATION_TRANSLATION_CHANGED: {
 			// TRANSLATORS: This refers to the application where users manage their Godot projects.
-			SceneTree::get_singleton()->get_root()->set_title(GODOT_VERSION_NAME + String(" - ") + TTR("List of projects", "Application"));
+			SceneTree::get_singleton()->get_root()->set_title(GODOT_VERSION_NAME + String(" - ") + TTR("Project List", "Application"));
 
-			const String line1 = TTR("You don't have any projects yet.");
-			const String line2 = TTR("It's time to create a new project.\nCreate one using the button or import an existing one");
+			const String line1 = TTR("It's time to create your first masterpiece project!\n");
+			const String line2 = TTR("If you don't have a project, then it's time to create one!\nOr if you're like K1sh-M1sh, then you can download it and import it.");
 			empty_list_message->set_text(vformat("[center][b]%s[/b] %s[/center]", line1, line2));
 
 			_titlebar_resized();
@@ -172,7 +172,6 @@ void ProjectManager::_build_icon_type_cache(Ref<Theme> p_theme) {
 		icon_type_cache[name] = p_theme->get_icon(name, EditorStringName(EditorIcons));
 	}
 }
-
 // Main layout.
 
 void ProjectManager::_update_size_limits() {
@@ -776,14 +775,14 @@ void ProjectManager::_open_selected_projects_check_warnings() {
 				unsupported_features.remove_at(i);
 				i--;
 			} else if (feature == "C#") {
-				warning_message += TTR("Warning: This project uses C#, but this build of Real Engine does not have\nthe Mono module. If you proceed you will not be able to use any C# scripts.\n\n");
+				warning_message += TTR("Please Note: You are trying to launch a project with C# support, but the Real Engine does not have the function to launch or create a project with C#, which means you are trying to launch a project in the Godot format. Please create a project in the Real Engine and transfer all the project files there!");
 				unsupported_features.remove_at(i);
 				i--;
 			} else if (ProjectList::project_feature_looks_like_version(feature)) {
 				ask_update_backup->show();
 				migration_guide_button->show();
 				version_convert_feature = feature;
-				warning_message += vformat(TTR("Warning: This project was last edited in Real Engine %s. Opening will change it to Real Engine %s.\n\n"), Variant(feature), Variant(GODOT_VERSION_BRANCH));
+				warning_message += vformat(TTR("Please note: This project was last edited %s. Opening may change some of the functions or the project may not start at all. Run with the Real Engine version %s?\n\n"), Variant(feature), Variant(GODOT_VERSION_BRANCH));
 				unsupported_features.remove_at(i);
 				i--;
 			}
@@ -951,8 +950,8 @@ void ProjectManager::_erase_project_confirm() {
     if (!paths_to_delete.is_empty()) {
         for (const String &path : paths_to_delete) {
             print_line("Deleting project folder: " + path);
-            OS::get_singleton()->move_to_trash(path); // В корзину
-            // Или полное удаление:
+            OS::get_singleton()->move_to_trash(path); // В мусорку!
+            // Или полное удаление, это уже как хотите
             // DirAccess::remove_file_or_error(path);
         }
     }
@@ -1009,7 +1008,7 @@ void ProjectManager::_open_recovery_mode_ask(bool manual) {
 	// Only show the initial crash preamble if this popup wasn't manually triggered.
 	if (!manual) {
 		recovery_mode_details +=
-				TTR("It looks like Real Engine crashed when opening this project the last time. If you're having problems editing this project, you can try to open it in Recovery Mode.") +
+				TTR("The last time the Real Engine was unexpectedly closed. Your project may be corrupted. Don't panic and try to open it in Recovery Mode, which should usually help.") +
 				String::utf8("\n\n");
 	}
 
@@ -1180,7 +1179,7 @@ void ProjectManager::_apply_project_tags() {
 	ProjectSettings *cfg = memnew(ProjectSettings(project_rlengine));
 	if (!cfg->is_project_loaded()) {
 		memdelete(cfg);
-		tag_edit_error->set_text(vformat(TTR("Couldn't load project at '%s'. It may be missing or corrupted."), project_rlengine));
+		tag_edit_error->set_text(vformat(TTR("Couldn't open the %s project. It may have been lost or the project.rlengine file was corrupted or unreadable."), project_rlengine));
 		tag_edit_error->show();
 		callable_mp((Window *)tag_manage_dialog, &Window::show).call_deferred(); // Make sure the dialog does not disappear.
 		return;
@@ -1619,10 +1618,10 @@ ProjectManager::ProjectManager() {
 			case 6:
 				EditorScale::set_scale(2.0);
 				break;
-			default:
 			case 7:
-			    EditorScale::set_scale(2.75);
-			    break;
+			      EditorScale::set_scale(2.75);
+			      break;
+               default:
 			EditorScale::set_scale(EDITOR_GET("interface/editor/custom_display_scale"));
 				break;
 		}
@@ -1830,7 +1829,7 @@ ProjectManager::ProjectManager() {
 
 		// Project list and its sidebar.
 		{
-			HBoxContainer *project_list_hbox = memnew(HBoxContainer);
+			project_list_hbox = memnew(HBoxContainer);
 			local_projects_vb->add_child(project_list_hbox);
 			project_list_hbox->set_v_size_flags(Control::SIZE_EXPAND_FILL);
 
@@ -1869,7 +1868,7 @@ ProjectManager::ProjectManager() {
 				empty_list_placeholder->add_child(empty_list_actions);
 
 				empty_list_create_project = memnew(Button);
-				empty_list_create_project->set_text(TTRC("Create New Project"));
+				empty_list_create_project->set_text(TTRC("New Project"));
 				empty_list_create_project->set_theme_type_variation("PanelBackgroundButton");
 				empty_list_actions->add_child(empty_list_create_project);
 				empty_list_create_project->connect(SceneStringName(pressed), callable_mp(this, &ProjectManager::_new_project));
@@ -2017,36 +2016,36 @@ ProjectManager::ProjectManager() {
 		erase_missing_ask->get_ok_button()->connect(SceneStringName(pressed), callable_mp(this, &ProjectManager::_erase_missing_projects_confirm));
 		add_child(erase_missing_ask);
 
-erase_ask = memnew(ConfirmationDialog);
-erase_ask->set_ok_button_text(TTRC("Remove"));
-erase_ask->get_ok_button()->connect(SceneStringName(pressed), callable_mp(this, &ProjectManager::_erase_project_confirm));
-add_child(erase_ask);
+           erase_ask = memnew(ConfirmationDialog);
+           erase_ask->set_ok_button_text(TTRC("Remove"));
+           erase_ask->get_ok_button()->connect(SceneStringName(pressed), callable_mp(this, &ProjectManager::_erase_project_confirm));
+           add_child(erase_ask);
 
-VBoxContainer *erase_ask_vb = memnew(VBoxContainer);
-erase_ask->add_child(erase_ask_vb);
+           VBoxContainer *erase_ask_vb = memnew(VBoxContainer);
+           erase_ask->add_child(erase_ask_vb);
 
-erase_ask_label = memnew(Label);
-erase_ask_label->set_focus_mode(FOCUS_ACCESSIBILITY);
-erase_ask_vb->add_child(erase_ask_label);
+           erase_ask_label = memnew(Label);
+           erase_ask_label->set_focus_mode(FOCUS_ACCESSIBILITY);
+           erase_ask_vb->add_child(erase_ask_label);
 
-// Чекбокс для удаления папки проекта
-delete_project_contents = memnew(CheckBox);
-delete_project_contents->set_text(TTRC("Also delete project folder from disk (cannot be undone!)"));
-delete_project_contents->set_h_size_flags(SIZE_SHRINK_CENTER);
-// Добавляем предупреждение красным цветом
-delete_project_contents->add_theme_color_override("font_color", Color(1, 0.5, 0.5));
-erase_ask_vb->add_child(delete_project_contents);
+           // Чекбокс для удаления папки проекта
+           delete_project_contents = memnew(CheckBox);
+           delete_project_contents->set_text(TTRC("Also delete project folder from disk (cannot be undone!)"));
+           delete_project_contents->set_h_size_flags(SIZE_SHRINK_CENTER);
+           // Добавляем предупреждение красным цветом
+           delete_project_contents->add_theme_color_override("font_color", Color(1, 0.5, 0.5));
+           erase_ask_vb->add_child(delete_project_contents);
 
-// Добавляем дополнительное предупреждение
-Label *warning_label = memnew(Label);
-warning_label->set_text(TTRC("Warning: This will permanently delete all project files!"));
-warning_label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
-warning_label->add_theme_color_override("font_color", Color(1, 0.3, 0.3));
-warning_label->set_visible(false);
-erase_ask_vb->add_child(warning_label);
+           // Добавляем дополнительное предупреждение
+           Label *warning_label = memnew(Label);
+           warning_label->set_text(TTRC("Warning: This will permanently delete all project files!"));
+           warning_label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
+           warning_label->add_theme_color_override("font_color", Color(1, 0.3, 0.3));
+           warning_label->set_visible(false);
+           erase_ask_vb->add_child(warning_label);
 
-// Показываем предупреждение при активации чекбокса
-delete_project_contents->connect(SceneStringName(toggled), callable_mp(this, &ProjectManager::_on_delete_contents_toggled).bind(warning_label));
+           // Показываем предупреждение при активации чекбокса
+           delete_project_contents->connect(SceneStringName(toggled), callable_mp(this, &ProjectManager::_on_delete_contents_toggled).bind(warning_label));
 
 		multi_open_ask = memnew(ConfirmationDialog);
 		multi_open_ask->set_ok_button_text(TTRC("Edit"));

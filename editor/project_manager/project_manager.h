@@ -273,6 +273,20 @@ protected:
 	void _notification(int p_what);
 
 private:
+    VBoxContainer *left_nav_panel = nullptr; 
+    HBoxContainer *project_list_hbox = nullptr;
+    VBoxContainer *tutorials_panel = nullptr;
+    VBoxContainer *community_panel = nullptr;
+
+    void _show_projects_panel(VBoxContainer *p_right_panel);
+    void _show_tutorials_panel(VBoxContainer *p_right_panel);
+    void _show_community_panel(VBoxContainer *p_right_panel);
+    
+    void _show_projects_view();
+    void _show_tutorials_view();
+    void _show_community_view();
+    void _open_url(const String &p_url);
+
     void _install_selected_zips_from_dialog(ConfirmationDialog *p_dialog);
     void _show_zip_selection_dialog(const PackedStringArray &p_zip_files);
     void _install_selected_zips(const PackedStringArray &p_zip_files);

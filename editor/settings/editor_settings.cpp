@@ -612,8 +612,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 
 	// Theme
     EDITOR_SETTING_BASIC(Variant::BOOL, PROPERTY_HINT_ENUM, "interface/theme/follow_system_theme", false, "")
-    EDITOR_SETTING_BASIC(Variant::STRING, PROPERTY_HINT_ENUM, "interface/theme/color_preset", "Real Engine", "Real Engine,Solarized (Dark),Solarized (Light),Custom")
-    EDITOR_SETTING_BASIC(Variant::STRING, PROPERTY_HINT_ENUM, "interface/theme/spacing_preset", "Default", "Compact,Default,Spacious,Custom")
+    EDITOR_SETTING_BASIC(Variant::STRING, PROPERTY_HINT_ENUM, "interface/theme/color_preset", "Real Engine", "Real Engine,Real Black,Real White")    EDITOR_SETTING_BASIC(Variant::STRING, PROPERTY_HINT_ENUM, "interface/theme/spacing_preset", "Default", "Compact,Default,Spacious,Custom")
     EDITOR_SETTING(Variant::INT, PROPERTY_HINT_ENUM, "interface/theme/icon_and_font_color", 0, "Auto,Dark,Light")
     EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "interface/theme/base_color", Color(0.14, 0.14, 0.14), "")
     EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "interface/theme/accent_color", Color(0.34, 0.62, 1.0), "")
@@ -686,6 +685,20 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
     EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine_light/syntax/comment", Color(0.2, 0.5, 0.2), "")
     EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine_light/syntax/string", Color(0.7, 0.3, 0.1), "")
     EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine_light/syntax/number", Color(0.5, 0.1, 0.7), "")
+
+    EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "unreal_style/theme/background_dark", Color(0.08, 0.08, 0.10), "")
+EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "unreal_style/theme/background_medium", Color(0.12, 0.12, 0.15), "")
+EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "unreal_style/theme/accent_color", Color(0.15, 0.55, 0.85), "")
+EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "unreal_style/theme/text_primary", Color(0.95, 0.95, 0.98), "")
+EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "unreal_style/theme/text_secondary", Color(0.70, 0.70, 0.75), "")
+
+// Real Engine - Тёмная тема (оригинальная)
+EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine/theme/primary_color", Color(0.3, 0.8, 0.3), "")
+EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine/theme/background_dark", Color(0.08, 0.08, 0.12), "")
+EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine/theme/background_medium", Color(0.12, 0.12, 0.16), "")
+EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine/theme/background_light", Color(0.18, 0.18, 0.22), "")
+EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine/theme/text_primary", Color(0.95, 0.95, 0.95), "")
+EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "real_engine/theme/text_secondary", Color(0.7, 0.7, 0.7), "")
 
 	// Touchscreen
 	bool has_touchscreen_ui = DisplayServer::get_singleton()->is_touchscreen_available();
