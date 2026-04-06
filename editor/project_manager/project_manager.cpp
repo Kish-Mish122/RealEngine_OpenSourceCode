@@ -950,7 +950,7 @@ void ProjectManager::_erase_project_confirm() {
     if (!paths_to_delete.is_empty()) {
         for (const String &path : paths_to_delete) {
             print_line("Deleting project folder: " + path);
-            OS::get_singleton()->move_to_trash(path); // В мусорку!
+            OS::get_singleton()->move_to_trash(path); // В мусорку! А точнее, доём возможность пользователю вернуть его обратно
             // Или полное удаление, это уже как хотите
             // DirAccess::remove_file_or_error(path);
         }
@@ -1019,7 +1019,7 @@ void ProjectManager::_open_recovery_mode_ask(bool manual) {
 			String::utf8("\n•  ") + TTR("RLExtension addons") +
 			String::utf8("\n•  ") + TTR("Automatic scene restoring") +
 			String::utf8("\n\n") + TTR("This mode is intended only for basic editing to troubleshoot such issues, and therefore it will not be possible to run the project during this mode. It is also a good idea to make a backup of your project before proceeding.") +
-			String::utf8("\n\n") + TTR("Edit the project in Recovery Mode?");
+			String::utf8("\n\n") + TTR("Start the project recovery process through Recovery Mode?");
 
 	open_recovery_mode_ask->set_text(recovery_mode_details);
 	open_recovery_mode_ask->popup_centered(Size2(550, 70) * EDSCALE);
@@ -1046,6 +1046,7 @@ void ProjectManager::_on_open_options_selected(int p_option) {
 			break;
 		case 1: // Edit in recovery mode.
 			_open_recovery_mode_ask(true);
+			print_line("[REAL ENGINE PROJECTS]: Opening as RECOVERY MODE...");
 			break;
 	}
 }

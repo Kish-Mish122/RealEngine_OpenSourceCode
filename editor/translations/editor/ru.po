@@ -9218,8 +9218,8 @@ msgstr ""
 "Также хорошей идеей будет сделать резервную копию вашего проекта перед "
 "продолжением."
 
-msgid "Edit the project in Recovery Mode?"
-msgstr "Редактировать проект в режиме восстановления?"
+msgid "Start the project recovery process through Recovery Mode?"
+msgstr "Начать процесс восстановления через Режим Восстановления?"
 
 msgid "Couldn't load project at '%s'. It may be missing or corrupted."
 msgstr ""

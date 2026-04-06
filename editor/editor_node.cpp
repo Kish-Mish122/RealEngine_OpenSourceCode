@@ -9671,7 +9671,7 @@ EditorNode::EditorNode() {
     add_child(timer);
     timer->call_deferred("start");
 
-    print_line("[REAL ENGINE]: All data about the project, the engine and its version has been successfully uploaded!");
+    print_line("[REAL EDITOR]: All data about the project, the engine and its version has been successfully uploaded!");
 }
 
 EditorNode::~EditorNode() {
@@ -9738,9 +9738,9 @@ void EditorNode::_node_created(Node *p_node) {
 // При изменении свойства:
 void EditorNode::_property_changed(Object *p_obj, const String &p_prop, const Variant &p_value) {
     if (!real_memory || !p_obj) return;
-    
+
     Dictionary props;
-    
+
     // Проверяем, является ли объект Node (у него есть путь)
     Node *node = Object::cast_to<Node>(p_obj);
     if (node) {
@@ -9748,7 +9748,7 @@ void EditorNode::_property_changed(Object *p_obj, const String &p_prop, const Va
     } else {
         props["object"] = p_obj->get_class(); // Для других объектов сохраняем класс
     }
-    
+
     props["property"] = p_prop;
     props["value"] = p_value;
     real_memory->record_action("property_change", p_prop, props);
