@@ -85,3 +85,5 @@ SCons - программа с открытым исходным кодом дл�
 
 *По личным вопросам: Discord: .k1shm1shic, Ruscord: 7_slashgames, VK: https://vk.com/kishmish_official*
 
+***Из за депрессии я не хотел делать Unreal Engine, но прямо сейчас готов продолжить, но без особой огласки***
+
