@@ -1,0 +1,9 @@
+Import("env")
+
+sources = [
+    "real_stickers_dock.cpp",
+    "real_sticker_item.cpp",
+    "real_stickers_plugin.cpp",
+]
+
+env.add_source_files(env.editor_sources, sources)

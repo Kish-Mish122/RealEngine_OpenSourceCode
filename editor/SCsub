@@ -79,6 +79,7 @@ if env.editor_build:
     SConscript("audio/SCsub")
     SConscript("debugger/SCsub")
     SConscript("doc/SCsub")
+    SConscript("real_stickers/SCsub")
     SConscript("docks/SCsub")
     SConscript("export/SCsub")
     SConscript("file_system/SCsub")

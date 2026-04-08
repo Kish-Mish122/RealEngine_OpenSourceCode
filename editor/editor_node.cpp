@@ -8383,6 +8383,8 @@ EditorNode::EditorNode() {
 		cmdline_mode = true;
 	}
 
+	print_line("[REAL ENGINE/SETTINGS/MIGRATOR/MAIN/STARTER]: Starting to work...");
+
 	Resource::_get_local_scene_func = _resource_get_edited_scene;
 
 	{
@@ -9990,6 +9992,7 @@ void EditorNode::_import_asset_downloaded(int p_status, int p_code, const Packed
 
     // Если меньше 1 гб, то продолжим импорт
     _continue_asset_import(p_status, p_code, p_headers, p_data, p_temp_file);
+    print_line("[REAL IMPORTING]: The file is less than 1 GB or the user has disabled the verification, we continue downloading...");
 }
 
 // Confirm Large Import
