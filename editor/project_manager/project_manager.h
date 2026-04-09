@@ -273,7 +273,14 @@ protected:
 	void _notification(int p_what);
 
 private:
-    VBoxContainer *left_nav_panel = nullptr; 
+    #ifdef GITHUB_BUILD
+        void _check_for_updates();
+        void _perform_update_check();
+        void _on_update_check_completed(int p_result, int p_response_code, const PackedStringArray &p_headers, const PackedByteArray &p_data);
+        void _open_github_releases();
+    #endif
+
+    VBoxContainer *left_nav_panel = nullptr;
     HBoxContainer *project_list_hbox = nullptr;
     VBoxContainer *tutorials_panel = nullptr;
     VBoxContainer *community_panel = nullptr;
@@ -281,7 +288,7 @@ private:
     void _show_projects_panel(VBoxContainer *p_right_panel);
     void _show_tutorials_panel(VBoxContainer *p_right_panel);
     void _show_community_panel(VBoxContainer *p_right_panel);
-    
+
     void _show_projects_view();
     void _show_tutorials_view();
     void _show_community_view();

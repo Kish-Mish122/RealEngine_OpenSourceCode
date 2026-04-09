@@ -173,7 +173,8 @@ void SettingsMigrator::migrate_editor_settings(const String &p_old_path) {
         "interface/editor/autosave_notification",
         "real_coffee/show_notifications",
         "editor/driver_warning_disabled",
-        "application/check_ram_on_startup"
+        "application/check_ram_on_startup",
+        "filesystem/import/dont_ask_large_files"
     };
 
     Vector<String> keys = old_settings->get_section_keys("init");

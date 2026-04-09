@@ -357,6 +357,14 @@ opts.Add("rcflags", "Custom flags for Windows resource compiler")
 opts.Add("c_compiler_launcher", "C compiler launcher (e.g. `ccache`)")
 opts.Add("cpp_compiler_launcher", "C++ compiler launcher (e.g. `ccache`)")
 
+# Custom build configurations for VK Play / GitHub
+if ARGUMENTS.get('vkplay', 'no') == 'yes':
+    print("Building for VK Play (update checks disabled)")
+    env.Append(CPPDEFINES=['VKPLAY_BUILD'])
+elif ARGUMENTS.get('github', 'no') == 'yes':
+    print("Building for GitHub (update checks enabled)")
+    env.Append(CPPDEFINES=['GITHUB_BUILD'])
+
 # Update the environment to have all above options defined
 # in following code (especially platform and custom_modules).
 opts.Update(env)

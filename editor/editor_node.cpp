@@ -720,6 +720,7 @@ void EditorNode::_update_theme(bool p_skip_creation) {
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_RUSCORD), get_editor_theme_native_menu_icon(SNAME("Ruscord"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_SITE), get_editor_theme_native_menu_icon(SNAME("site"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_VKPLAY), get_editor_theme_native_menu_icon(SNAME("VKPlay"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
+		help_menu->set_item_icon(help_menu->get_item_index(HELP_TG), get_editor_theme_native_menu_icon(SNAME("Telegram"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_NEWS), get_editor_theme_native_menu_icon(SNAME("News"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_SUPPORT_GODOT_DEVELOPMENT), get_editor_theme_native_menu_icon(SNAME("Money"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 
@@ -3978,6 +3979,9 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 		case HELP_VKPLAY: {
 		    OS::get_singleton()->shell_open("mailrugames://show/0.2042297/?mode=lib");
 		}
+		case HELP_TG: {
+		    OS::get_singleton()->shell_open("https://t.me/rlengine");
+		}
 		case HELP_NEWS: {
 		    OS::get_singleton()->shell_open("https://community.vkplay.ru/community/game/real-engine/");
 		}
@@ -4120,6 +4124,7 @@ void EditorNode::_check_system_theme_changed() {
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_RUSCORD), get_editor_theme_native_menu_icon(SNAME("Ruscord"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_SITE), get_editor_theme_native_menu_icon(SNAME("site"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_VKPLAY), get_editor_theme_native_menu_icon(SNAME("VKPlay"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
+		help_menu->set_item_icon(help_menu->get_item_index(HELP_TG), get_editor_theme_native_menu_icon(SNAME("Telegram"), menu_type==MENU_TYPE_GLOBAL,dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_NEWS), get_editor_theme_native_menu_icon(SNAME("News"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_SUPPORT_GODOT_DEVELOPMENT), get_editor_theme_native_menu_icon(SNAME("Money"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		editor_dock_manager->update_docks_menu();
@@ -8192,6 +8197,7 @@ void EditorNode::_build_help_menu() {
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/discord"), HELP_DISCORD);
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/ruscord"), HELP_RUSCORD);
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/vkplay"), HELP_VKPLAY);
+	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/tg"), HELP_TG);
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/news"), HELP_NEWS);
 	help_menu->add_separator();
 #ifdef MACOS_ENABLED
@@ -8492,21 +8498,27 @@ EditorNode::EditorNode() {
 				break;
 			case 1:
 				EditorScale::set_scale(0.75);
+				print_line("[REAL SCALE] Scale: x0.75");
 				break;
 			case 2:
 				EditorScale::set_scale(1.0);
+				print_line("[REAL SCALE] Scale: Normal");
 				break;
 			case 3:
 				EditorScale::set_scale(1.25);
+				print_line("[REAL SCALE]: Scale: X1.25");
 				break;
 			case 4:
 				EditorScale::set_scale(1.5);
+				print_line("[REAL SCALE]: Scale: x1.5");
 				break;
 			case 5:
 				EditorScale::set_scale(1.75);
+				print_line("[REAL SCALE]: Scale: X1.75");
 				break;
 			case 6:
 				EditorScale::set_scale(2.0);
+				print_line("[REAL SCALE]: Scale: X2.0");
 				break;
 			default:
 				EditorScale::set_scale(EDITOR_GET("interface/editor/custom_display_scale"));
@@ -8980,11 +8992,10 @@ EditorNode::EditorNode() {
 	ED_SHORTCUT_AND_COMMAND("editor/report_a_bug", TTRC("Report a Bug"));
 	ED_SHORTCUT_AND_COMMAND("editor/suggest_a_feature", TTRC("Suggest a Feature"));
 	ED_SHORTCUT_AND_COMMAND("editor/send_docs_feedback", TTRC("Send Docs Feedback"));
-	ED_SHORTCUT_AND_COMMAND("editor/vk", TTRC("Open a VK Group"));
 	ED_SHORTCUT_AND_COMMAND("editor/vkplay", TTRC("Open a VK Play Lib"));
-	ED_SHORTCUT_AND_COMMAND("editor/discord", TTRC("Open a Discord Server"));
 	ED_SHORTCUT_AND_COMMAND("editor/ruscord", TTRC("Open a Ruscord Server"));
 	ED_SHORTCUT_AND_COMMAND("editor/about", TTRC("About Real Engine..."));
+	ED_SHORTCUT_AND_COMMAND("editor/tg", TTRC("Telegram"));
 	ED_SHORTCUT_AND_COMMAND("editor/news", TTRC("News"));
 	ED_SHORTCUT_AND_COMMAND("editor/support_development", TTRC("Support Real Engine Development"));
 

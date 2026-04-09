@@ -42,6 +42,9 @@
 #include "editor/gui/editor_about.h"
 #include "editor/gui/editor_file_dialog.h"
 #include "editor/gui/editor_title_bar.h"
+#include "core/io/http_client.h"
+#include "core/io/json.h"
+#include "scene/gui/dialogs.h"
 #include "editor/gui/editor_version_button.h"
 #include "editor/settings_migrator.h"
 #include "editor/inspector/editor_inspector.h"
@@ -110,6 +113,9 @@ void ProjectManager::_notification(int p_what) {
 			_select_main_view(MAIN_VIEW_PROJECTS);
 			_update_list_placeholder();
 			_titlebar_resized();
+			#ifdef GITHUB_BUILD
+                        _check_for_updates();
+            #endif
 		} break;
 
 		case NOTIFICATION_TRANSLATION_CHANGED: {
@@ -161,6 +167,79 @@ Ref<Texture2D> ProjectManager::_file_dialog_get_thumbnail(const String &p_path) 
 
 	return Ref<Texture2D>();
 }
+
+#ifdef GITHUB_BUILD
+void ProjectManager::_check_for_updates() {
+    callable_mp(this, &ProjectManager::_perform_update_check).call_deferred();
+}
+#endif
+
+#ifdef GITHUB_BUILD
+void ProjectManager::_perform_update_check() {
+    HTTPRequest *request = memnew(HTTPRequest);
+    add_child(request);
+    request->connect("request_completed", callable_mp(this, &ProjectManager::_on_update_check_completed));
+
+    // URL последнего релиза на GitHub
+    String url = "https://raw.githubusercontent.com/Kish-Mish122/realengine/refs/heads/main/version.json";
+    Vector<String> headers;
+    headers.push_back("User-Agent: Real-Engine-Update-Checker");
+    Error err = request->request(url, headers);
+    if (err != OK) {
+        print_line("[Real Engine] Failed to check for updates (HTTP request error).");
+        request->queue_free();
+    }
+}
+#endif
+
+#ifdef GITHUB_BUILD
+void ProjectManager::_on_update_check_completed(int p_result, int p_response_code, const PackedStringArray &p_headers, const PackedByteArray &p_data) {
+    if (p_result != HTTPRequest::RESULT_SUCCESS || p_response_code != 200) {
+        print_line("[Real Engine] Update check failed (HTTP " + itos(p_response_code) + ").");
+        return;
+    }
+
+    String response_json;
+    response_json.parse_utf8((const char *)p_data.ptr(), p_data.size());
+
+    Variant parsed = JSON::parse_string(response_json);
+    if (parsed.get_type() != Variant::DICTIONARY) {
+        print_line("[Real Engine] Failed to parse GitHub API response.");
+        return;
+    }
+
+    Dictionary json = parsed;
+    String latest_tag = json.get("tag_name", "");
+    if (latest_tag.is_empty()) {
+        print_line("[Real Engine] No tag_name found in GitHub response.");
+        return;
+    }
+
+    // Сравниваем с текущей версией (например, GODOT_VERSION_FULL_CONFIG)
+    String current_version = String(GODOT_VERSION_FULL_CONFIG);
+    if (latest_tag != current_version) {
+        // Показываем диалог
+        AcceptDialog *dialog = memnew(AcceptDialog);
+        dialog->set_title("New Version Available");
+        dialog->set_text("A new version of Real Engine is available:\n\n"
+                         "Current: " + current_version + "\n"
+                         "Latest:  " + latest_tag + "\n\n"
+                         "Visit GitHub to download the update.");
+        dialog->set_ok_button_text("Open GitHub");
+        dialog->connect("confirmed", callable_mp(this, &ProjectManager::_open_github_releases));
+        add_child(dialog);
+        dialog->popup_centered();
+    } else {
+        print_line("[Real Engine] You are using the latest version (" + current_version + ").");
+    }
+}
+#endif
+
+#ifdef GITHUB_BUILD
+void ProjectManager::_open_github_releases() {
+    OS::get_singleton()->shell_open("https://github.com/Kish-Mish122/RealEngine_OpenSourceCode/releases");
+}
+#endif
 
 void ProjectManager::_build_icon_type_cache(Ref<Theme> p_theme) {
 	if (p_theme.is_null()) {

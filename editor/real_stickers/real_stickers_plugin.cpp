@@ -13,7 +13,7 @@ RealStickersPlugin::~RealStickersPlugin() {
 
 void RealStickersPlugin::_enter_tree() {
     dock = memnew(RealStickersDock);
-    add_control_to_dock(EditorPlugin::DOCK_SLOT_LEFT_UL, dock);  // исправлено
+    add_control_to_dock(EditorPlugin::DOCK_SLOT_LEFT_UL, dock);
 }
 
 void RealStickersPlugin::_exit_tree() {

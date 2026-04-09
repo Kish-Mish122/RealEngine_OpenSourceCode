@@ -223,6 +223,7 @@ public:
 		HELP_RUSCORD,
 		HELP_SITE,
 		HELP_VKPLAY,
+		HELP_TG,
 		HELP_NEWS,
 
 		// Update spinner menu.
@@ -253,7 +254,7 @@ public:
 
 private:
     RealMemory *real_memory = nullptr;
-    
+
     void _node_created(Node *p_node);
     void _property_changed(Object *p_obj, const String &p_prop, const Variant &p_value);
 
