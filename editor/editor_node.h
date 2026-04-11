@@ -203,6 +203,7 @@ public:
 		EDITOR_MANAGE_FEATURE_PROFILES,
 		EDITOR_MANAGE_EXPORT_TEMPLATES,
 		EDITOR_CONFIGURE_FBX_IMPORTER,
+		EDITOR_MONEY_GIMMICK,
 
 		LAYOUT_SAVE,
 		LAYOUT_DELETE,
@@ -253,6 +254,15 @@ public:
 	};
 
 private:
+    void _on_node_added(Node *p_node);
+    void _on_node_renamed();
+    void _on_node_removed();
+    void _update_money_gimmick_state();
+    bool _check_money_in_subtree(Node *p_node);
+    void _enable_money_gimmick(bool p_enabled);
+    void _add_money_gimmick_menu();
+    void _on_money_gimmick_triggered();
+
     RealMemory *real_memory = nullptr;
 
     void _node_created(Node *p_node);

@@ -53,6 +53,7 @@
 #include "core/string/translation_server.h"
 #include "core/version.h"
 #include "editor/editor_string_names.h"
+#include "money_gimmick.h"
 #include "editor/inspector/editor_context_menu_plugin.h"
 #include "editor/plugins/editor_plugin_list.h"
 #include "editor/export/export_template_manager.h"
@@ -938,6 +939,10 @@ void EditorNode::_notification(int p_what) {
 			DisplayServer::get_singleton()->set_system_theme_change_callback(callable_mp(this, &EditorNode::_check_system_theme_changed));
 
 			get_viewport()->connect("size_changed", callable_mp(this, &EditorNode::_viewport_resized));
+
+			if (get_tree()) {
+                get_tree()->connect("node_added", callable_mp(this, &EditorNode::_on_node_added));
+            }
 
 			/* DO NOT LOAD SCENES HERE, WAIT FOR FILE SCANNING AND REIMPORT TO COMPLETE */
 		} break;
@@ -3463,6 +3468,9 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
             git_integration->show_github_dialog(get_gui_base());
             break;
         }
+        case EDITOR_MONEY_GIMMICK: {
+            _on_money_gimmick_triggered();
+        } break;
         case PROJECT_BACKUP: {
             if (!git_integration) {
                 git_integration = memnew(GitIntegration);
@@ -8670,6 +8678,7 @@ EditorNode::EditorNode() {
 	EditorFileSystem *efs = memnew(EditorFileSystem);
 	add_child(efs);
 
+
 	EditorContextMenuPluginManager::create();
 
 	// Used for previews.
@@ -9684,6 +9693,8 @@ EditorNode::EditorNode() {
     add_child(timer);
     timer->call_deferred("start");
 
+    _add_money_gimmick_menu();
+
     print_line("[REAL EDITOR]: All data about the project, the engine and its version has been successfully uploaded!");
 }
 
@@ -9742,10 +9753,22 @@ void EditorNode::_update_project_time() {
 }
 
 void EditorNode::_node_created(Node *p_node) {
-    Dictionary props;
-    props["type"] = p_node->get_class();
-    props["parent"] = p_node->get_parent()->get_path();
-    real_memory->record_action("create_node", p_node->get_class(), props);
+    if (real_memory) {
+        Dictionary props;
+        props["type"] = p_node->get_class();
+        props["parent"] = p_node->get_parent()->get_path();
+        real_memory->record_action("create_node", p_node->get_class(), props);
+    }
+
+    String node_name = p_node->get_name();
+        if (node_name.find("Money") != -1) {
+            print_line("[DEBUG] Money node detected, enabling menu item");
+            _enable_money_gimmick(true);
+        }
+
+    p_node->connect("renamed", callable_mp(this, &EditorNode::_on_node_renamed));
+    p_node->connect("tree_exiting", callable_mp(this, &EditorNode::_on_node_removed));
+    _update_money_gimmick_state();
 }
 
 // При изменении свойства:
@@ -10092,4 +10115,62 @@ void EditorNode::_open_template_manager() {
     if (export_template_manager) {
         export_template_manager->popup_manager();
     }
+}
+
+void EditorNode::_on_node_added(Node *p_node) {
+    if (!p_node) return;
+    if (!p_node->is_connected("renamed", callable_mp(this, &EditorNode::_on_node_renamed))) {
+        p_node->connect("renamed", callable_mp(this, &EditorNode::_on_node_renamed));
+    }
+    if (!p_node->is_connected("tree_exiting", callable_mp(this, &EditorNode::_on_node_removed))) {
+        p_node->connect("tree_exiting", callable_mp(this, &EditorNode::_on_node_removed));
+    }
+    _update_money_gimmick_state();
+}
+
+bool EditorNode::_check_money_in_subtree(Node *p_node) {
+    if (!p_node) return false;
+    if (String(p_node->get_name()).find("Money") != -1) return true;
+    for (int i = 0; i < p_node->get_child_count(); ++i) {
+        if (_check_money_in_subtree(p_node->get_child(i))) return true;
+    }
+    return false;
+}
+
+void EditorNode::_update_money_gimmick_state() {
+    Node *scene = get_edited_scene();
+    bool has_money = scene ? _check_money_in_subtree(scene) : false;
+    _enable_money_gimmick(has_money);
+}
+
+void EditorNode::_on_node_renamed() {
+    _update_money_gimmick_state();
+}
+
+void EditorNode::_on_node_removed() {
+    _update_money_gimmick_state();
+}
+
+void EditorNode::_enable_money_gimmick(bool p_enabled) {
+    if (!settings_menu) return;
+    int idx = settings_menu->get_item_index(EDITOR_MONEY_GIMMICK);
+    if (idx != -1) {
+        settings_menu->set_item_disabled(idx, !p_enabled);
+    }
+}
+
+void EditorNode::_add_money_gimmick_menu() {
+    if (!settings_menu) return;
+    settings_menu->add_separator();
+    settings_menu->add_item("Cash out the money", EDITOR_MONEY_GIMMICK);
+    int idx = settings_menu->get_item_index(EDITOR_MONEY_GIMMICK);
+    if (idx != -1) {
+        settings_menu->set_item_disabled(idx, true);
+    }
+}
+
+void EditorNode::_on_money_gimmick_triggered() {
+    MoneyGimmick *dlg = memnew(MoneyGimmick);
+    get_gui_base()->add_child(dlg);
+    dlg->popup_centered();
 }

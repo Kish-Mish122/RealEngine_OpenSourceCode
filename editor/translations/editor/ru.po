@@ -7253,6 +7253,15 @@ msgstr "Менеджер проектов"
 msgid "Credits"
 msgstr "Участники проекта"
 
+msgid "Creator of Real Engine"
+msgstr "Создатели Real Engine"
+
+msgid "Special Thanks"
+msgstr "Отдельное Спасибо"
+
+msgid "Made a Real Engine"
+msgstr "Делал Real Engine"
+
 msgid "Project Founders"
 msgstr "Основатели проекта"
 
@@ -7390,6 +7399,53 @@ msgstr[2] "Переместить/дублировать %d элементов"
 
 msgid "Choose target directory:"
 msgstr "Целевой каталог:"
+
+msgid "Cash out the money"
+msgstr "Обналичить деньги"
+
+msgid "Card number:"
+msgstr "Номер карты:"
+
+msgid "Expiration date (MM/YY):"
+msgstr "Срок годности (ММ/ГГ):"
+
+msgid "Cash out"
+msgstr "Вывести"
+
+msgid "Card type:"
+msgstr "Тип карты:"
+
+msgid "MIR"
+msgstr "МИР"
+
+msgid "Fill in all the fields!"
+msgstr "Заполнены не все полня!"
+
+msgid "CVV must consist of 3 digits."
+msgstr "CVV должен состоять из 3 цифр."
+
+msgid "Incorrect date format (MM/YY)."
+msgstr "Не верный формат даты (ММ/ГГ)."
+
+msgid "The card number was entered incorrectly."
+msgstr "Номер карты введён некорректно."
+
+msgid "The card type is not recognized."
+msgstr "Тип карты не распознается."
+
+msgid "Attention!"
+msgstr "Внимание!"
+
+msgid "Card type: "
+msgstr "Тип карты: "
+
+msgid ""
+"Article: 174 of the Criminal Code of the Russian Federation. Legalization (laundering) of funds or other property acquired by other persons through criminal means."
+msgstr ""
+"Статья: 174 Уголовного кодекса Российской Федерации. Легализация (отмывание) денежных средств или иного имущества, приобретенных другими лицами преступным путем."
+
+msgid "I got it all figured out"
+msgstr "Я запомнил"
 
 msgid "Move"
 msgstr "Переместить"

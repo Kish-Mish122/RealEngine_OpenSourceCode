@@ -94,10 +94,14 @@ inline constexpr unsigned char _certs_compressed[] = {{
 
 def make_authors_header(target, source, env):
     SECTIONS = {
+        "Creator of Real Engine": "REAL_ENGINE_CREATOR",
+        "K1sh-M1sh Studio": "K1SHM1SH_STUDIO",
         "Project Founders": "AUTHORS_FOUNDERS",
         "Lead Developer": "AUTHORS_LEAD_DEVELOPERS",
         "Project Manager": "AUTHORS_PROJECT_MANAGERS",
         "Developers": "AUTHORS_DEVELOPERS",
+        "Special Thanks": "AUTHORS_SPECIAL_THANKS",
+        "Made a Real Engine": "MADE_A_REAL",
     }
     buffer = methods.get_buffer(str(source[0]))
     reading = False

@@ -16,6 +16,12 @@ wrote which part of the codebase.
 GitHub usernames are indicated in parentheses, or as sole entry when no other
 name is available.
 
+## Creator of Real Engine
+    Timur Abdeev (K1sh-M1sh)
+
+## K1sh-M1sh Studio
+    Timur Abdeev (K1sh-M1sh)
+
 ## Project Founders
 
     Juan Linietsky (reduz)
@@ -387,3 +393,17 @@ name is available.
     神麤詭末 (scgm0)
     谢天 (jsjtxietian)
     风青山 (Rindbee)
+
+## Special Thanks
+    RusNik (Parses the Real Engine code)
+    ...Special thanks to you!
+
+## Made a Real Engine
+    Beta test: June 30, 2026
+    Alpha Test: June 10, 2026
+    Published on VK Play servers: June 15, 2026
+    Full release (Excluding beta test): ?? ????, ????
+
+    Started making: November 25, 2025
+    Days before alpha testing: 217 days (30 June, 2026)
+
