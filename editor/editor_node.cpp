@@ -36,7 +36,13 @@
 #include "core/input/input.h"
 #include "editor/docks/dock_constants.h"
 #include "editor/project_timer.h"
+#include "scene/gui/panel.h"
+#include "scene/gui/box_container.h"
+#include "scene/gui/label.h"
+#include "scene/resources/style_box_flat.h"
+#include "servers/rendering/rendering_server.h"
 #include "real_todo/real_todo_dock.h"
+#include "editor/system_status_bar.h"
 #include "git_integration.h"
 #include "core/io/config_file.h"
 #include "core/io/file_access.h"
@@ -831,6 +837,14 @@ bool EditorNode::_is_project_data_missing() {
 }
 
 void EditorNode::_notification(int p_what) {
+/*
+    int *ptr = nullptr;
+    *ptr = 42;
+
+    Если вы тестируете свой код для обработки крахов и хотите убедиться, что всё работает правильно, то вы можете использовать данный код.
+    int *ptr = nullptr; — вы создаете указатель и явно говорите ему, что он никуда не указывает (адрес 0).
+    *ptr = 42; — вы пытаетесь «разыменовать» этот указатель, то есть пойти по адресу 0 и записать туда число 42.
+    */
 	switch (p_what) {
 		case NOTIFICATION_TRANSLATION_CHANGED: {
 			_update_title();
@@ -9695,6 +9709,8 @@ EditorNode::EditorNode() {
 
     _add_money_gimmick_menu();
 
+    callable_mp(this, &EditorNode::_add_bottom_bar).call_deferred();
+
     print_line("[REAL EDITOR]: All data about the project, the engine and its version has been successfully uploaded!");
 }
 
@@ -9729,6 +9745,16 @@ EditorNode::~EditorNode() {
 	file_dialogs.clear();
 
 	singleton = nullptr;
+}
+
+void EditorNode::_add_system_status_bar() {
+    SystemStatusBar *bar = memnew(SystemStatusBar);
+    gui_base->add_child(bar);
+    bar->set_anchors_and_offsets_preset(Control::PRESET_BOTTOM_WIDE);
+    bar->set_z_index(100);
+}
+
+void EditorNode::_add_bottom_bar() {
 }
 
 // Функция обновления Project_Timer.cpp

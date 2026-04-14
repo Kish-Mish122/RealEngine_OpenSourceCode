@@ -254,6 +254,9 @@ public:
 	};
 
 private:
+    void _add_system_status_bar();
+    void _add_bottom_bar();
+
     void _on_node_added(Node *p_node);
     void _on_node_renamed();
     void _on_node_removed();

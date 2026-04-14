@@ -1098,7 +1098,7 @@ void ProjectManager::_open_recovery_mode_ask(bool manual) {
 			String::utf8("\n•  ") + TTR("RLExtension addons") +
 			String::utf8("\n•  ") + TTR("Automatic scene restoring") +
 			String::utf8("\n\n") + TTR("This mode is intended only for basic editing to troubleshoot such issues, and therefore it will not be possible to run the project during this mode. It is also a good idea to make a backup of your project before proceeding.") +
-			String::utf8("\n\n") + TTR("Start the project recovery process through Recovery Mode?");
+			String::utf8("\n\n") + TTR("Start the recovery process through this mode?");
 
 	open_recovery_mode_ask->set_text(recovery_mode_details);
 	open_recovery_mode_ask->popup_centered(Size2(550, 70) * EDSCALE);

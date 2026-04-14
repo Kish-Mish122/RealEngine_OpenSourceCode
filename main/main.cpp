@@ -47,6 +47,7 @@
 #include "core/io/image.h"
 #include "core/io/image_loader.h"
 #include "core/io/ip.h"
+#include "core/crash_handler.h"
 #include "core/io/resource_loader.h"
 #include "core/object/message_queue.h"
 #include "core/object/script_language.h"
@@ -851,6 +852,9 @@ Error Main::test_setup() {
 	ClassDB::set_current_api(ClassDB::API_NONE);
 
 	_start_success = true;
+
+	CrashHandler::add_log_line("Test log entry 1");
+    CrashHandler::add_log_line("Test log entry 2");
 
 	return OK;
 }
@@ -2926,6 +2930,9 @@ error:
 	locale = String();
 
 	return exit_err;
+
+	CrashHandler::setup();
+    CrashHandler::add_log_line("Crash handler installed and ready");
 }
 
 Error _parse_resource_dummy(void *p_data, VariantParser::Stream *p_stream, Ref<Resource> &r_res, int &line, String &r_err_str) {
@@ -3880,6 +3887,8 @@ static MainTimerSync main_timer_sync;
 // and should move on to `OS::run`, and EXIT_FAILURE otherwise for
 // an early exit with that error code.
 int Main::start() {
+    CrashHandler::setup(); // Запускаем обработчик аварийных ситуаций (свой, родной). Не допускаем НИОДНОГО перехвата от Godot.
+
 	GodotProfileZone("start");
 	OS::get_singleton()->benchmark_begin_measure("Startup", "Main::Start");
 
@@ -5086,6 +5095,8 @@ void Main::force_redraw() {
  * The order matters as some of those steps are linked with each other.
  */
 void Main::cleanup(bool p_force) {
+    CrashHandler::shutdown();
+
 	GodotProfileZone("cleanup");
 	OS::get_singleton()->benchmark_begin_measure("Shutdown", "Main::Cleanup");
 	if (!p_force) {
