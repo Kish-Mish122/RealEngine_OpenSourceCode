@@ -1653,11 +1653,6 @@ void EditorNode::_reload_project_settings() {
         return;
     }
 
-        if (DiscordRPC::get_singleton()) {
-            String project_name = ProjectSettings::get_singleton()->get_setting("application/config/name", "Unnamed");
-            DiscordRPC::get_singleton()->update_project(project_name);
-        }
-
     if (ProjectTimer::get_singleton()) {
         print_line(">>>>>> Calling project_opened with path: " + path);
         ProjectTimer::get_singleton()->project_opened(path);
@@ -1748,16 +1743,6 @@ Error EditorNode::load_resource(const String &p_resource, bool p_ignore_broken_d
 }
 
 Error EditorNode::load_scene_or_resource(const String &p_path, bool p_ignore_broken_deps, bool p_change_scene_tab_if_already_open) {
-    // Обновляем Discord перед загрузкой
-    if (DiscordRPC::get_singleton()) {
-        String project_name = ProjectSettings::get_singleton()->get_setting("application/config/name", "Unnamed Project");
-        DiscordRPC::get_singleton()->update_project(project_name);
-
-        if (DiscordRPC::get_singleton() && p_path.ends_with(".tscn")) {
-                DiscordRPC::get_singleton()->update_scene(p_path.get_file());
-            }
-    }
-
     if (ClassDB::is_parent_class(ResourceLoader::get_resource_type(p_path), "PackedScene")) {
         if (!p_change_scene_tab_if_already_open && EditorNode::get_singleton()->is_scene_open(p_path)) {
             return OK;
@@ -1769,6 +1754,13 @@ Error EditorNode::load_scene_or_resource(const String &p_path, bool p_ignore_bro
 
 void EditorNode::edit_node(Node *p_node) {
 	push_item(p_node);
+	    if (DiscordRPC::get_singleton()) {
+            String scene_path = EditorNode::get_singleton()->get_edited_scene()->get_scene_file_path();
+            if (!scene_path.is_empty()) {
+                DiscordRPC::get_singleton()->update_scene(scene_path.get_file());
+            }
+            DiscordRPC::get_singleton()->update_project(ProjectSettings::get_singleton()->get("application/config/name"));
+        }
 }
 
 void EditorNode::edit_resource(const Ref<Resource> &p_resource) {

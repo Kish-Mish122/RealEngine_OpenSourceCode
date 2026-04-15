@@ -69,6 +69,8 @@ LONG WINAPI vectored_handler(EXCEPTION_POINTERS *p_exception_info) {
     }
     CrashHandler::_show_dialog(signal_str, error_code, last_log);
 
+    TerminateProcess(GetCurrentProcess(), 1);
+
     return EXCEPTION_CONTINUE_SEARCH;
 }
 #endif
@@ -142,6 +144,7 @@ void CrashHandler::_show_dialog(const String &p_signal, const String &p_error_co
     if (result == IDYES) {
         _open_email(p_signal, p_error_code, p_last_log);
     }
+    TerminateProcess(GetCurrentProcess(), 1);
 #endif
 }
 
