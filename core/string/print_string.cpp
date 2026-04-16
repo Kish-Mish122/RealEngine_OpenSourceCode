@@ -32,6 +32,7 @@
 
 #include "core/core_globals.h"
 #include "core/os/os.h"
+#include "core/crash_handler.h"
 
 static PrintHandlerList *print_handler_list = nullptr;
 static thread_local bool is_printing = false;
@@ -93,6 +94,8 @@ void __print_line(const String &p_string) {
 	}
 
 	_global_unlock();
+
+	CrashHandler::add_log_line(p_string);
 
 	is_printing = false;
 }

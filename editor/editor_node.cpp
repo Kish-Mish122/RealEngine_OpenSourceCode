@@ -837,7 +837,7 @@ bool EditorNode::_is_project_data_missing() {
 }
 
 void EditorNode::_notification(int p_what) {
-/*
+    /*
     int *ptr = nullptr;
     *ptr = 42;
 
@@ -3991,7 +3991,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 		    OS::get_singleton()->shell_open("https://ruscord.net/?code=emb5u1");
 		}
 		case HELP_VKPLAY: {
-		    OS::get_singleton()->shell_open("mailrugames://show/0.2042297/?mode=lib");
+		    OS::get_singleton()->shell_open("https://trk.mail.ru/c/gflo54");
 		}
 		case HELP_TG: {
 		    OS::get_singleton()->shell_open("https://t.me/rlengine");
@@ -9701,7 +9701,7 @@ EditorNode::EditorNode() {
 
     _add_money_gimmick_menu();
 
-    callable_mp(this, &EditorNode::_add_bottom_bar).call_deferred();
+    callable_mp(this, &EditorNode::_add_bottom_bar).call_deferred(); // Эта функция не нужна, но лучше оставить
 
     print_line("[REAL EDITOR]: All data about the project, the engine and its version has been successfully uploaded!");
 }
@@ -9746,6 +9746,7 @@ void EditorNode::_add_system_status_bar() {
     bar->set_z_index(100);
 }
 
+// Мне лень удалять это из editor_node.h, так что, не надо это удалять
 void EditorNode::_add_bottom_bar() {
 }
 
@@ -9780,7 +9781,6 @@ void EditorNode::_node_created(Node *p_node) {
 
     String node_name = p_node->get_name();
         if (node_name.find("Money") != -1) {
-            print_line("[DEBUG] Money node detected, enabling menu item");
             _enable_money_gimmick(true);
         }
 

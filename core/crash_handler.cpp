@@ -23,9 +23,13 @@
 #endif
 #endif
 
+#include <commctrl.h>
+
 #include "crash_handler.h"
 #include "core/os/os.h"
 #include "core/string/print_string.h"
+
+#include "core/version.h"
 
 // Инициализация статических членов
 Vector<String> CrashHandler::log_buffer;
@@ -54,7 +58,7 @@ LONG WINAPI vectored_handler(EXCEPTION_POINTERS *p_exception_info) {
     CrashHandler::dialog_shown = true;
 
     // Запись в файл для отладки
-    FILE *f = fopen("C:\\temp\\crash_handler_log.txt", "w");
+    FILE *f = fopen("C:\\Windows\\temp\\crash_handler_log.txt", "w");
     if (f) {
         fprintf(f, "Vectored handler called. Code: 0x%08lx\n",
                 p_exception_info->ExceptionRecord->ExceptionCode);
@@ -91,6 +95,7 @@ void CrashHandler::setup() {
 
 void CrashHandler::shutdown() {
     normal_exit = true;
+    print_line("[REAL CRASH HANDLER]: Shutdown...");
 }
 
 void CrashHandler::add_log_line(const String &p_line) {
@@ -111,7 +116,6 @@ void CrashHandler::_crash_handler(int p_signal) {
     print_line("ERR CODE: 0x" + String::num_int64(p_signal, 16));
     print_line("REAL ENGINE IS CRASHED! WAIT...");
     print_line("-----------------------------");
-    /* ----------------------------------- */
 
     if (normal_exit) {
         exit(0);
@@ -119,42 +123,110 @@ void CrashHandler::_crash_handler(int p_signal) {
     if (dialog_shown) return;
     dialog_shown = true;
 
-    String signal_str = "Signal " + itos(p_signal);
-    String error_code = "0x" + String::num_int64(p_signal, 16);
+    // Собираем логи, ограничивая количество строк (например, последние 200)
     String last_log = "";
-    for (int i = 0; i < log_buffer.size(); i++) {
+    int max_lines = 200;
+    int start = 0;
+    if (log_buffer.size() > max_lines) {
+        start = log_buffer.size() - max_lines;
+        last_log = "[... " + itos(log_buffer.size() - max_lines) + " lines omitted]\n";
+    }
+    for (int i = start; i < log_buffer.size(); i++) {
         last_log += log_buffer[i] + "\n";
     }
+
+    // Для отладки: записываем логи в файл
+    FILE *f = fopen("C:\\Windows\\temp\\crash_log_dump.txt", "w");
+    if (f) {
+        fprintf(f, "=== CRASH LOG DUMP ===\n%s", last_log.utf8().get_data());
+        fclose(f);
+    }
+
+    String signal_str = "Signal " + itos(p_signal);
+    String error_code = "0x" + String::num_int64(p_signal, 16);
     _show_dialog(signal_str, error_code, last_log);
     exit(1);
 }
 
 void CrashHandler::_show_dialog(const String &p_signal, const String &p_error_code, const String &p_last_log) {
 #ifdef WINDOWS_ENABLED
-    String message = "Real Engine - Emergency stop!\n\n";
-    message += "Please report your problem to K1sh-M1sh.\n\n";
-    message += "Signal: " + p_signal + "\n";
-    message += "Error code: " + p_error_code + "\n";
-    message += "Last log before crash:\n" + p_last_log;
-    message += "Send a report to the developer?\n\n";
-    message += "The No button closes this window.";
+    INITCOMMONCONTROLSEX icex;
+    icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
+    icex.dwICC = ICC_STANDARD_CLASSES;
+    InitCommonControlsEx(&icex);
 
-    int result = MessageBoxA(NULL, message.utf8().get_data(), "Real Engine Crash",
-                              MB_ICONERROR | MB_YESNO | MB_SERVICE_NOTIFICATION | MB_TOPMOST);
-    if (result == IDYES) {
+    // Загружаем иконку из файла (путь относительно EXE)
+    HICON hIcon = NULL;
+    // Пытаемся загрузить иконку из файла "crash_logo.ico" в папке с движком
+    // Используем максимальный размер 48x48 для диалога
+    hIcon = (HICON)LoadImageA(GetModuleHandleA(NULL), "crash_handler_logo.ico", IMAGE_ICON, 48, 48, LR_LOADFROMFILE);
+    if (!hIcon) {
+        // Если не загрузилось, пробуем другой путь (например, из папки с ресурсами)
+        // Здесь можно указать абсолютный путь или встроенный ресурс
+        // Если иконки нет, оставляем NULL
+    }
+
+    String version = "Real Engine " + String(VERSION_FULL_CONFIG);
+    String mainInstruction = version + " - Stopped working!";
+    String content = "It's a pity, but the Real Engine crashed!\n";
+    content += "Signal: " + p_signal + "\n";
+    content += "Error code: " + p_error_code + "\n\n";
+    content += "Click 'Send report' to open your email client with pre-filled details.\n";
+    content += "Click 'Close' to exit the engine.";
+    String expandedInfo = "Last log before crash:\n" + p_last_log;
+
+    TASKDIALOG_BUTTON buttons[] = {
+        { 100, L"Close without sending" },
+        { 101, L"Send a bug and close" }
+    };
+
+    TASKDIALOGCONFIG config = {0};
+    config.cbSize = sizeof(TASKDIALOGCONFIG);
+    config.hwndParent = NULL;
+    config.dwFlags = TDF_USE_COMMAND_LINKS | TDF_ALLOW_DIALOG_CANCELLATION | TDF_EXPAND_FOOTER_AREA;
+    if (hIcon) {
+        config.dwFlags |= TDF_USE_HICON_MAIN;  // используем HICON вместо системной иконки
+        config.hMainIcon = hIcon;
+    } else {
+        config.pszMainIcon = TD_ERROR_ICON;    // запасной вариант
+    }
+    config.dwCommonButtons = 0;
+    config.pButtons = buttons;
+    config.cButtons = 2;
+    config.nDefaultButton = 100;
+    config.pszWindowTitle = L"Real Engine Crash";
+
+    Char16String mainInstStr = mainInstruction.utf16();
+    Char16String contentStr = content.utf16();
+    Char16String expandedStr = expandedInfo.utf16();
+
+    config.pszMainInstruction = reinterpret_cast<PCWSTR>(mainInstStr.get_data());
+    config.pszContent = reinterpret_cast<PCWSTR>(contentStr.get_data());
+    config.pszExpandedInformation = reinterpret_cast<PCWSTR>(expandedStr.get_data());
+
+    int nButtonPressed = 0;
+    HRESULT hr = TaskDialogIndirect(&config, &nButtonPressed, NULL, NULL);
+
+    if (SUCCEEDED(hr) && nButtonPressed == 101) {
         _open_email(p_signal, p_error_code, p_last_log);
     }
+
+    // Освобождаем иконку, если она была загружена
+    if (hIcon) {
+        DestroyIcon(hIcon);
+    }
+
     TerminateProcess(GetCurrentProcess(), 1);
 #endif
 }
 
 void CrashHandler::_open_email(const String &p_signal, const String &p_error_code, const String &p_last_log) {
 #ifdef WINDOWS_ENABLED
-    String subject = "Real Engine Crash Report";
-    String body = "Real Engine has crashed!\n\n";
+    String subject = "Real Engine v." + String(VERSION_FULL_CONFIG) + " - Bug Report.";
+    String body = "The Real Engine was shut down for my reason or yours!\n\n";
     body += "Signal: " + p_signal + "\n";
     body += "Error code: " + p_error_code + "\n";
-    body += "Last log before crash:\n" + p_last_log + "\n\n";
+    body += "Last log before crash:\n\n" + p_last_log + "\n\n";
 
     String mailto = "mailto:help.k1shm1sh@gmail.com?subject=" + subject + "&body=" + body;
     mailto = mailto.replace(" ", "%20");

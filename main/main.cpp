@@ -3888,6 +3888,7 @@ static MainTimerSync main_timer_sync;
 // an early exit with that error code.
 int Main::start() {
     CrashHandler::setup(); // Запускаем обработчик аварийных ситуаций (свой, родной). Не допускаем НИОДНОГО перехвата от Godot.
+    print_line("[REAL CRASH HANDLER]: Starting to Work!");
 
 	GodotProfileZone("start");
 	OS::get_singleton()->benchmark_begin_measure("Startup", "Main::Start");
