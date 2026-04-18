@@ -1,0 +1,12 @@
+Import('env')
+
+env_discord = env.Clone()
+
+# Путь к заголовочным файлам Discord RPC
+env_discord.Append(CPPPATH=['#thirdparty/discord-rpc/include'])
+
+# if env['platform'] == 'windows':
+#     env_discord.Append(LIBPATH=['#thirdparty/discord/lib'])
+#     env_discord.Append(LIBS=['discord-rpc'])
+
+env_discord.add_source_files(env.modules_sources, "*.cpp")

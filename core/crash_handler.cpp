@@ -4,13 +4,13 @@
 #ifdef WINDOWS_ENABLED
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
-// Убираем повторное определение _WIN32_WINNT
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0600
 #endif
 #include <windows.h>
 #include <shellapi.h>
 #include <signal.h>
+#include <commctrl.h>
 
 #ifdef CONNECT_DEFERRED
 #undef CONNECT_DEFERRED
@@ -23,32 +23,58 @@
 #endif
 #endif
 
-#include <commctrl.h>
-
 #include "crash_handler.h"
 #include "core/os/os.h"
 #include "core/string/print_string.h"
-
 #include "core/version.h"
+#include <shlobj.h>
+#include <time.h>
+#include <sys/stat.h>
 
 // Инициализация статических членов
 Vector<String> CrashHandler::log_buffer;
 int CrashHandler::max_log_lines = 100;
 bool CrashHandler::handler_installed = false;
-bool CrashHandler::normal_exit = false; // Это фалг, что программа завершилась нормально, а не аварийно
+bool CrashHandler::normal_exit = false;
 bool CrashHandler::dialog_shown = false;
 
 #ifdef WINDOWS_ENABLED
+
+// Поиск главного окна текущего процесса
+static HWND find_main_window() {
+    DWORD process_id = GetCurrentProcessId();
+    HWND hwnd = NULL;
+    do {
+        hwnd = FindWindowEx(NULL, hwnd, NULL, NULL);
+        DWORD window_pid = 0;
+        GetWindowThreadProcessId(hwnd, &window_pid);
+        if (window_pid == process_id) {
+            LONG_PTR style = GetWindowLongPtr(hwnd, GWL_STYLE);
+            if (style & WS_OVERLAPPEDWINDOW) {
+                return hwnd;
+            }
+        }
+    } while (hwnd != NULL);
+    return NULL;
+}
+
+// Скрытие главного окна перед показом диалога
+static void hide_main_window() {
+    HWND hwnd = find_main_window();
+    if (hwnd) {
+        ShowWindow(hwnd, SW_HIDE);
+    }
+}
+
 LONG WINAPI vectored_handler(EXCEPTION_POINTERS *p_exception_info) {
     DWORD code = p_exception_info->ExceptionRecord->ExceptionCode;
 
-    // Игнорируем эту исключения, тк они возникают при входе в программу и не несут полезной информации.
     if (code == EXCEPTION_BREAKPOINT ||
         code == EXCEPTION_SINGLE_STEP ||
         code == EXCEPTION_GUARD_PAGE ||
         code == EXCEPTION_INVALID_HANDLE ||
-        code == 0x4001000A ||   // DBG_PRINTEXCEPTION_WIDE_C
-        code == 0x40010006) {   // DBG_PRINTEXCEPTION_C
+        code == 0x4001000A ||
+        code == 0x40010006) {
         return EXCEPTION_CONTINUE_SEARCH;
     }
 
@@ -57,24 +83,19 @@ LONG WINAPI vectored_handler(EXCEPTION_POINTERS *p_exception_info) {
     }
     CrashHandler::dialog_shown = true;
 
-    // Запись в файл для отладки
-    FILE *f = fopen("C:\\Windows\\temp\\crash_handler_log.txt", "w");
-    if (f) {
-        fprintf(f, "Vectored handler called. Code: 0x%08lx\n",
-                p_exception_info->ExceptionRecord->ExceptionCode);
-        fclose(f);
-    }
+    hide_main_window();
 
-    String signal_str = "Exception 0x" + String::num_int64(p_exception_info->ExceptionRecord->ExceptionCode, 16);
-    String error_code = "Code: " + itos(p_exception_info->ExceptionRecord->ExceptionCode);
+    String signal_str = "Exception 0x" + String::num_int64(code, 16);
+    String error_code = "Code: " + itos(code);
     String last_log = "";
     for (int i = 0; i < CrashHandler::log_buffer.size(); i++) {
         last_log += CrashHandler::log_buffer[i] + "\n";
     }
+
+    CrashHandler::_save_crash_logs(signal_str, error_code);
     CrashHandler::_show_dialog(signal_str, error_code, last_log);
 
     TerminateProcess(GetCurrentProcess(), 1);
-
     return EXCEPTION_CONTINUE_SEARCH;
 }
 #endif
@@ -90,12 +111,12 @@ void CrashHandler::setup() {
     signal(SIGTERM, _crash_handler);
 #endif
     handler_installed = true;
+    add_log_line("[REAL CRASH HANDLER]: Ready to Work!");
     print_line("[REAL CRASH HANDLER]: Ready to Work!");
 }
 
 void CrashHandler::shutdown() {
     normal_exit = true;
-    print_line("[REAL CRASH HANDLER]: Shutdown...");
 }
 
 void CrashHandler::add_log_line(const String &p_line) {
@@ -110,12 +131,23 @@ void CrashHandler::set_log_buffer_size(int p_size) {
 }
 
 void CrashHandler::_crash_handler(int p_signal) {
+    // Real Engine Log:
     print_line("-----------------------------");
     print_line("REAL ENGINE IS CRASHED!");
     print_line("SIGNAL: " + itos(p_signal));
     print_line("ERR CODE: 0x" + String::num_int64(p_signal, 16));
-    print_line("REAL ENGINE IS CRASHED! WAIT...");
+    print_line("REAL ENGINE IS CRASHED! WAIT TO DIALOG...");
     print_line("-----------------------------");
+
+    /* --------------------------------------------------------------- */
+
+    // Real Engine Crash Handler Log:
+    add_log_line("-----------------------------");
+    add_log_line("REAL ENGINE IS CRASHED!");
+    add_log_line("SIGNAL: " + itos(p_signal));
+    add_log_line("ERR CODE: 0x" + String::num_int64(p_signal, 16));
+    add_log_line("REAL ENGINE IS CRASHED! WAIT TO DIALOG...");
+    add_log_line("-----------------------------");
 
     if (normal_exit) {
         exit(0);
@@ -123,61 +155,45 @@ void CrashHandler::_crash_handler(int p_signal) {
     if (dialog_shown) return;
     dialog_shown = true;
 
-    // Собираем логи, ограничивая количество строк (например, последние 200)
-    String last_log = "";
-    int max_lines = 200;
-    int start = 0;
-    if (log_buffer.size() > max_lines) {
-        start = log_buffer.size() - max_lines;
-        last_log = "[... " + itos(log_buffer.size() - max_lines) + " lines omitted]\n";
-    }
-    for (int i = start; i < log_buffer.size(); i++) {
-        last_log += log_buffer[i] + "\n";
-    }
-
-    // Для отладки: записываем логи в файл
-    FILE *f = fopen("C:\\Windows\\temp\\crash_log_dump.txt", "w");
-    if (f) {
-        fprintf(f, "=== CRASH LOG DUMP ===\n%s", last_log.utf8().get_data());
-        fclose(f);
-    }
+    // Скрываем главное окно
+#ifdef WINDOWS_ENABLED
+    hide_main_window();
+#endif
 
     String signal_str = "Signal " + itos(p_signal);
     String error_code = "0x" + String::num_int64(p_signal, 16);
+    String last_log = "";
+    for (int i = 0; i < log_buffer.size(); i++) {
+        last_log += log_buffer[i] + "\n";
+    }
     _show_dialog(signal_str, error_code, last_log);
     exit(1);
+
+    _save_crash_logs(signal_str, error_code);
 }
 
 void CrashHandler::_show_dialog(const String &p_signal, const String &p_error_code, const String &p_last_log) {
 #ifdef WINDOWS_ENABLED
+    // Инициализация общих элементов управления
     INITCOMMONCONTROLSEX icex;
     icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
     icex.dwICC = ICC_STANDARD_CLASSES;
     InitCommonControlsEx(&icex);
 
-    // Загружаем иконку из файла (путь относительно EXE)
     HICON hIcon = NULL;
-    // Пытаемся загрузить иконку из файла "crash_logo.ico" в папке с движком
-    // Используем максимальный размер 48x48 для диалога
     hIcon = (HICON)LoadImageA(GetModuleHandleA(NULL), "crash_handler_logo.ico", IMAGE_ICON, 48, 48, LR_LOADFROMFILE);
-    if (!hIcon) {
-        // Если не загрузилось, пробуем другой путь (например, из папки с ресурсами)
-        // Здесь можно указать абсолютный путь или встроенный ресурс
-        // Если иконки нет, оставляем NULL
-    }
 
     String version = "Real Engine " + String(VERSION_FULL_CONFIG);
-    String mainInstruction = version + " - Stopped working!";
-    String content = "It's a pity, but the Real Engine crashed!\n";
+    String mainInstruction = version + " - Crash Handler v" + CRASH_HANDLER_VERSION + " detected a crash!";
+    String content = "Review the logs shown below. Your code may have crashed the Real Engine.\nIf the error was not your fault, then inform the Real Engine developer about it.\n\n";
     content += "Signal: " + p_signal + "\n";
     content += "Error code: " + p_error_code + "\n\n";
-    content += "Click 'Send report' to open your email client with pre-filled details.\n";
-    content += "Click 'Close' to exit the engine.";
     String expandedInfo = "Last log before crash:\n" + p_last_log;
 
     TASKDIALOG_BUTTON buttons[] = {
-        { 100, L"Close without sending" },
-        { 101, L"Send a bug and close" }
+        { 100, L"Close without report a bug" },
+        { 101, L"Report a bug and close " },
+        { 102, L"Open VK Play News" }
     };
 
     TASKDIALOGCONFIG config = {0};
@@ -185,16 +201,16 @@ void CrashHandler::_show_dialog(const String &p_signal, const String &p_error_co
     config.hwndParent = NULL;
     config.dwFlags = TDF_USE_COMMAND_LINKS | TDF_ALLOW_DIALOG_CANCELLATION | TDF_EXPAND_FOOTER_AREA;
     if (hIcon) {
-        config.dwFlags |= TDF_USE_HICON_MAIN;  // используем HICON вместо системной иконки
+        config.dwFlags |= TDF_USE_HICON_MAIN;
         config.hMainIcon = hIcon;
     } else {
-        config.pszMainIcon = TD_ERROR_ICON;    // запасной вариант
+        config.pszMainIcon = TD_ERROR_ICON;
     }
     config.dwCommonButtons = 0;
     config.pButtons = buttons;
-    config.cButtons = 2;
+    config.cButtons = 3;
     config.nDefaultButton = 100;
-    config.pszWindowTitle = L"Real Engine Crash";
+    config.pszWindowTitle = L"Crash Handler For Real Engine";
 
     Char16String mainInstStr = mainInstruction.utf16();
     Char16String contentStr = content.utf16();
@@ -211,7 +227,10 @@ void CrashHandler::_show_dialog(const String &p_signal, const String &p_error_co
         _open_email(p_signal, p_error_code, p_last_log);
     }
 
-    // Освобождаем иконку, если она была загружена
+    if (SUCCEEDED(hr) && nButtonPressed == 102) {
+        _open_vk_play();
+    }
+
     if (hIcon) {
         DestroyIcon(hIcon);
     }
@@ -222,15 +241,55 @@ void CrashHandler::_show_dialog(const String &p_signal, const String &p_error_co
 
 void CrashHandler::_open_email(const String &p_signal, const String &p_error_code, const String &p_last_log) {
 #ifdef WINDOWS_ENABLED
-    String subject = "Real Engine v." + String(VERSION_FULL_CONFIG) + " - Bug Report.";
-    String body = "The Real Engine was shut down for my reason or yours!\n\n";
-    body += "Signal: " + p_signal + "\n";
-    body += "Error code: " + p_error_code + "\n";
-    body += "Last log before crash:\n\n" + p_last_log + "\n\n";
+    String subject = "Real Engine v." + String(VERSION_FULL_CONFIG) + " Crash Report"; // Тема письма
+    String body = "Real Engine v." + String(VERSION_FULL_CONFIG) + "has crashed!\nCrash Handler v." + CRASH_HANDLER_VERSION; // Главное в описании
+    body += "Signal: " + p_signal + "\n"; // Описание
+    body += "Error code: " + p_error_code + "\n"; // Описание
+    body += "Last log before crash:\n" + p_last_log + "\n"; // Описание
 
-    String mailto = "mailto:help.k1shm1sh@gmail.com?subject=" + subject + "&body=" + body;
+    String mailto = "mailto:help.k1shm1sh@gmail.com?subject=" + subject + "&body=" + body; // Ссылка на mailto с Body
     mailto = mailto.replace(" ", "%20");
     mailto = mailto.replace("\n", "%0A");
     ShellExecuteA(NULL, "open", mailto.utf8().get_data(), NULL, NULL, SW_SHOWNORMAL);
+#endif
+}
+
+void CrashHandler::_open_vk_play() {
+#ifdef WINDOWS_ENABLED
+    ShellExecuteA(NULL, "open", "https://community.vkplay.ru/community/game/real-engine-46163/", NULL, NULL, SW_SHOWNORMAL);
+#endif
+}
+
+void CrashHandler::_save_crash_logs(const String &p_signal, const String &p_error_code) {
+#ifdef WINDOWS_ENABLED
+    PWSTR docs = NULL;
+    if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Documents, 0, NULL, &docs))) {
+        String base = String::utf16((const char16_t*)docs) + "/RealEngine/CrashLogs";
+        CoTaskMemFree(docs);
+        CreateDirectoryW((LPCWSTR)base.utf16().get_data(), NULL);
+
+        time_t now = time(NULL);
+        struct tm *tm_info = localtime(&now);
+        char stamp[64];
+        strftime(stamp, sizeof(stamp), "%Y-%m-%d_%H-%M-%S", tm_info);
+        String fname = base + "/crash_" + stamp + ".log";
+
+        FILE *f = fopen(fname.utf8().get_data(), "w");
+        if (f) {
+            fprintf(f, "Real Engine v.%s\n", VERSION_FULL_CONFIG);
+            fprintf(f, "Crash Handler v.%s\n", CRASH_HANDLER_VERSION);
+            fprintf(f, "-------------------------------\n\n");
+            fprintf(f, "Version: %s\n", VERSION_FULL_CONFIG);
+            fprintf(f, "Signal: %s\n", p_signal.utf8().get_data());
+            fprintf(f, "Error code: %s\n", p_error_code.utf8().get_data());
+            fprintf(f, "Time: %s\n", stamp);
+            fprintf(f, "-------------------------------\n\n");
+            fprintf(f, "Last Logs:\n");
+            for (int i = 0; i < log_buffer.size(); i++) {
+                fprintf(f, "%s\n", log_buffer[i].utf8().get_data());
+            }
+            fclose(f);
+        }
+    }
 #endif
 }

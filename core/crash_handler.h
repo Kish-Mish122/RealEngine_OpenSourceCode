@@ -9,6 +9,8 @@
 struct _EXCEPTION_POINTERS;
 #endif
 
+#define CRASH_HANDLER_VERSION "1.2"
+
 class CrashHandler {
 public:
     static void setup();
@@ -17,9 +19,11 @@ public:
     static void shutdown(); // объявляем shutdown
 
 private:
+    static void _save_crash_logs(const String &p_signal, const String &p_error_code);
     static void _crash_handler(int p_signal);
     static void _show_dialog(const String &p_signal, const String &p_error_code, const String &p_last_log);
     static void _open_email(const String &p_signal, const String &p_error_code, const String &p_last_log);
+    static void _open_vk_play();
 
     static Vector<String> log_buffer;
     static int max_log_lines;

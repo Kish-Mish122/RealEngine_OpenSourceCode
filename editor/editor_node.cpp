@@ -192,8 +192,6 @@
 #include "editor/translations/packed_scene_translation_parser_plugin.h"
 #include "editor/version_control/version_control_editor_plugin.h"
 
-#include "discord_rpc.h"
-
 #ifdef VULKAN_ENABLED
 #include "editor/shader/shader_baker/shader_baker_export_plugin_platform_vulkan.h"
 #endif
@@ -840,6 +838,7 @@ void EditorNode::_notification(int p_what) {
     /*
     int *ptr = nullptr;
     *ptr = 42;
+
 
     Если вы тестируете свой код для обработки крахов и хотите убедиться, что всё работает правильно, то вы можете использовать данный код.
     int *ptr = nullptr; — вы создаете указатель и явно говорите ему, что он никуда не указывает (адрес 0).
@@ -1754,13 +1753,6 @@ Error EditorNode::load_scene_or_resource(const String &p_path, bool p_ignore_bro
 
 void EditorNode::edit_node(Node *p_node) {
 	push_item(p_node);
-	    if (DiscordRPC::get_singleton()) {
-            String scene_path = EditorNode::get_singleton()->get_edited_scene()->get_scene_file_path();
-            if (!scene_path.is_empty()) {
-                DiscordRPC::get_singleton()->update_scene(scene_path.get_file());
-            }
-            DiscordRPC::get_singleton()->update_project(ProjectSettings::get_singleton()->get("application/config/name"));
-        }
 }
 
 void EditorNode::edit_resource(const Ref<Resource> &p_resource) {
@@ -9682,9 +9674,6 @@ EditorNode::EditorNode() {
 
     // Открылся проект? Запускаем Project_Timer.cpp!
     memnew(ProjectTimer);
-
-    print_line("[REAL DISCORD] Creating DiscordRPC");
-    memnew(DiscordRPC);
 
     // Получаем текущий проект
     String current_project_path = ProjectSettings::get_singleton()->get_resource_path();
