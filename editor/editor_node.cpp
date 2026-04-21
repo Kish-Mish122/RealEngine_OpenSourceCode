@@ -3953,11 +3953,20 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 		case EDITOR_COMMAND_PALETTE: {
 			command_palette->open_popup();
 		} break;
-		case HELP_DOCS: {
-			OS::get_singleton()->shell_open("https://docs.godotengine.org/ru/4.x/");
-		} break;
+        case HELP_DOCS: {
+            // Получаем путь к директории с исполняемым файлом движка
+            String exe_path = OS::get_singleton()->get_executable_path();
+            String base_dir = exe_path.get_base_dir();
+            String pdf_path = base_dir + "/docs/Documentation.pdf";
+
+            if (FileAccess::exists(pdf_path)) {
+                OS::get_singleton()->shell_open(pdf_path);
+            } else {
+                print_line("[ERROR] Documentation PDF not found at: " + pdf_path);
+            }
+        } break;
 		case HELP_REPORT_A_BUG: {
-			OS::get_singleton()->shell_open("https://docs.godotengine.org/ru/4.x/");
+			OS::get_singleton()->shell_open("mailto:help.k1shm1sh@gmail.com");
 		} break;
 		case HELP_COPY_SYSTEM_INFO: {
 		    print_line("[REAL EDITOR INFO]: System info are copied");
@@ -3965,13 +3974,13 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			DisplayServer::get_singleton()->clipboard_set(info);
 		} break;
 		case HELP_COMMUNITY: {
-			OS::get_singleton()->shell_open("https://docs.godotengine.org/ru/4.x/");
+			OS::get_singleton()->shell_open("https://trk.mail.ru/i/zjyor5");
 		} break;
 		case HELP_ABOUT: {
 			about->popup_centered(Size2(780, 500) * EDSCALE);
 		} break;
 		case HELP_SUPPORT_GODOT_DEVELOPMENT: {
-			OS::get_singleton()->shell_open("https://boosty.to/pizzasuper");
+			OS::get_singleton()->shell_open("https://trk.mail.ru/i/wfin19");
 		} break;
 		case HELP_VK: {
 		    OS::get_singleton()->shell_open("https://vk.com/k1shm1sh_rlengine");
@@ -3986,10 +3995,10 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 		    OS::get_singleton()->shell_open("https://trk.mail.ru/c/gflo54");
 		}
 		case HELP_TG: {
-		    OS::get_singleton()->shell_open("https://t.me/rlengine");
+		    OS::get_singleton()->shell_open("https://trk.mail.ru/c/mj3ws4");
 		}
 		case HELP_NEWS: {
-		    OS::get_singleton()->shell_open("https://community.vkplay.ru/community/game/real-engine/");
+		    OS::get_singleton()->shell_open("https://trk.mail.ru/i/zjyor5");
 		}
 	}
 }
@@ -8991,7 +9000,7 @@ EditorNode::EditorNode() {
 
 	ED_SHORTCUT_AND_COMMAND("editor/editor_help", TTRC("Search Help..."), Key::F1);
 	ED_SHORTCUT_OVERRIDE("editor/editor_help", "macos", KeyModifierMask::ALT | Key::SPACE);
-	ED_SHORTCUT_AND_COMMAND("editor/online_docs", TTRC("Online Documentation"));
+	ED_SHORTCUT_AND_COMMAND("editor/online_docs", TTRC("Open file of Documentation"));
 	ED_SHORTCUT_AND_COMMAND("editor/forum", TTRC("Forum"));
 	ED_SHORTCUT_AND_COMMAND("editor/community", TTRC("Community"));
 
@@ -9690,7 +9699,8 @@ EditorNode::EditorNode() {
 
     _add_money_gimmick_menu();
 
-    callable_mp(this, &EditorNode::_add_bottom_bar).call_deferred(); // Эта функция не нужна, но лучше оставить
+    // TODO: Удалить это вместе с _add_bottom_bar
+    callable_mp(this, &EditorNode::_add_bottom_bar).call_deferred();
 
     print_line("[REAL EDITOR]: All data about the project, the engine and its version has been successfully uploaded!");
 }
@@ -9735,7 +9745,7 @@ void EditorNode::_add_system_status_bar() {
     bar->set_z_index(100);
 }
 
-// Мне лень удалять это из editor_node.h, так что, не надо это удалять
+// TODO: Удалить когда-нибудь эту функцию
 void EditorNode::_add_bottom_bar() {
 }
 

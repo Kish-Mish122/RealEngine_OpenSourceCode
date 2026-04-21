@@ -5927,8 +5927,8 @@ msgstr "Включить или отключить полноэкранный р
 msgid "Search Help..."
 msgstr "Поиск в справке…"
 
-msgid "Online Documentation"
-msgstr "Онлайн-документация"
+msgid "Open file of Documentation"
+msgstr "Открыть файл документации"
 
 msgid "Forum"
 msgstr "Форум"
