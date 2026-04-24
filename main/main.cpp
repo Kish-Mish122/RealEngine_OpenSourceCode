@@ -3893,7 +3893,6 @@ int Main::start() {
         CrashHandler::set_is_editor(false);
     #endif
         CrashHandler::setup(); // Запускаем обработчик аварийных ситуаций (свой, родной). Не допускаем НИОДНОГО перехвата от Godot.
-    print_line("[REAL CRASH HANDLER]: Starting to Work!");
 
 	GodotProfileZone("start");
 	OS::get_singleton()->benchmark_begin_measure("Startup", "Main::Start");

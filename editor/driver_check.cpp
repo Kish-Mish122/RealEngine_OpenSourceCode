@@ -276,6 +276,7 @@ void DriverCheck::show_driver_warning(Control *p_parent) {
         }
     }
 
+    // Если классический драйвер видеоадаптера
     if (has_basic) {
         message += "[b][color=red]ERROR: The Standard Windows Video Driver Has Been Detected![/color][/b]\n\n";
         message += "Real Engine has detected the Standard Windows Video Driver.\n";

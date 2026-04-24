@@ -36,7 +36,7 @@ public:
     // Поиск старых настроек
     Vector<OldSettingsFile> find_old_settings();
     void migrate_from_version(const String &p_old_path);
-    void migrate_all();  // ТОЛЬКО ОДИН РАЗ!
+    void migrate_all();
 
     // Перенос конкретных настроек
     void migrate_editor_settings(const String &p_old_path);
@@ -48,7 +48,6 @@ public:
 
     // Очистка (опционально)
     void cleanup_old_settings(bool p_keep_latest = true);
-    void set_auto_cleanup(bool p_enabled);
 };
 
 #endif // SETTINGS_MIGRATOR_H

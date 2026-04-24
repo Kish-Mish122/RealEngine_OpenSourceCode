@@ -120,7 +120,7 @@ void ProjectManager::_notification(int p_what) {
 
 		case NOTIFICATION_TRANSLATION_CHANGED: {
 			// TRANSLATORS: This refers to the application where users manage their Godot projects.
-			SceneTree::get_singleton()->get_root()->set_title(GODOT_VERSION_NAME + String(" - ") + TTR("Project List", "Application"));
+			SceneTree::get_singleton()->get_root()->set_title(GODOT_VERSION_NAME + String(" - ") + TTR("Welcome To Real Engine!", "Application"));
 
 			const String line1 = TTR("It's time to create your first masterpiece project!\n");
 			const String line2 = TTR("If you don't have a project, then it's time to create one!\nOr if you're like K1sh-M1sh, then you can download it and import it.");

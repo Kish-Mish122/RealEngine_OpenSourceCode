@@ -34,14 +34,8 @@ GitIntegration::GitIntegration() {
         if (EditorSettings::get_singleton()->has_setting("github/token")) {
             String saved_token = EditorSettings::get_singleton()->get("github/token");
             if (!saved_token.is_empty()) {
-                print_line("[REAL GITHUB] Found saved token, attempting auto-login...");
-                print_line("[REAL GITHUB] Token length: " + itos(saved_token.length()));
                 github_login(saved_token);
-            } else {
-                print_line("[REAL GITHUB] Saved token is empty");
             }
-        } else {
-            print_line("[REAL GITHUB] No saved token found");
         }
     }
 }
@@ -52,14 +46,15 @@ GitIntegration::~GitIntegration() {
     }
 }
 
+// Проверям наличие Git
 bool GitIntegration::check_git_available() {
-    String result = execute_git_command("--version");
-    git_available = !result.is_empty() && result.contains("git version");
-    return git_available;
+    String result = execute_git_command("--version"); // Самая простая проверка: прописываем в CMD --version и проверям результат
+    git_available = !result.is_empty() && result.contains("git version"); // Если в результате проверки нет ошибок, или же там не пусто, то...
+    return git_available; // Возращаем с результам "Активен"
 }
 
 String GitIntegration::execute_git_command(const String &p_command) {
-    if (!git_available && p_command != "--version") {
+    if (!git_available && p_command != "--version") {  // Проверяем вывод
         return "";
     }
 
@@ -125,7 +120,7 @@ String GitIntegration::get_current_repo_name() {
     return "";
 }
 
-// ==================== HTTP утилита ====================
+/* Утилиты HTTPS */
 
 String GitIntegration::http_request(const String &p_url, const HashMap<String, String> &p_headers,
                                     const String &p_method, const String &p_body) {
@@ -151,7 +146,6 @@ String GitIntegration::http_request(const String &p_url, const HashMap<String, S
         host = host.substr(0, path_start);
     }
 
-    print_line("[HTTP] Connecting to host: " + host + ", SSL: " + (use_ssl ? "yes" : "no"));
 
     // Добавляем TLS опции для HTTPS
     Ref<TLSOptions> tls_options;
@@ -272,11 +266,9 @@ String GitIntegration::http_request(const String &p_url, const HashMap<String, S
     return result;
 }
 
-// ==================== GitHub функции ====================
+/* GitHub утилиты */
 
 bool GitIntegration::github_login(const String &p_token) {
-    print_line("[REAL GITHUB] Attempting login with token length: " + itos(p_token.length()));
-
     github_token = p_token;
 
     HashMap<String, String> headers;
@@ -314,11 +306,8 @@ bool GitIntegration::github_login(const String &p_token) {
             String check = EditorSettings::get_singleton()->get("github/token");
             print_line("[REAL GITHUB] Token saved, check: " + String(check.is_empty() ? "FAILED" : "OK"));
         }
-
-        print_line("[REAL GITHUB] ✓ Logged in as: " + current_username);
         return true;
     } else {
-        print_line("[REAL GITHUB] Login failed - no 'login' field in response");
         if (data.has("message")) {
             print_line("[REAL GITHUB] Error message: " + (String)data["message"]);
         }
@@ -331,7 +320,6 @@ void GitIntegration::github_logout() {
     github_token = "";
     github_logged_in = false;
     current_username = "";
-    print_line("[REAL GITHUB] Logged out");
 }
 
 Vector<GitIntegration::RepoData> GitIntegration::github_list_repos() {
@@ -383,7 +371,6 @@ bool GitIntegration::github_create_repo(const String &p_name, const String &p_de
     Dictionary data = json.get_data();
 
     if (data.has("id")) {
-        print_line("[REAL GITHUB] Repository created: " + p_name);
         return true;
     } else {
         print_line("[REAL GITHUB] Failed to create repository");
@@ -393,7 +380,6 @@ bool GitIntegration::github_create_repo(const String &p_name, const String &p_de
 
 bool GitIntegration::backup_project_to_github(const String &p_repo_name, const String &p_commit_message) {
     if (!github_logged_in) {
-        print_line("[REAL GITHUB] Not logged in");
         return false;
     }
 
@@ -401,8 +387,6 @@ bool GitIntegration::backup_project_to_github(const String &p_repo_name, const S
         print_line("[REAL GIT] Git not available");
         return false;
     }
-
-    print_line("[REAL GITHUB] Creating backup repository: " + p_repo_name);
 
     if (!github_create_repo(p_repo_name, "Backup of " + project_path.get_file(), true)) {
         print_line("[REAL GITHUB] Failed to create repository");
@@ -711,7 +695,7 @@ void GitIntegration::_on_github_login(LineEdit *token_edit, AcceptDialog *dialog
     }
 }
 
-// ==================== GitLab функции ====================
+/* GitLab функции */
 
 bool GitIntegration::gitlab_login(const String &p_token, const String &p_url) {
     gitlab_token = p_token;
@@ -938,7 +922,7 @@ void GitIntegration::_on_gitlab_backup_confirm(LineEdit *repo_edit, LineEdit *ms
     }
 }
 
-// ==================== Issues функции ====================
+/* Проблемы (Окно с проблемы) */
 
 Vector<GitIntegration::IssueData> GitIntegration::list_issues(const String &p_repo) {
     Vector<IssueData> issues;

@@ -305,7 +305,7 @@ void CrashHandler::_save_crash_logs(const String &p_signal, const String &p_erro
                 fprintf(f, "%s\n", log_buffer[i].utf8().get_data());
             }
             fprintf(f, "Mode: %s\n", is_editor ? "Editor" : "Game");
-            fprintf(f, "Project: %s\n", project_name.is_empty() ? "N/A" : project_name.utf8().get_data());
+            fprintf(f, "Project: %s\n", project_name.is_empty() ? "Error write project name" : project_name.utf8().get_data());
             fclose(f);
         }
     }

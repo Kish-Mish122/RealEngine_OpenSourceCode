@@ -1,4 +1,5 @@
-/* crash_handler.h */
+/* Real Engine - K1sh-M1sh Studio */
+/* License - MIT */
 #pragma once
 
 #include "core/string/ustring.h"

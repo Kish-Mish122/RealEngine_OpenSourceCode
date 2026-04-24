@@ -14613,6 +14613,9 @@ msgstr ""
 msgid "Toggle Button"
 msgstr "Кнопка-переключатель"
 
+msgid "Welcome to Real Editor, Dear User!"
+msgstr "Добро Пожаловать в Real Редактор, пользователь!"
+
 msgid "Disabled Button"
 msgstr "Отключённая кнопка"
 

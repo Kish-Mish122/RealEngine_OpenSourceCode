@@ -3962,11 +3962,12 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
             if (FileAccess::exists(pdf_path)) {
                 OS::get_singleton()->shell_open(pdf_path);
             } else {
-                print_line("[ERROR] Documentation PDF not found at: " + pdf_path);
+                print_line("[REAL ENGINE ERROR]: Documentation PDF not found at: " + pdf_path);
             }
         } break;
 		case HELP_REPORT_A_BUG: {
 			OS::get_singleton()->shell_open("mailto:help.k1shm1sh@gmail.com");
+			print_line("[REAL REPORT A BUG]: Maintain politeness and written etiquette!");
 		} break;
 		case HELP_COPY_SYSTEM_INFO: {
 		    print_line("[REAL EDITOR INFO]: System info are copied");
@@ -4044,7 +4045,7 @@ String EditorNode::adjust_script_name_casing(const String &p_file_name, ScriptLa
 }
 
 void EditorNode::_request_screenshot() {
-    print_line("[REAL EDITOR SCREENSHOT]: request screenshot...");
+    print_line("[REAL EDITOR SCREENSHOT]: Request Screenshot...");
 	_screenshot();
 }
 
@@ -4233,12 +4234,10 @@ int EditorNode::_next_unsaved_scene(bool p_valid_filename, int p_start) {
 }
 
 void EditorNode::_exit_editor(int p_exit_code) {
-    print_line("[REAL EDITOR QUIT]: wait...");
 	exiting = true;
 	waiting_for_first_scan = false;
 	resource_preview->stop(); // Stop early to avoid crashes.
 	_save_editor_layout();
-	print_line("[REAL EDITOR QUIT]: done! Exiting...");
 
 	// Dim the editor window while it's quitting to make it clearer that it's busy.
 	dim_editor(true);
@@ -4247,7 +4246,8 @@ void EditorNode::_exit_editor(int p_exit_code) {
 	unload_editor_addons();
 
 	get_tree()->quit(p_exit_code);
-	print_line("[REAL EDITOR QUIT]: exit code: 0");
+
+	print_line("[REAL ENGINE/EDITOR]: Quit with error code: 0");
 }
 
 void EditorNode::unload_editor_addons() {
@@ -9430,7 +9430,8 @@ EditorNode::EditorNode() {
 	if (AssetLibraryEditorPlugin::is_available()) {
 		add_editor_plugin(memnew(AssetLibraryEditorPlugin));
 	} else {
-		print_verbose("Real Store not available...");
+		print_verbose("The Real Store is not available right now...\nCheck your internet connection, how it works, or if it exists at all!");
+		print_line("Real Store is not available right now...");
 	}
 
 	// More visually meaningful to have this later.
@@ -9658,28 +9659,18 @@ EditorNode::EditorNode() {
 	callable_mp(this, &EditorNode::_check_templates_and_ask).call_deferred();
 
 	// Стартуем проверку системы/Real Engine
-    print_line("[REAL SYSTEM CHECKER]: Starting to work...");
     SystemMonitor::create_singleton();
     SystemMonitor::get_singleton()->start_monitoring();
-    print_line("[REAL SYSTEM CHECKER]: Started to work!");
 
     // Стартуем проверку драйверов и оперативной памяти
-    print_line("[REAL CHECKER]: Starting to work...");
     callable_mp(this, &EditorNode::_run_startup_checks).call_deferred();
-    print_line("[REAL CHECKER]: Started to work!");
 
     // Стартуем Hot Reload
-    print_line("[REAL HOT RELOAD]: Starting to work...");
     project_running = false;
     hot_reload_timer = nullptr;
-    print_line("[REAL HOT RELOAD]: Started to work!");
 
     // Git
-    print_line("[REAL GIT]: Starting to work...");
     git_integration = nullptr;
-    print_line("[REAL GIT]: Started to work!");
-
-    print_line("[REAL ENGINE] Creating ProjectTimer");
 
     // Открылся проект? Запускаем Project_Timer.cpp!
     memnew(ProjectTimer);
@@ -9690,6 +9681,7 @@ EditorNode::EditorNode() {
        ProjectTimer::get_singleton()->project_opened(current_project_path);
     }
     Timer *timer = memnew(Timer);
+    add_child(timer);
     timer->set_name("project_time_timer");
     timer->set_wait_time(1.0);
     timer->set_one_shot(false);
@@ -9699,10 +9691,9 @@ EditorNode::EditorNode() {
 
     _add_money_gimmick_menu();
 
-    // TODO: Удалить это вместе с _add_bottom_bar
-    callable_mp(this, &EditorNode::_add_bottom_bar).call_deferred();
+    EditorToaster::get_singleton()->popup_str("Welcome to Real Editor, Dear User!", EditorToaster::SEVERITY_INFO);
 
-    print_line("[REAL EDITOR]: All data about the project, the engine and its version has been successfully uploaded!");
+    print_line("[REAL ENGINE/EDITOR]: Engine is Starting to Work!");
 }
 
 EditorNode::~EditorNode() {
@@ -9743,10 +9734,6 @@ void EditorNode::_add_system_status_bar() {
     gui_base->add_child(bar);
     bar->set_anchors_and_offsets_preset(Control::PRESET_BOTTOM_WIDE);
     bar->set_z_index(100);
-}
-
-// TODO: Удалить когда-нибудь эту функцию
-void EditorNode::_add_bottom_bar() {
 }
 
 // Функция обновления Project_Timer.cpp
@@ -9809,18 +9796,13 @@ void EditorNode::_property_changed(Object *p_obj, const String &p_prop, const Va
 
 // Функция старта проверки драйверов и RAM
 void EditorNode::_run_startup_checks() {
-    print_line("[REAL CHECKER]: Running startup checks...");
-
     if (gui_base) {
-        print_line("[REAL CHECKER]: GUI base exists");
 
         DriverCheck *driver_check = memnew(DriverCheck);
         driver_check->show_driver_warning(gui_base);
 
         RAMCheck *ram_check = memnew(RAMCheck);
         ram_check->check_ram_at_startup(gui_base);
-    } else {
-        print_line("[REAL CHECKER]: GUI base is NULL!");
     }
 }
 
@@ -9834,14 +9816,12 @@ void EditorNode::_start_hot_reload_timer() {
         add_child(hot_reload_timer);
     }
     hot_reload_timer->start();
-    print_line("[REAL RELOAD]: Time Reload - Started!");
 }
 
 // Функция ОСТАНОВКИ горячей перезагрузки. Остановка происходит именно тогда, когда игра в редакторе останавливается
 void EditorNode::_stop_hot_reload_timer() {
     if (hot_reload_timer) {
         hot_reload_timer->stop();
-        print_line("[REAL RELOAD]: Timer stopped");
     }
 }
 
@@ -9864,11 +9844,11 @@ void EditorNode::_check_hot_reload() {
         uint64_t *cached_time = script_last_modified.getptr(path);
 
         if (cached_time && *cached_time != last_modified) {
-            print_line("[REAL RELOAD]: File changed: " + path.get_file());
+            print_line("[REAL HOT RELOAD]: File changed: " + path.get_file());
             script_last_modified[path] = last_modified;
 
             ResourceLoader::load(path, "", ResourceFormatLoader::CACHE_MODE_IGNORE);
-            print_line("[REAL RELOAD]: Script reloaded: " + path.get_file());
+            print_line("[REAL HOT RELOAD]: Script reloaded: " + path.get_file());
 
         } else if (!cached_time) {
             script_last_modified[path] = last_modified;
@@ -9905,7 +9885,7 @@ void EditorNode::_scan_folder(const String &p_path, const String &p_extension, V
 
 void EditorNode::_autosave_notification() {
     if (EDITOR_GET("interface/editor/autosave_enabled")) {
-        EditorToaster::get_singleton()->popup_str("5 seconds until autosave...", EditorToaster::SEVERITY_INFO);
+        EditorToaster::get_singleton()->popup_str("There are 5 seconds left until auto-save.", EditorToaster::SEVERITY_INFO);
     }
 }
 
@@ -9952,10 +9932,8 @@ void EditorNode::_update_autosave_timers() {
             autosave_timer->stop();
             autosave_notification_timer->stop();
 
-            if (!autosave_enabled) {
-                print_line("Autosave disabled");
-            } else {
-                print_line("Autosave interval too short: " + itos(autosave_interval) + " seconds");
+            if (autosave_interval < 0) { // Проверка отрицательных чисел в поле ввода автосейв
+                print_line("Autosave interval cannot be negative: " + itos(autosave_interval) + " seconds");
             }
         }
     }
@@ -9987,7 +9965,6 @@ void EditorNode::_import_asset_from_url(const String &p_url, const String &p_nam
 }
 
 void EditorNode::_import_asset_downloaded(int p_status, int p_code, const PackedStringArray &p_headers, const PackedByteArray &p_data, const String &p_temp_file) {
-    // Смотрим настройки, если не стоит галочка "Не задавать больше вопросы о больших файлах"
     bool dont_ask = EditorSettings::get_singleton()->get_setting("filesystem/import/dont_ask_large_files");
 
     if (!dont_ask) {
@@ -10043,7 +10020,6 @@ void EditorNode::_import_asset_downloaded(int p_status, int p_code, const Packed
 
     // Если меньше 1 гб, то продолжим импорт
     _continue_asset_import(p_status, p_code, p_headers, p_data, p_temp_file);
-    print_line("[REAL IMPORTING]: The file is less than 1 GB or the user has disabled the verification, we continue downloading...");
 }
 
 // Confirm Large Import
@@ -10061,7 +10037,6 @@ void EditorNode::_confirm_large_import() {
 }
 
 void EditorNode::_cancel_large_import() {
-    print_line("Large file import cancelled by user");
     progress_dialog->end_task("import_asset");
 }
 
@@ -10176,6 +10151,7 @@ void EditorNode::_enable_money_gimmick(bool p_enabled) {
     }
 }
 
+/* Не нужные как бы функции, но, для развлечения - нужны */
 void EditorNode::_add_money_gimmick_menu() {
     if (!settings_menu) return;
     settings_menu->add_separator();
