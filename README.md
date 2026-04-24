@@ -1,7 +1,7 @@
 # Real Engine
 
 <p align="center">
-  <a href="https://www.k1shm1sh-realengine.ru/">
+  <a href="https://vkplay.ru/play/game/real-engine-46163/">
     <img src="logo_outlined.svg" width="400" alt="Real Engine logo">
   </a>
 </p>
