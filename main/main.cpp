@@ -3887,7 +3887,12 @@ static MainTimerSync main_timer_sync;
 // and should move on to `OS::run`, and EXIT_FAILURE otherwise for
 // an early exit with that error code.
 int Main::start() {
-    CrashHandler::setup(); // Запускаем обработчик аварийных ситуаций (свой, родной). Не допускаем НИОДНОГО перехвата от Godot.
+    #ifdef TOOLS_ENABLED
+        CrashHandler::set_is_editor(true);
+    #else
+        CrashHandler::set_is_editor(false);
+    #endif
+        CrashHandler::setup(); // Запускаем обработчик аварийных ситуаций (свой, родной). Не допускаем НИОДНОГО перехвата от Godot.
     print_line("[REAL CRASH HANDLER]: Starting to Work!");
 
 	GodotProfileZone("start");
@@ -4769,6 +4774,11 @@ int Main::start() {
 
 	// Создаем синглтон мониторинга
 	SystemMonitor::create_singleton();
+
+	#ifndef TOOLS_ENABLED
+        String proj_name = GLOBAL_DEF("application/config/name", "Unknown Project");
+        CrashHandler::set_project_name(proj_name);
+    #endif
 }
 
 /* Main iteration

@@ -37,6 +37,8 @@ int CrashHandler::max_log_lines = 100;
 bool CrashHandler::handler_installed = false;
 bool CrashHandler::normal_exit = false;
 bool CrashHandler::dialog_shown = false;
+bool CrashHandler::is_editor = false;
+String CrashHandler::project_name = "";
 
 #ifdef WINDOWS_ENABLED
 
@@ -184,11 +186,25 @@ void CrashHandler::_show_dialog(const String &p_signal, const String &p_error_co
     hIcon = (HICON)LoadImageA(GetModuleHandleA(NULL), "crash_handler_logo.ico", IMAGE_ICON, 48, 48, LR_LOADFROMFILE);
 
     String version = "Real Engine " + String(VERSION_FULL_CONFIG);
-    String mainInstruction = version + " - Crash Handler v" + CRASH_HANDLER_VERSION + " detected a crash!";
-    String content = "Review the logs shown below. Your code may have crashed the Real Engine.\nIf the error was not your fault, then inform the Real Engine developer about it.\n\n";
+    String mainInstruction;
+    String content;
+    String expandedInfo = "Last log before crash:\n" + p_last_log;
+
+    if (is_editor) {
+        // Режим редактора
+        mainInstruction = version + " - Crash Handler v" CRASH_HANDLER_VERSION " detected a crash!";
+        content = "Review the logs shown below. Your code may have crashed the Real Engine.\n";
+        content += "If the error was not your fault, then inform the Real Engine developer about it.\n\n";
+    } else {
+        // Режим игры
+        String proj = project_name.is_empty() ? "Unknown Project" : project_name;
+        mainInstruction = "Project \"" + proj + "\" has encountered an error and needs to close.";
+        content = "We apologize for the inconvenience.\n";
+        content += "Please report this problem to the project's developer.\n\n";
+    }
+
     content += "Signal: " + p_signal + "\n";
     content += "Error code: " + p_error_code + "\n\n";
-    String expandedInfo = "Last log before crash:\n" + p_last_log;
 
     TASKDIALOG_BUTTON buttons[] = {
         { 100, L"Close without report a bug" },
@@ -288,8 +304,18 @@ void CrashHandler::_save_crash_logs(const String &p_signal, const String &p_erro
             for (int i = 0; i < log_buffer.size(); i++) {
                 fprintf(f, "%s\n", log_buffer[i].utf8().get_data());
             }
+            fprintf(f, "Mode: %s\n", is_editor ? "Editor" : "Game");
+            fprintf(f, "Project: %s\n", project_name.is_empty() ? "N/A" : project_name.utf8().get_data());
             fclose(f);
         }
     }
 #endif
+}
+
+void CrashHandler::set_is_editor(bool p_is_editor) {
+    is_editor = p_is_editor;
+}
+
+void CrashHandler::set_project_name(const String &p_name) {
+    project_name = p_name;
 }
