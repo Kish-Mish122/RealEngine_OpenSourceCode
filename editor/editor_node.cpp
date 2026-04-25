@@ -257,11 +257,6 @@ EditorProgress::~EditorProgress() {
 	}
 }
 
-void EditorNode::_real_engine_started()
-{
-	print_line("[REAL EDITOR INFO]: Real Engine - Starting!");
-}
-
 void EditorNode::disambiguate_filenames(const Vector<String> p_full_paths, Vector<String> &r_filenames) {
 	ERR_FAIL_COND_MSG(p_full_paths.size() != r_filenames.size(), vformat("disambiguate_filenames requires two string vectors of same length (%d != %d).", p_full_paths.size(), r_filenames.size()));
 
@@ -728,6 +723,7 @@ void EditorNode::_update_theme(bool p_skip_creation) {
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_VKPLAY), get_editor_theme_native_menu_icon(SNAME("VKPlay"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_TG), get_editor_theme_native_menu_icon(SNAME("Telegram"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_NEWS), get_editor_theme_native_menu_icon(SNAME("News"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
+		help_menu->set_item_icon(help_menu->get_item_index(HELP_GITHUB), get_editor_theme_native_menu_icon(SNAME("GitHub"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_SUPPORT_GODOT_DEVELOPMENT), get_editor_theme_native_menu_icon(SNAME("Money"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 
 		_update_renderer_color();
@@ -844,6 +840,8 @@ void EditorNode::_notification(int p_what) {
     Если вы тестируете свой код для обработки крахов и хотите убедиться, что всё работает правильно, то вы можете использовать данный код.
     int *ptr = nullptr; — вы создаете указатель и явно говорите ему, что он никуда не указывает (адрес 0).
     *ptr = 42; — вы пытаетесь «разыменовать» этот указатель, то есть пойти по адресу 0 и записать туда число 42.
+
+    Вы можете использовать в main.cpp, чтобы не открывать проект.
     */
 	switch (p_what) {
 		case NOTIFICATION_TRANSLATION_CHANGED: {
@@ -1101,7 +1099,6 @@ void EditorNode::_notification(int p_what) {
 		} break;
 
 		case NOTIFICATION_WM_CLOSE_REQUEST: {
-		    print_line("[REAL ENGINE] Closing editor...");
 
             // Сохраняем время СРАЗУ и синхронно
             if (ProjectTimer::get_singleton()) {
@@ -3983,13 +3980,13 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			DisplayServer::get_singleton()->clipboard_set(info);
 		} break;
 		case HELP_COMMUNITY: {
-			OS::get_singleton()->shell_open("https://trk.mail.ru/i/zjyor5");
+			OS::get_singleton()->shell_open("https://community.vkplay.ru/community/game/real-engine-46163/?mt_link_id=zjyor5");
 		} break;
 		case HELP_ABOUT: {
 			about->popup_centered(Size2(780, 500) * EDSCALE);
 		} break;
 		case HELP_SUPPORT_GODOT_DEVELOPMENT: {
-			OS::get_singleton()->shell_open("https://trk.mail.ru/i/wfin19");
+			OS::get_singleton()->shell_open("https://boosty.to/pizzasuper?mt_link_id=wfin19");
 		} break;
 		case HELP_VK: {
 		    OS::get_singleton()->shell_open("https://vk.com/k1shm1sh_rlengine");
@@ -4001,13 +3998,16 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 		    OS::get_singleton()->shell_open("https://ruscord.net/?code=emb5u1");
 		}
 		case HELP_VKPLAY: {
-		    OS::get_singleton()->shell_open("https://trk.mail.ru/c/gflo54");
+		    OS::get_singleton()->shell_open("https://vkplay.ru/play/game/real-engine/?mt_link_id=gflo54");
 		}
 		case HELP_TG: {
-		    OS::get_singleton()->shell_open("https://trk.mail.ru/c/mj3ws4");
+		    OS::get_singleton()->shell_open("https://t.me/rlengine?mt_link_id=mj3ws4");
 		}
 		case HELP_NEWS: {
-		    OS::get_singleton()->shell_open("https://trk.mail.ru/i/zjyor5");
+		    OS::get_singleton()->shell_open("https://community.vkplay.ru/community/game/real-engine-46163/?mt_link_id=zjyor5");
+		}
+		case HELP_GITHUB: {
+		    OS::get_singleton()->shell_open("https://github.com/Kish-Mish122/RealEngine_OpenSourceCode?mt_link_id=bjzjkx6");
 		}
 	}
 }
@@ -4053,7 +4053,6 @@ String EditorNode::adjust_script_name_casing(const String &p_file_name, ScriptLa
 }
 
 void EditorNode::_request_screenshot() {
-    print_line("[REAL EDITOR SCREENSHOT]: Request Screenshot...");
 	_screenshot();
 }
 
@@ -4150,6 +4149,7 @@ void EditorNode::_check_system_theme_changed() {
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_VKPLAY), get_editor_theme_native_menu_icon(SNAME("VKPlay"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_TG), get_editor_theme_native_menu_icon(SNAME("Telegram"), menu_type==MENU_TYPE_GLOBAL,dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_NEWS), get_editor_theme_native_menu_icon(SNAME("News"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
+		help_menu->set_item_icon(help_menu->get_item_index(HELP_GITHUB), get_editor_theme_native_menu_icon(SNAME("GitHub"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_SUPPORT_GODOT_DEVELOPMENT), get_editor_theme_native_menu_icon(SNAME("Money"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		editor_dock_manager->update_docks_menu();
 	}
@@ -8223,6 +8223,7 @@ void EditorNode::_build_help_menu() {
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/vkplay"), HELP_VKPLAY);
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/tg"), HELP_TG);
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/news"), HELP_NEWS);
+	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/github"), HELP_GITHUB);
 	help_menu->add_separator();
 #ifdef MACOS_ENABLED
 	if (menu_type != MENU_TYPE_GLOBAL) {
@@ -9022,6 +9023,7 @@ EditorNode::EditorNode() {
 	ED_SHORTCUT_AND_COMMAND("editor/about", TTRC("About Real Engine..."));
 	ED_SHORTCUT_AND_COMMAND("editor/tg", TTRC("Telegram"));
 	ED_SHORTCUT_AND_COMMAND("editor/news", TTRC("News"));
+	ED_SHORTCUT_AND_COMMAND("editor/github", TTRC("Open GitHub"));
 	ED_SHORTCUT_AND_COMMAND("editor/support_development", TTRC("Support Real Engine Development"));
 
 	// Use the Ctrl modifier so F2 can be used to rename nodes in the scene tree dock.

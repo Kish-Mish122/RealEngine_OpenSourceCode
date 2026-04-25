@@ -8507,8 +8507,8 @@ msgstr "Ресурсы, которые будут уникальными:"
 msgid "Duplicate resources"
 msgstr "Дублировать ресурсы"
 
-msgid "Real Engine.ru (Best)"
-msgstr "Real Engine.ru (Лучшее)"
+msgid "Real Engine (Best)"
+msgstr "Real Engine (Лучшее)"
 
 msgid "New"
 msgstr "Создать"
@@ -23158,3 +23158,6 @@ msgstr "Отправленно успешно!"
 
 msgid "Upload failed: "
 msgstr "Отправка с ошибкой: "
+
+msgid "Open GitHub"
+msgstr "Открыть GitHub"

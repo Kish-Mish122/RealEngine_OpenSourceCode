@@ -124,7 +124,7 @@ class EditorNode : public Node {
 	GDCLASS(EditorNode, Node);
 
 public:
-      RealMemory *get_real_memory() const { return real_memory; }
+     RealMemory *get_real_memory() const { return real_memory; }
 	enum SceneNameCasing {
 		SCENE_NAME_CASING_AUTO,
 		SCENE_NAME_CASING_PASCAL_CASE,
@@ -228,6 +228,7 @@ public:
 		HELP_VKPLAY,
 		HELP_TG,
 		HELP_NEWS,
+		HELP_GITHUB,
 
 		// Update spinner menu.
 		SPINNER_UPDATE_CONTINUOUSLY,
@@ -281,8 +282,6 @@ private:
     void _cancel_large_import();
     void _continue_asset_import(int p_status, int p_code, const PackedStringArray &p_headers, const PackedByteArray &p_data, const String &p_temp_file);
     void _set_dont_ask_large_files(bool p_enabled);
-
-    void _real_engine_started();
 
     String get_project_path() const;
     void _update_project_time();

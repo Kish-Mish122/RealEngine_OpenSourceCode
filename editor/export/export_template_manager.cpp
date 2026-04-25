@@ -350,15 +350,15 @@ void ExportTemplateManager::_refresh_mirrors_completed(int p_status, int p_code,
 // TODO: Сделать два зеркала для скачивания
 void ExportTemplateManager::_add_custom_mirrors() {
     mirrors_list->clear();
-
     mirrors_list->add_item(TTR("Best available mirror"), 0);
-    String default_url = "https://github.com/Kish-Mish122/realengine/releases/download/v23.2.6/25.4.6.close-alpha.tpz";
 
-    mirrors_list->add_item("Real Engine.ru (Best)");
-    mirrors_list->set_item_metadata(1, default_url);
+    String version = VERSION_FULL_CONFIG; // Например, "25.4.6.close-alpha"
+    String url = "https://github.com/Kish-Mish122/realengine/releases/download/" + version + "/" + version + ".close-alpha.tpz";
+    /* Раньше, тут вместо version был полный адрес, но позже - изменил для удобства */
 
+    mirrors_list->add_item("Real Engine (Best)");
+    mirrors_list->set_item_metadata(1, url);
     mirrors_list->select(1);
-
     mirrors_available = true;
 }
 
@@ -379,6 +379,7 @@ bool ExportTemplateManager::_humanize_http_status(HTTPRequest *p_request, String
 	switch (p_request->get_http_client_status()) {
 		case HTTPClient::STATUS_DISCONNECTED:
 			*r_status = TTR("Failed");
+			print_line("[REAL EXPORT]: Export Template: Failed! Error: DISCONNECTED");
 			success = false;
 			break;
 		case HTTPClient::STATUS_RESOLVING:
@@ -386,6 +387,7 @@ bool ExportTemplateManager::_humanize_http_status(HTTPRequest *p_request, String
 			break;
 		case HTTPClient::STATUS_CANT_RESOLVE:
 			*r_status = TTR("Can't Resolve");
+			print_line("[REAL EXPORT]: Export Template: Failed! Error: CAN'T RESOLVE");
 			success = false;
 			break;
 		case HTTPClient::STATUS_CONNECTING:
@@ -393,6 +395,7 @@ bool ExportTemplateManager::_humanize_http_status(HTTPRequest *p_request, String
 			break;
 		case HTTPClient::STATUS_CANT_CONNECT:
 			*r_status = TTR("Couldn't start the download");
+			print_line("[REAL EXPORT]: Export Template: Failed! Error: CAN'T CONNECT");
 			success = false;
 			break;
 		case HTTPClient::STATUS_CONNECTED:
@@ -411,13 +414,16 @@ bool ExportTemplateManager::_humanize_http_status(HTTPRequest *p_request, String
 			} else {
 				*r_status += " " + String::humanize_size(p_request->get_downloaded_bytes());
 			}
+			print_line("[REAL EXPORT]: Status: Download...");
 			break;
 		case HTTPClient::STATUS_CONNECTION_ERROR:
 			*r_status = TTR("Connection Error");
+			print_line("[REAL EXPORT]: Export Template: Failed! Error: CONNECTION ERROR");
 			success = false;
 			break;
 		case HTTPClient::STATUS_TLS_HANDSHAKE_ERROR:
 			*r_status = TTR("TLS Handshake Error");
+			print_line("[REAL EXPORT]: Export Template: Failed! Error: TLS HANDSHAKE ERROR");
 			success = false;
 			break;
 	}
