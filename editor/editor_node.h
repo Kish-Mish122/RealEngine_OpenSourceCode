@@ -38,6 +38,7 @@
 #include "editor/editor_data.h"
 #include "editor/plugins/editor_plugin.h"
 #include "editor/settings/editor_folding.h"
+#include "editor/export_itch.h"
 
 typedef void (*EditorNodeInitCallback)();
 typedef void (*EditorPluginInitializeCallback)();
@@ -184,6 +185,7 @@ public:
 		PROJECT_OPEN_USER_DATA_FOLDER,
 		PROJECT_RELOAD_CURRENT_PROJECT,
 		PROJECT_QUIT_TO_PROJECT_MANAGER,
+		EXPORT_ITCH,
 
 		TOOLS_ORPHAN_RESOURCES,
 		TOOLS_BUILD_PROFILE_MANAGER,
@@ -254,6 +256,8 @@ public:
 	};
 
 private:
+    ExportItchDialog *export_itch_dialog = nullptr;
+
     void _add_system_status_bar();
 
     void _on_node_added(Node *p_node);

@@ -41,6 +41,7 @@
 #include "scene/gui/label.h"
 #include "scene/resources/style_box_flat.h"
 #include "servers/rendering/rendering_server.h"
+#include "editor/export_itch.h"
 #include "real_todo/real_todo_dock.h"
 #include "editor/system_status_bar.h"
 #include "git_integration.h"
@@ -3431,6 +3432,13 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 				load_scene(prev_closed_scenes.back()->get());
 			}
 		} break;
+		case EXPORT_ITCH: {
+            if (!export_itch_dialog) {
+                export_itch_dialog = memnew(ExportItchDialog);
+                add_child(export_itch_dialog);
+            }
+            export_itch_dialog->show_dialog();
+        } break;
 		case EditorSceneTabs::SCENE_CLOSE_OTHERS: {
 			tab_closing_menu_option = -1;
 			for (int i = 0; i < editor_data.get_edited_scene_count(); i++) {
@@ -8116,6 +8124,7 @@ void EditorNode::_build_project_menu() {
     project_menu->add_item(TTRC("Backup to GitHub"), PROJECT_BACKUP);
     project_menu->add_item(TTRC("Backup to GitLab"), PROJECT_BACKUP_GITLAB);
 	project_menu->add_item(TTRC("Install Android Build Template..."), PROJECT_INSTALL_ANDROID_SOURCE);
+	project_menu->add_item(TTRC("Export to itch.io"), EXPORT_ITCH);
 #ifndef ANDROID_ENABLED
 	project_menu->add_item(TTRC("Open User Data Folder"), PROJECT_OPEN_USER_DATA_FOLDER);
 #endif

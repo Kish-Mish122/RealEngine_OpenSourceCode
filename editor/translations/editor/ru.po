@@ -23110,3 +23110,51 @@ msgstr ""
 "версии 4.3, поэтому в том случае, если этот код был написан до 4.3, он "
 "перестанет работать. Рекомендуется указать z-компонент пространства клипа "
 "напрямую, т.е. использовать «vec4(VERTEX.xy, 1.0, 1.0)»."
+
+msgid "Export to itch.io"
+msgstr "Экспорт на itch"
+
+msgid "Butler executable path:"
+msgstr "Путь к Butler itch:"
+
+msgid "Itch.io username:"
+msgstr "Itch никнейм:"
+
+msgid "Game name (as on Itch.io):"
+msgstr "Название игры (как в Itch):"
+
+msgid "Channel (e.g. windows-latest, html5):"
+msgstr "Канал (н.р. windows-lastet, html5):"
+
+msgid "Exported build folder:"
+msgstr "Папка с билдом игры:"
+
+msgid "Browse..."
+msgstr "Открыть..."
+
+msgid "Upload"
+msgstr "Отправить"
+
+msgid "Cancel"
+msgstr "Закрыть"
+
+msgid "Butler path is empty."
+msgstr "Пусть к Butler пустой."
+
+msgid "Butler executable not found."
+msgstr "Исполняемый файл не найден (Butler)."
+
+msgid "Username or game name is empty."
+msgstr "Никнейм или название игры путое."
+
+msgid "Export folder not specified."
+msgstr "Папка с билдом не найдена или не правильная."
+
+msgid "Uploading... Please wait..."
+msgstr "Отправляется на сервера... Подождите..."
+
+msgid "Upload successful!"
+msgstr "Отправленно успешно!"
+
+msgid "Upload failed: "
+msgstr "Отправка с ошибкой: "

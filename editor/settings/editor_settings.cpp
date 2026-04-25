@@ -628,6 +628,13 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
     EDITOR_SETTING(Variant::INT, PROPERTY_HINT_RANGE, "interface/theme/additional_spacing", 0, "0,8,1")
     EDITOR_SETTING_USAGE(Variant::STRING, PROPERTY_HINT_GLOBAL_FILE, "interface/theme/custom_theme", "", "*.res,*.tres,*.theme", PROPERTY_USAGE_DEFAULT)
 
+    // Itch.io export settings
+    EDITOR_SETTING(Variant::STRING, PROPERTY_HINT_NONE, "export/itch/butler_path", "", "")
+    EDITOR_SETTING(Variant::STRING, PROPERTY_HINT_NONE, "export/itch/username", "", "")
+    EDITOR_SETTING(Variant::STRING, PROPERTY_HINT_NONE, "export/itch/game_name", "", "")
+    EDITOR_SETTING(Variant::STRING, PROPERTY_HINT_NONE, "export/itch/channel", "windows-latest", "")
+    EDITOR_SETTING(Variant::STRING, PROPERTY_HINT_NONE, "export/itch/export_path", "", "")
+
 	// Touchscreen
 	bool has_touchscreen_ui = DisplayServer::get_singleton()->is_touchscreen_available();
 	bool is_native_touchscreen = has_touchscreen_ui && !OS::get_singleton()->has_feature("xr_editor"); // Disable some touchscreen settings by default for the XR Editor.

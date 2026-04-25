@@ -349,11 +349,10 @@ void ExportTemplateManager::_refresh_mirrors_completed(int p_status, int p_code,
 
 // TODO: Сделать два зеркала для скачивания
 void ExportTemplateManager::_add_custom_mirrors() {
-    print_line("[REAL EXPORT]: showing mirror...");
     mirrors_list->clear();
 
     mirrors_list->add_item(TTR("Best available mirror"), 0);
-    String default_url = "https://github.com/Kish-Mish122/realengine/releases/download/v23.2.6/23.2.6.close-alpha.tpz";
+    String default_url = "https://github.com/Kish-Mish122/realengine/releases/download/v23.2.6/25.4.6.close-alpha.tpz";
 
     mirrors_list->add_item("Real Engine.ru (Best)");
     mirrors_list->set_item_metadata(1, default_url);
@@ -361,8 +360,6 @@ void ExportTemplateManager::_add_custom_mirrors() {
     mirrors_list->select(1);
 
     mirrors_available = true;
-
-    print_line("[REAL EXPORT]: mirror showing!");
 }
 
 void ExportTemplateManager::_force_online_mode() {
