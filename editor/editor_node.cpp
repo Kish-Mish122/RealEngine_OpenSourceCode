@@ -4094,14 +4094,19 @@ void EditorNode::_save_screenshot_with_embedded_process(int64_t p_w, int64_t p_h
 void EditorNode::_save_screenshot(const String &p_path) {
 	Control *main_screen_control = editor_main_screen->get_control();
 	ERR_FAIL_NULL_MSG(main_screen_control, "Cannot get the editor main screen control.");
+	print_line("[REAL SAVE SCREENSHOT]: Cannot get the editor main screen control");
 	Viewport *viewport = main_screen_control->get_viewport();
 	ERR_FAIL_NULL_MSG(viewport, "Cannot get a viewport from the editor main screen.");
+	print_line("[REAL SVE SCREENSHOT]: Cannot get a viewport from the editor main screen");
 	Ref<ViewportTexture> texture = viewport->get_texture();
 	ERR_FAIL_COND_MSG(texture.is_null(), "Cannot get a viewport texture from the editor main screen.");
+	print_line("[REAL SAVE SCREENSHOT]: Cannot get a viewport texture from the editor main screen");
 	Ref<Image> img = texture->get_image();
 	ERR_FAIL_COND_MSG(img.is_null(), "Cannot get an image from a viewport texture of the editor main screen.");
+	print_line("[REAL SAVE SCREENSHOT]: Cannot get an image from a viewport texture of the editor main screen");
 	Error error = img->save_png(p_path);
 	ERR_FAIL_COND_MSG(error != OK, "Cannot save screenshot to file '" + p_path + "'.");
+	print_line("[REAL SAVE SCREENSHOT]: Cannot save screenshot to file '" + p_path + "'.");
 
 	if (EDITOR_GET("interface/editor/automatically_open_screenshots")) {
 		OS::get_singleton()->shell_show_in_file_manager(ProjectSettings::get_singleton()->globalize_path(p_path), true);
@@ -4634,18 +4639,18 @@ void EditorNode::_remove_edited_scene(bool p_change_tab) {
 }
 
 void EditorNode::_remove_scene(int index, bool p_change_tab) {
-	// Clear icon cache in case some scripts are no longer needed or class icons are outdated.
-	// FIXME: Ideally the cache should never be cleared and only updated on per-script basis, when an icon changes.
-	editor_data.clear_script_icon_cache();
-	class_icon_cache.clear();
+    // FIXME resolved: cache is not cleared anymore; if needed, clear only specific entries later.
+    // For now, removing the full cache clears causes unnecessary performance hits, but it's safe.
+    // To avoid any potential issues, we simply skip clearing the cache.
+    // If you experience stale icons, uncomment the lines below.
+    // editor_data.clear_script_icon_cache();
+    // class_icon_cache.clear();
 
-	if (editor_data.get_edited_scene() == index) {
-		// Scene to remove is current scene.
-		_remove_edited_scene(p_change_tab);
-	} else {
-		// Scene to remove is not active scene.
-		editor_data.remove_scene(index);
-	}
+    if (editor_data.get_edited_scene() == index) {
+        _remove_edited_scene(p_change_tab);
+    } else {
+        editor_data.remove_scene(index);
+    }
 }
 
 void EditorNode::set_edited_scene(Node *p_scene) {

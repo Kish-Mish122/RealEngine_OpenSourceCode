@@ -104,6 +104,7 @@ class EditorSelection;
 
 class EditorData {
 public:
+
 	struct CustomType {
 		String name;
 		Ref<Script> script;

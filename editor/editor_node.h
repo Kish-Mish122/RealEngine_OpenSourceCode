@@ -124,7 +124,7 @@ class EditorNode : public Node {
 	GDCLASS(EditorNode, Node);
 
 public:
-     RealMemory *get_real_memory() const { return real_memory; }
+    RealMemory *get_real_memory() const { return real_memory; }
 	enum SceneNameCasing {
 		SCENE_NAME_CASING_AUTO,
 		SCENE_NAME_CASING_PASCAL_CASE,
