@@ -103,8 +103,6 @@ void ExportItchDialog::_on_export_folder_selected(const String &p_path) {
 }
 
 void ExportItchDialog::_upload() {
-    print_line("[ExportItch] Upload button clicked");
-
     EditorSettings *es = EditorSettings::get_singleton();
     es->set_setting("export/itch/butler_path", butler_path_edit->get_text());
     es->set_setting("export/itch/username", username_edit->get_text());
@@ -116,10 +114,12 @@ void ExportItchDialog::_upload() {
     String butler = butler_path_edit->get_text().strip_edges();
     if (butler.is_empty()) {
         _update_status(TTR("Butler path is empty."), true);
+        print_line("[REAL ITCH]: Butler path is empty");
         return;
     }
     if (!FileAccess::exists(butler)) {
         _update_status(TTR("Butler executable not found."), true);
+        print_line("[REAL ITCH]: Butler executable not found");
         return;
     }
 
@@ -128,16 +128,19 @@ void ExportItchDialog::_upload() {
     String channel = channel_edit->get_text().strip_edges();
     if (username.is_empty() || game.is_empty()) {
         _update_status(TTR("Username or game name is empty."), true);
+        print_line("[REAL ITCH]: Username or game name is empty");
         return;
     }
 
     String export_path = export_path_edit->get_text().strip_edges();
     if (export_path.is_empty()) {
         _update_status(TTR("Export folder not specified."), true);
+        print_line("[REAL ITCH]: Export folder not specified");
         return;
     }
     if (!DirAccess::exists(export_path)) {
         _update_status(TTR("Export folder does not exist."), true);
+        print_line("[REAL ITCH]: Export folder does not exist");
         return;
     }
 
@@ -152,13 +155,15 @@ void ExportItchDialog::_upload() {
     String output;
     int exit_code = 0;
     Error err = OS::get_singleton()->execute(butler, args, &output, &exit_code, true);
-    print_line("[ExportItch] Exit code: " + itos(exit_code) + ", output: " + output);
+    print_line("[REAL ITCH]: Exit code: " + itos(exit_code) + ", output: " + output);
 
     if (err == OK && exit_code == 0) {
         _update_status(TTR("Upload successful!"));
+        print_line("[REAL ITCH]: Upload successful!");
         hide();
     } else {
         _update_status(TTR("Upload failed: ") + output, true);
+        print_line("[REAL ITCH]: Upload is Failed! Output: " + output, true);
     }
 }
 
@@ -170,3 +175,7 @@ void ExportItchDialog::_bind_methods() {
     ClassDB::bind_method(D_METHOD("_browse_export_folder"), &ExportItchDialog::_browse_export_folder);
     ClassDB::bind_method(D_METHOD("_on_export_folder_selected", "path"), &ExportItchDialog::_on_export_folder_selected);
 }
+
+/* Зачем столько логов?
+При попытке экспорта может крашнуться Real Engine, логи помогают найти в чём была ошибка
+*/

@@ -120,7 +120,7 @@ GDScriptDataType GDScriptCompiler::_gdtype_from_datatype(const GDScriptParser::D
 
 #ifdef DEBUG_ENABLED
 			if (unlikely(!GDScriptLanguage::get_singleton()->get_global_map().has(result.native_type))) {
-				_set_error(vformat(R"(GDScript bug (please report): Native class "%s" not found.)", result.native_type), nullptr);
+				_set_error(vformat(R"(RLScript bug (please report): Native class "%s" not found.)", result.native_type), nullptr);
 				return GDScriptDataType();
 			}
 #endif
@@ -445,7 +445,7 @@ GDScriptCodeGenerator::Address GDScriptCompiler::_parse_expression(CodeGen &code
 							res = Ref<GDScript>(main_script);
 						} else {
 							String global_class_path = ScriptServer::get_global_class_path(identifier);
-							if (ResourceLoader::get_resource_type(global_class_path) == "GDScript") {
+							if (ResourceLoader::get_resource_type(global_class_path) == "RLScript") {
 								Error err = OK;
 								// Should not need to pass p_owner since analyzer will already have done it.
 								res = GDScriptCache::get_shallow_script(global_class_path, err);

@@ -4315,7 +4315,7 @@ static Error _lookup_symbol_from_base(const GDScriptParser::DataType &p_base, co
 
 	if (p_symbol == "PI" || p_symbol == "TAU" || p_symbol == "INF" || p_symbol == "NAN") {
 		r_result.type = ScriptLanguage::LOOKUP_RESULT_CLASS_CONSTANT;
-		r_result.class_name = "@GDScript";
+		r_result.class_name = "@RLScript";
 		r_result.class_member = p_symbol;
 		return OK;
 	}
@@ -4332,7 +4332,7 @@ static Error _lookup_symbol_from_base(const GDScriptParser::DataType &p_base, co
 		// keywords, so are not registered in `GDScriptUtilityFunctions`.
 		if (GDScriptUtilityFunctions::function_exists(p_symbol) || p_symbol == "assert" || p_symbol == "preload") {
 			r_result.type = ScriptLanguage::LOOKUP_RESULT_CLASS_METHOD;
-			r_result.class_name = "@GDScript";
+			r_result.class_name = "@RLScript";
 			r_result.class_member = p_symbol;
 			return OK;
 		}
@@ -4622,7 +4622,7 @@ static Error _lookup_symbol_from_base(const GDScriptParser::DataType &p_base, co
 			const String annotation_symbol = "@" + p_symbol;
 			if (parser.annotation_exists(annotation_symbol)) {
 				r_result.type = ScriptLanguage::LOOKUP_RESULT_CLASS_ANNOTATION;
-				r_result.class_name = "@GDScript";
+				r_result.class_name = "@RLScript";
 				r_result.class_member = annotation_symbol;
 				return OK;
 			}

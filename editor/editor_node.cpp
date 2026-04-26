@@ -1340,7 +1340,7 @@ void EditorNode::_fs_changed() {
 
 	_mark_unsaved_scenes();
 
-	// FIXME: Move this to a cleaner location, it's hacky to do this in _fs_changed.
+	// NOTE: Move this to a cleaner location, it's hacky to do this in _fs_changed.
 	String export_error;
 	Error err = OK;
 	// It's important to wait for the first scan to finish; otherwise, scripts or resources might not be imported.
@@ -2732,7 +2732,6 @@ void EditorNode::_dialog_action(String p_file) {
 		case SETTINGS_PICK_MAIN_SCENE: {
 			ProjectSettings::get_singleton()->set("application/run/main_scene", ResourceUID::path_to_uid(p_file));
 			ProjectSettings::get_singleton()->save();
-			// TODO: Would be nice to show the project manager opened with the highlighted field.
 
 			project_run_bar->play_main_scene((bool)pick_main_scene->get_meta("from_native", false));
 		} break;
@@ -3021,7 +3020,6 @@ void EditorNode::edit_item(Object *p_object, Object *p_editing_owner) {
 				epres->fold_resource();
 			}
 
-			// TODO: Call the function directly once a proper priority system is implemented.
 			to_over_edit.push_back(plugin);
 		}
 
@@ -3388,7 +3386,7 @@ static String _get_unsaved_scene_dialog_text(String p_scene_filename, uint64_t p
 }
 
 void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
-	if (!p_confirmed) { // FIXME: this may be a hack.
+	if (!p_confirmed) { // Using saved option after confirmation
 		current_menu_option = (MenuOptions)p_option;
 	}
 
@@ -4639,7 +4637,6 @@ void EditorNode::_remove_edited_scene(bool p_change_tab) {
 }
 
 void EditorNode::_remove_scene(int index, bool p_change_tab) {
-    // FIXME resolved: cache is not cleared anymore; if needed, clear only specific entries later.
     // For now, removing the full cache clears causes unnecessary performance hits, but it's safe.
     // To avoid any potential issues, we simply skip clearing the cache.
     // If you experience stale icons, uncomment the lines below.
@@ -5310,7 +5307,6 @@ void EditorNode::get_preload_scene_modification_table(
 		for (const Connection &c : connections_to) {
 			Node *connection_target_node = Object::cast_to<Node>(c.callable.get_object());
 			if (connection_target_node) {
-				// TODO: add support for reinstating custom callables
 				if (!c.callable.is_custom()) {
 					ConnectionWithNodePath connection_to;
 					connection_to.connection = c;
@@ -5340,7 +5336,6 @@ void EditorNode::get_preload_scene_modification_table(
 			}
 
 			if (!source_node || valid_source_owner == nullptr) {
-				// TODO: add support for reinstating custom callables
 				if (!c.callable.is_custom()) {
 					valid_connections_from.push_back(c);
 				}
@@ -5744,7 +5739,6 @@ Ref<Script> EditorNode::get_object_custom_type_base(const Object *p_object) cons
 		// 	return name;
 		// }
 
-		// TODO: Should probably be deprecated in 4.x
 		StringName base = scr->get_instance_base_type();
 		if (base != StringName() && EditorNode::get_editor_data().get_custom_types().has(base)) {
 			const Vector<EditorData::CustomType> &types = EditorNode::get_editor_data().get_custom_types()[base];
@@ -5780,7 +5774,6 @@ StringName EditorNode::get_object_custom_type_name(const Object *p_object) const
 				return name;
 			}
 
-			// TODO: Should probably be deprecated in 4.x.
 			StringName base = base_scr->get_instance_base_type();
 			if (base != StringName() && EditorNode::get_editor_data().get_custom_types().has(base)) {
 				const Vector<EditorData::CustomType> &types = EditorNode::get_editor_data().get_custom_types()[base];
@@ -5865,7 +5858,6 @@ Ref<Texture2D> EditorNode::_get_class_or_script_icon(const String &p_class, cons
 	}
 
 	// Check if the class name is a custom type.
-	// TODO: Should probably be deprecated in 4.x
 	const EditorData::CustomType *ctype = ed.get_custom_type_by_name(p_class);
 	if (ctype && ctype->icon.is_valid()) {
 		return ctype->icon;
@@ -6955,7 +6947,6 @@ Dictionary EditorNode::drag_resource(const Ref<Resource> &p_res, Control *p_from
 	Ref<Texture2D> preview;
 
 	{
-		// TODO: make proper previews
 		Ref<Texture2D> texture = theme->get_icon(SNAME("FileBigThumb"), EditorStringName(EditorIcons));
 		if (texture.is_valid()) {
 			Ref<Image> img = texture->get_image();

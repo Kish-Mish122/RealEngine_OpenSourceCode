@@ -141,7 +141,7 @@ Error GDScriptTokenizerBuffer::set_code_buffer(const Vector<uint8_t> &p_buffer) 
 	ERR_FAIL_COND_V(p_buffer.size() < 12 || p_buffer[0] != 'G' || p_buffer[1] != 'D' || p_buffer[2] != 'S' || p_buffer[3] != 'C', ERR_INVALID_DATA);
 
 	int version = decode_uint32(&buf[4]);
-	ERR_FAIL_COND_V_MSG(version != TOKENIZER_VERSION, ERR_INVALID_DATA, "Binary GDScript is not compatible with this engine version.");
+	ERR_FAIL_COND_V_MSG(version != TOKENIZER_VERSION, ERR_INVALID_DATA, "Binary RLScript is not compatible with this engine version.");
 
 	int decompressed_size = decode_uint32(&buf[8]);
 
@@ -151,7 +151,7 @@ Error GDScriptTokenizerBuffer::set_code_buffer(const Vector<uint8_t> &p_buffer) 
 	} else {
 		contents.resize(decompressed_size);
 		const int64_t result = Compression::decompress(contents.ptrw(), contents.size(), &buf[12], p_buffer.size() - 12, Compression::MODE_ZSTD);
-		ERR_FAIL_COND_V_MSG(result != decompressed_size, ERR_INVALID_DATA, "Error decompressing GDScript tokenizer buffer.");
+		ERR_FAIL_COND_V_MSG(result != decompressed_size, ERR_INVALID_DATA, "Error decompressing RLScript tokenizer buffer.");
 	}
 
 	int total_len = contents.size();
@@ -372,7 +372,7 @@ Vector<uint8_t> GDScriptTokenizerBuffer::parse_code_string(const String &p_code,
 			compressed.resize(max_size);
 
 			const int64_t compressed_size = Compression::compress(compressed.ptrw(), contents.ptr(), contents.size(), Compression::MODE_ZSTD);
-			ERR_FAIL_COND_V_MSG(compressed_size < 0, Vector<uint8_t>(), "Error compressing GDScript tokenizer buffer.");
+			ERR_FAIL_COND_V_MSG(compressed_size < 0, Vector<uint8_t>(), "Error compressing RLScript tokenizer buffer.");
 			compressed.resize(compressed_size);
 
 			buf.append_array(compressed);
