@@ -3993,7 +3993,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 		    OS::get_singleton()->shell_open("https://discord.com/invite/AKF69xysp6");
 		}
 		case HELP_RUSCORD: {
-		    OS::get_singleton()->shell_open("https://ruscord.net/?code=emb5u1");
+		    OS::get_singleton()->shell_open("https://ruscord.net/?code=qgebdu&mt_link_id=izd8n3");
 		}
 		case HELP_VKPLAY: {
 		    OS::get_singleton()->shell_open("https://vkplay.ru/play/game/real-engine/?mt_link_id=gflo54");
