@@ -1,11 +1,10 @@
 short_name = "rlengine"
 name = "Real Engine"
-major = 27
+major = 28
 minor = 4
 patch = 6
 status = "close-alpha"
 module_config = ""
-version_build = "VFM"
-version_docs_url = "https://vkplay.ru/play/game/real-engine/"
 website = "https://vkplay.ru/play/game/real-engine/"
-docs = "27.4.6"
+docs = "28.4.6"
+build = "VFM"

@@ -2069,9 +2069,23 @@ ProjectManager::ProjectManager() {
         // Fade the version label to be less prominent, but still readable.
         version_btn->set_self_modulate(Color(1, 1, 1, 0.6));
 
-        String tooltip = "Version: " + String(GODOT_VERSION_FULL_CONFIG) + "\n"; // Текст версии Real Engine
-        tooltip += "Build date: " + String(__DATE__) + " " + String(__TIME__) + "\n"; // Дата сборки
-        tooltip += "Git hash: " + String(GODOT_VERSION_HASH); // Хэш репозитория
+        String tooltip = "|Version: " + String(GODOT_VERSION_FULL_CONFIG) + "\n"; // Текст версии Real Engine
+        tooltip += "|Build date: " + String(__DATE__) + " " + String(__TIME__) + "\n"; // Дата сборки
+        tooltip += "|Git hash: " + String(GODOT_VERSION_HASH) + "\n"; // Хэш репозитория
+        // Указываем текстом, какая данная версия.
+        #if defined(BETA_VERSION)
+            tooltip += "|Beta-Test\n";
+            tooltip += "|TimeBomb: 20.05.2026";
+            print_line("[REAL BETA]: Starting engine in version Beta! TimeBomb: 25.06.2026");
+        #elif defined(EARLY_RELEASE)
+            tooltip += "|Early Release";
+            print_line("[REAL EARLY]: Starting engine in version Early! TimeBomb not is Starting!");
+        #elif defined(RELEASE)
+        	tooltip += "|Release";
+        #else
+            tooltip += "|Unknow Version";
+            print_line("[REAL ENGINE VERSION]: Unknow version!");
+        #endif
         version_btn->set_tooltip_text(tooltip);
 
         footer_bar->add_child(version_btn);

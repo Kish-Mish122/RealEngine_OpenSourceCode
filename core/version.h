@@ -74,7 +74,7 @@
 // Similar to GODOT_VERSION_FULL_CONFIG, but also includes the (potentially custom) GODOT_VERSION_BUILD
 // description (e.g. official, custom_build, etc.).
 // Example: "3.1.4.stable.mono.double.official"
-#define GODOT_VERSION_FULL_BUILD GODOT_VERSION_FULL_CONFIG "." GODOT_VERSION_BUILD
+#define GODOT_VERSION_FULL_BUILD GODOT_VERSION_FULL_CONFIG ".VFM"
 
 // Same as above, but prepended with Godot's name and a cosmetic "v" for "version".
 // Example: "Godot v3.1.4.stable.official.mono.double"

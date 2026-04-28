@@ -151,6 +151,76 @@
 #endif // TOOLS_ENABLED && !GDSCRIPT_NO_LSP
 #endif // MODULE_GDSCRIPT_ENABLED
 
+#ifdef BETA_VERSION
+
+#include "core/io/file_access.h"
+#include "core/io/dir_access.h"
+#include "core/os/os.h"
+
+static String get_hidden_timestamp_path() {
+    String config_dir;
+    if (OS::get_singleton()->has_environment("APPDATA")) {
+        config_dir = OS::get_singleton()->get_environment("APPDATA") + "/RLEngine/Beta";
+    } else {
+        config_dir = OS::get_singleton()->get_user_data_dir() + "/.rlengine_beta";
+    }
+    Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
+    if (da.is_valid() && !da->dir_exists(config_dir)) {
+        da->make_dir_recursive(config_dir);
+    }
+    return config_dir.path_join(".timestamp");
+}
+
+static String compute_hash(uint64_t timestamp, const String &salt) {
+    return (String::num_uint64(timestamp) + salt).md5_text();
+}
+
+static bool is_beta_expired() {
+    const String SALT = "REAL_ENGINE_BETA_SALT_2026";
+    const uint64_t EXPIRY_TIMESTAMP = 1782432000; // 2026-06-25 00:00:00 UTC
+
+    String path = get_hidden_timestamp_path();
+    uint64_t current_time = OS::get_singleton()->get_unix_time();
+
+    if (current_time > EXPIRY_TIMESTAMP) {
+        return true;
+    }
+
+    if (FileAccess::exists(path)) {
+        Ref<FileAccess> f = FileAccess::open(path, FileAccess::READ);
+        if (f.is_valid()) {
+            uint64_t last_time = f->get_64();
+            String stored_hash = f->get_line();
+            f.unref();
+
+            if (compute_hash(last_time, SALT) != stored_hash) {
+                return true;
+            }
+            if (current_time < last_time) {
+                return true;
+            }
+            if (current_time > last_time + 365 * 86400) {
+                return true;
+            }
+        } else {
+            return true;
+        }
+    }
+
+    Ref<FileAccess> f = FileAccess::open(path, FileAccess::WRITE);
+    if (f.is_valid()) {
+        f->store_64(current_time);
+        f->store_line(compute_hash(current_time, SALT));
+        f.unref();
+    } else {
+        return true;
+    }
+
+    return false;
+}
+
+#endif // BETA_VERSION
+
 /* Static members */
 
 // Singletons
@@ -3887,6 +3957,14 @@ static MainTimerSync main_timer_sync;
 // and should move on to `OS::run`, and EXIT_FAILURE otherwise for
 // an early exit with that error code.
 int Main::start() {
+    #ifdef BETA_VERSION
+        if (is_beta_expired()) {
+            OS::get_singleton()->alert("The beta test of the Real Engine has been completed! The code main.cpp It was destroyed! Please download the new version of the Real Engine!");
+            print_line("[REAL BETA-TESTING]: Attention: The beta test of the Real Engine has been completed! Please download the new version of Real Engine from VK Play, Itch.Io , GitHub!");
+            return ERR_UNAVAILABLE;
+        }
+    #endif
+
     #ifdef TOOLS_ENABLED
         CrashHandler::set_is_editor(true);
     #else

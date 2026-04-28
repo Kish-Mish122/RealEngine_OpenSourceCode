@@ -365,6 +365,18 @@ elif ARGUMENTS.get('github', 'no') == 'yes':
     print("Building for GitHub (update checks enabled)")
     env.Append(CPPDEFINES=['GITHUB_BUILD'])
 
+if ARGUMENTS.get("beta", "no") == "yes":
+    print("[REAL BETA]: Beta-Test Build")
+    env.Append(CPPDEFINES=["BETA_VERSION"])
+
+if ARGUMENTS.get("early", "no") == "yes":
+    print("[REAL EARLY]: Early Release")
+    env.Append(SPPDEFINES=["EARLY_RELEASE"])
+
+if ARGUMENTS.get("release", "no") == "yes":
+    print("[REAL ENGINE VERSION]: Release")
+    env.Append(SPPDEFINES=["RELEASE"])
+
 # Update the environment to have all above options defined
 # in following code (especially platform and custom_modules).
 opts.Update(env)
