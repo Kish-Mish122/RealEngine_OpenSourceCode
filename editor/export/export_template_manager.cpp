@@ -347,13 +347,12 @@ void ExportTemplateManager::_refresh_mirrors_completed(int p_status, int p_code,
     }
 }
 
-// TODO: Сделать два зеркала для скачивания
 void ExportTemplateManager::_add_custom_mirrors() {
     mirrors_list->clear();
     mirrors_list->add_item(TTR("Best available mirror"), 0);
 
-    String version = VERSION_FULL_CONFIG; // Например, "25.4.6.close-alpha"
-    String url = "https://github.com/Kish-Mish122/realengine/releases/download/" + version + "/" + version + ".close-alpha.tpz";
+    String version = VERSION_FULL_CONFIG;
+    String url = "https://github.com/Kish-Mish122/realengine/releases/download/" + version + "/" + version + ".tpz";
     /* Раньше, тут вместо version был полный адрес, но позже - изменил для удобства */
 
     mirrors_list->add_item("Real Engine (Best)");

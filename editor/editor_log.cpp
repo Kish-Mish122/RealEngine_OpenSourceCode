@@ -400,7 +400,7 @@ void EditorLog::_add_log_line(LogMessage &p_message, bool p_replace_previous) {
 	String display_text = p_message.text;
 
 	if (p_message.type == MSG_TYPE_STD || p_message.type == MSG_TYPE_STD_RICH) {
-		display_text = " LOG: " + display_text;
+		display_text = "LOG: " + display_text;
 	}
 
 	switch (p_message.type) {

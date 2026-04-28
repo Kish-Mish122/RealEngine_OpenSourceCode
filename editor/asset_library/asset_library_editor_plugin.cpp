@@ -512,9 +512,9 @@ void EditorAssetLibraryItemDownload::configure(const String &p_title, int p_asse
 void EditorAssetLibraryItemDownload::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_THEME_CHANGED: {
-			panel->add_theme_style_override(SceneStringName(panel), get_theme_stylebox(SceneStringName(panel), SNAME("AssetLib")));
-			status->add_theme_color_override(SceneStringName(font_color), get_theme_color(SNAME("status_color"), SNAME("AssetLib")));
-			dismiss_button->set_texture_normal(get_theme_icon(SNAME("dismiss"), SNAME("AssetLib")));
+			panel->add_theme_style_override(SceneStringName(panel), get_theme_stylebox(SceneStringName(panel), SNAME("Real Store")));
+			status->add_theme_color_override(SceneStringName(font_color), get_theme_color(SNAME("status_color"), SNAME("Real Store")));
+			dismiss_button->set_texture_normal(get_theme_icon(SNAME("dismiss"), SNAME("Real Store")));
 		} break;
 
 		case NOTIFICATION_PROCESS: {
@@ -846,7 +846,7 @@ const char *EditorAssetLibrary::support_text[SUPPORT_MAX] = {
 };
 
 void EditorAssetLibrary::_select_author(const String &p_author) {
-	if (!host.contains("realengine.ru")) {
+	if (!host.contains("Real Engine (Official)")) {
 		// Don't open the link for alternative repositories.
 		return;
 	}

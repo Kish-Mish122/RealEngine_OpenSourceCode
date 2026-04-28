@@ -1640,21 +1640,14 @@ void EditorNode::_reload_modified_scenes() {
 }
 
 void EditorNode::_reload_project_settings() {
-    print_line(">>>>>> _reload_project_settings CALLED");
-
     String path = ProjectSettings::get_singleton()->get_resource_path();
-    print_line(">>>>>> Project path from settings: " + path);
 
     if (path.is_empty()) {
-        print_line(">>>>>> ERROR: Project path is empty!");
         return;
     }
 
     if (ProjectTimer::get_singleton()) {
-        print_line(">>>>>> Calling project_opened with path: " + path);
         ProjectTimer::get_singleton()->project_opened(path);
-    } else {
-        print_line(">>>>>> ERROR: ProjectTimer is NULL!");
     }
 }
 
@@ -3988,25 +3981,25 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 		} break;
 		case HELP_VK: {
 		    OS::get_singleton()->shell_open("https://vk.com/k1shm1sh_rlengine");
-		}
+		} break;
 		case HELP_DISCORD: {
 		    OS::get_singleton()->shell_open("https://discord.com/invite/AKF69xysp6");
-		}
+		} break;
 		case HELP_RUSCORD: {
 		    OS::get_singleton()->shell_open("https://ruscord.net/?code=qgebdu&mt_link_id=izd8n3");
-		}
+		} break;
 		case HELP_VKPLAY: {
 		    OS::get_singleton()->shell_open("https://vkplay.ru/play/game/real-engine/?mt_link_id=gflo54");
-		}
+		} break;
 		case HELP_TG: {
-		    OS::get_singleton()->shell_open("https://t.me/rlengine?mt_link_id=mj3ws4");
-		}
+		    OS::get_singleton()->shell_open("https://t.me/rlengine?mt_link_id=mj3ws4"); // Конечно, телеграмм заблокирован в России, так что, данная ссылка как бы безполезная...ы
+		} break;
 		case HELP_NEWS: {
 		    OS::get_singleton()->shell_open("https://community.vkplay.ru/community/game/real-engine-46163/?mt_link_id=zjyor5");
-		}
+		} break;
 		case HELP_GITHUB: {
 		    OS::get_singleton()->shell_open("https://github.com/Kish-Mish122/RealEngine_OpenSourceCode?mt_link_id=bjzjkx6");
-		}
+		} break;
 	}
 }
 
@@ -5566,7 +5559,6 @@ void EditorNode::_project_run_started() {
 		editor_dock_manager->open_dock(EditorDebuggerNode::get_singleton(), true);
 	}
 
-	    print_line("[REAL RELOAD]: Project started");
         project_running = true;
         _start_hot_reload_timer();
 }
@@ -5577,7 +5569,6 @@ void EditorNode::_project_run_stopped() {
 		bottom_panel->hide_bottom_panel();
 	}
 
-    print_line("[REAL RELOAD]: Project stopped");
         project_running = false;
         _stop_hot_reload_timer();
 }
@@ -8410,8 +8401,6 @@ EditorNode::EditorNode() {
 		cmdline_mode = true;
 	}
 
-	print_line("[REAL ENGINE/SETTINGS/MIGRATOR/MAIN/STARTER]: Starting to work...");
-
 	Resource::_get_local_scene_func = _resource_get_edited_scene;
 
 	{
@@ -8519,27 +8508,21 @@ EditorNode::EditorNode() {
 				break;
 			case 1:
 				EditorScale::set_scale(0.75);
-				print_line("[REAL SCALE] Scale: x0.75");
 				break;
 			case 2:
 				EditorScale::set_scale(1.0);
-				print_line("[REAL SCALE] Scale: Normal");
 				break;
 			case 3:
 				EditorScale::set_scale(1.25);
-				print_line("[REAL SCALE]: Scale: X1.25");
 				break;
 			case 4:
 				EditorScale::set_scale(1.5);
-				print_line("[REAL SCALE]: Scale: x1.5");
 				break;
 			case 5:
 				EditorScale::set_scale(1.75);
-				print_line("[REAL SCALE]: Scale: X1.75");
 				break;
 			case 6:
 				EditorScale::set_scale(2.0);
-				print_line("[REAL SCALE]: Scale: X2.0");
 				break;
 			default:
 				EditorScale::set_scale(EDITOR_GET("interface/editor/custom_display_scale"));
@@ -9438,7 +9421,6 @@ EditorNode::EditorNode() {
 		add_editor_plugin(memnew(AssetLibraryEditorPlugin));
 	} else {
 		print_verbose("The Real Store is not available right now...\nCheck your internet connection, how it works, or if it exists at all!");
-		print_line("Real Store is not available right now...");
 	}
 
 	// More visually meaningful to have this later.
@@ -9662,27 +9644,20 @@ EditorNode::EditorNode() {
 	follow_system_theme = EDITOR_GET("interface/theme/follow_system_theme");
 	use_system_accent_color = EDITOR_GET("interface/theme/use_system_accent_color");
 
-	// Смотрим, есть ли шаблон для сборки. Если нет, то спрашиваем, нужен ли пользователю он
 	callable_mp(this, &EditorNode::_check_templates_and_ask).call_deferred();
 
-	// Стартуем проверку системы/Real Engine
     SystemMonitor::create_singleton();
     SystemMonitor::get_singleton()->start_monitoring();
 
-    // Стартуем проверку драйверов и оперативной памяти
     callable_mp(this, &EditorNode::_run_startup_checks).call_deferred();
 
-    // Стартуем Hot Reload
     project_running = false;
     hot_reload_timer = nullptr;
 
-    // Git
     git_integration = nullptr;
 
-    // Открылся проект? Запускаем Project_Timer.cpp!
     memnew(ProjectTimer);
 
-    // Получаем текущий проект
     String current_project_path = ProjectSettings::get_singleton()->get_resource_path();
     if (!current_project_path.is_empty()) {
        ProjectTimer::get_singleton()->project_opened(current_project_path);
@@ -9698,9 +9673,7 @@ EditorNode::EditorNode() {
 
     _add_money_gimmick_menu();
 
-    EditorToaster::get_singleton()->popup_str("Welcome to Real Editor, Dear User!", EditorToaster::SEVERITY_INFO);
-
-    print_line("[REAL ENGINE/EDITOR]: Engine is Starting to Work!");
+    EditorToaster::get_singleton()->popup_str("Welcome to Real Editor", EditorToaster::SEVERITY_INFO);
 }
 
 EditorNode::~EditorNode() {
@@ -9743,17 +9716,14 @@ void EditorNode::_add_system_status_bar() {
     bar->set_z_index(100);
 }
 
-// Функция обновления Project_Timer.cpp
 void EditorNode::_update_project_time() {
-    // Проверяем, включён ли таймер
     if (!EditorSettings::get_singleton()->get_setting("project_timer/enable_timer")) {
-        return; // Таймер отключён в настройках
+        return;
     }
 
     if (ProjectTimer::get_singleton()) {
         ProjectTimer::get_singleton()->update();
 
-        // Авто-сохранение
         int interval = EditorSettings::get_singleton()->get_setting("project_timer/auto_save_interval");
         static int counter = 0;
         counter++;
@@ -9782,18 +9752,16 @@ void EditorNode::_node_created(Node *p_node) {
     _update_money_gimmick_state();
 }
 
-// При изменении свойства:
 void EditorNode::_property_changed(Object *p_obj, const String &p_prop, const Variant &p_value) {
     if (!real_memory || !p_obj) return;
 
     Dictionary props;
 
-    // Проверяем, является ли объект Node (у него есть путь)
     Node *node = Object::cast_to<Node>(p_obj);
     if (node) {
-        props["object"] = node->get_path();  // Только у Node есть get_path()
+        props["object"] = node->get_path();
     } else {
-        props["object"] = p_obj->get_class(); // Для других объектов сохраняем класс
+        props["object"] = p_obj->get_class();
     }
 
     props["property"] = p_prop;
@@ -9801,7 +9769,6 @@ void EditorNode::_property_changed(Object *p_obj, const String &p_prop, const Va
     real_memory->record_action("property_change", p_prop, props);
 }
 
-// Функция старта проверки драйверов и RAM
 void EditorNode::_run_startup_checks() {
     if (gui_base) {
 
@@ -9813,7 +9780,6 @@ void EditorNode::_run_startup_checks() {
     }
 }
 
-// Функция СТАРТА горячей перезагрузки. Запускается именно тогда, когда запускается игра в редакторе
 void EditorNode::_start_hot_reload_timer() {
     if (!hot_reload_timer) {
         hot_reload_timer = memnew(Timer);
@@ -9825,7 +9791,6 @@ void EditorNode::_start_hot_reload_timer() {
     hot_reload_timer->start();
 }
 
-// Функция ОСТАНОВКИ горячей перезагрузки. Остановка происходит именно тогда, когда игра в редакторе останавливается
 void EditorNode::_stop_hot_reload_timer() {
     if (hot_reload_timer) {
         hot_reload_timer->stop();
@@ -10090,24 +10055,20 @@ void EditorNode::_download_templates_if_missing() {
 }
 
 void EditorNode::_check_templates_and_ask() {
-    print_line("[REAL CHECKER]: Check Templates...");
     String templates_dir = EditorPaths::get_singleton()->get_export_templates_dir().path_join(GODOT_VERSION_FULL_CONFIG);
 
     if (!DirAccess::exists(templates_dir)) {
-        print_line("[REAL CHECKER]: No build template found!");
         ConfirmationDialog *ask_dialog = memnew(ConfirmationDialog);
         ask_dialog->set_title(TTR("Real Engine - No build template found!"));
         ask_dialog->set_text(TTR("Real Engine did not detect a template for the build.\nMaybe you should download it automatically?"));
-        ask_dialog->set_ok_button_text(TTR("Download Templates")); // Кнопка "Скачать шаблон"
-        ask_dialog->set_cancel_button_text(TTR("Later")); // Кнопка "Позже"
+        ask_dialog->set_ok_button_text(TTR("Download Templates"));
+        ask_dialog->set_cancel_button_text(TTR("Later"));
 
         ask_dialog->connect(SceneStringName(confirmed), callable_mp(this, &EditorNode::_open_template_manager));
 
         add_child(ask_dialog);
         ask_dialog->popup_centered();
     }
-
-    print_line("[REAL CHECKER]: Checked Templates!");
 }
 
 void EditorNode::_open_template_manager() {

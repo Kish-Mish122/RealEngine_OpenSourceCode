@@ -18,11 +18,11 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName",            "K1sh-M1sh Studio"
-            VALUE "FileDescription",        GODOT_VERSION_NAME
+            VALUE "FileDescription",        "Are you ready to start/continue your project?"
             VALUE "FileVersion",            GODOT_VERSION_NUMBER
             VALUE "ProductName",            GODOT_VERSION_NAME
             VALUE "Licence",                "MIT"
-            VALUE "Info",                   "https://www.k1shm1sh-realengine.ru"
+            VALUE "Info",                   "https://vkplay.ru/play/game/real-engine/?mt_link_id=gflo54"
             VALUE "ProductVersion",         GODOT_VERSION_FULL_BUILD
         END
     END
