@@ -1,14 +1,14 @@
 # Real Engine
 
 <p align="center">
-  <a href="https://vkplay.ru/play/game/real-engine-46163/">
+  <a href="https://vkplay.ru/play/game/real-engine/?mt_link_id=gflo54">
     <img src="logo_outlined.svg" width="400" alt="Real Engine logo">
   </a>
 </p>
 
 ## Игровой движок:
 
-**[Real Engine](https://www.k1shm1sh-realengine.ru)** - игровой движок для создания игр, где вам открыты все дороги вашей фантазии!
+**[Real Engine](https://vkplay.ru/play/game/real-engine/?mt_link_id=gflo54)** - игровой движок для создания игр, где вам открыты все дороги вашей фантазии!
 
 ## Бесплатный и открытый исходный код
 
@@ -33,7 +33,12 @@ SCons - программа с открытым исходным кодом дл�
 #### Сборка
 1. Скачайте mingw64 и откройте его
 2. Через cd пройди в ваш путь с основными скриптами (выглядит так: cd /d/source_realengine)
-3. Пропишите команду ***scons platform=windows target=editor -j****
+3. Пропишите команду: 
+
+`bash`
+	
+	scons platform=windows target=editor -j
+	
 4. Ждите примерно 20-40 минут, пока все файла не забилдиться в папку bin
 5. После этого, вы сможете зайти в движок
 
@@ -54,6 +59,13 @@ SCons - программа с открытым исходным кодом дл�
 1. Стандартный перевод (по умолчанию английский) - *msgid*
 2. Перевод на русский (или ваш) - *msgstr*
 
+Напрмер:
+
+`msgid code`
+
+	msgid "Hello World"
+	msgstr "Привет Мир"
+
 #### Если сломался перевод
 Если у вас сломался перевод (например, если нет вообще перевода, всё на английском),
 то лучше всего запустить консольную версию движка и посмотерть, что не так с переводом.
@@ -72,15 +84,19 @@ SCons - программа с открытым исходным кодом дл�
 Удачи в создании ваших движков!
 
 ## Мои соц.сети
-**[На проект в VK Play](https://vkplay.ru/play/game/real-engine/)**;
+	1. **[На проект в VK Play](https://vkplay.ru/play/game/real-engine/?mt_link_id=gflo54)**;
 
-**[Ссылка на VK Play ИЦ](mailrugames://show/0.2042297/)**;
+	2. **[Ruscord](https://ruscord.net/?code=qgebdu&mt_link_id=izd8n3)**;
 
-**[Ruscord](https://ruscord.net/?code=y1c7x8)**;
+	3.**[Community VK Play](https://community.vkplay.ru/community/game/real-engine-46163/?mt_link_id=zjyor5)**;
+
+	4.**[Support](https://boosty.to/pizzasuper?mt_link_id=wfin19)**;
+
+	5.**[Telegram](https://t.me/rlengine?mt_link_id=mj3ws4)**;
 
 ### ***Пробуйте, создавайте и делитесь вместе с Real Engine!***
 
 #### Поддержка
 *По вопросам поддержки/помощи: help.k1shm1sh@gmail.com*
 
-*По личным вопросам: Discord: .k1shm1shic, Ruscord: 7_slashgames, VK: https://vk.com/kishmish_official*
+*По личным вопросам: **Discord:** .k1shm1shic, **Ruscord:** k1sh_m1sh, **Telegram:** @k1shm1sh25*
