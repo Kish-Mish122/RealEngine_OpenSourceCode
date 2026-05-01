@@ -5,6 +5,6 @@ minor = 5
 patch = 6
 status = "close-alpha"
 module_config = ""
-website = "https://vkplay.ru/play/game/real-engine/"
+website = "https://vkplay.ru/play/game/real-engine/?mt_link_id=gflo54"
 docs = "1.5.6"
 build = "VFM"
