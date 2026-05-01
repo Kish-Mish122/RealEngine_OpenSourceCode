@@ -2075,16 +2075,13 @@ ProjectManager::ProjectManager() {
         // Указываем текстом, какая данная версия.
         #if defined(BETA_VERSION)
             tooltip += "|Beta-Test\n";
-            tooltip += "|TimeBomb: 20.05.2026";
-            print_line("[REAL BETA]: Starting engine in version Beta! TimeBomb: 25.06.2026");
+            tooltip += "|TimeBomb: 20.0	5.2026";
         #elif defined(EARLY_RELEASE)
             tooltip += "|Early Release";
-            print_line("[REAL EARLY]: Starting engine in version Early! TimeBomb not is Starting!");
         #elif defined(RELEASE)
         	tooltip += "|Release";
         #else
             tooltip += "|Unknow Version";
-            print_line("[REAL ENGINE VERSION]: Unknow version!");
         #endif
         version_btn->set_tooltip_text(tooltip);
 

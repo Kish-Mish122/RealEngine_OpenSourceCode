@@ -221,6 +221,196 @@ static bool is_beta_expired() {
 
 #endif // BETA_VERSION
 
+#ifdef WINDOWS_ENABLED
+#include <windows.h>
+#include <cstdio>
+#include <versionhelpers.h>
+
+static bool is_windows_version_at_least(DWORD major, DWORD minor, WORD build = 0) {
+    typedef NTSTATUS (WINAPI *RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
+    HMODULE hNtdll = GetModuleHandleW(L"ntdll.dll"); // Находим DLL-файл, чтобы проверить версию Windows и NT
+    if (hNtdll) {
+        RtlGetVersionPtr rtl = (RtlGetVersionPtr)GetProcAddress(hNtdll, "RtlGetVersion");
+        if (rtl) {
+            RTL_OSVERSIONINFOW osvi = { sizeof(osvi) };
+            if (rtl(&osvi) == 0) {
+                return (osvi.dwMajorVersion > major) ||
+                       (osvi.dwMajorVersion == major && osvi.dwMinorVersion >= minor);
+            }
+        }
+    }
+    // Failback:
+    OSVERSIONINFOEXW osvi = { sizeof(osvi) };
+    if (GetVersionExW((LPOSVERSIONINFOW)&osvi)) {
+        return (osvi.dwMajorVersion > major) ||
+               (osvi.dwMajorVersion == major && osvi.dwMinorVersion >= minor);
+    }
+    return true; // Если не удалось проверить, то пусть работает, что, нам жалко что-ли?
+}
+
+static bool is_windows_version_supported() {
+    return is_windows_version_at_least(10, 0, 10240); // Первое число: Версия Windows (Например: 10), Второе число: минорная версия, Третье число: номер сборки (Например: Windows 10 Build: 10240)
+}
+
+static void get_windows_version(DWORD &major, DWORD &minor, WORD &build) {
+    major = 0; minor = 0; build = 0;
+    HMODULE hNtdll = GetModuleHandleW(L"ntdll.dll");
+    if (hNtdll) {
+        typedef LONG (WINAPI *RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
+        RtlGetVersionPtr rtl = (RtlGetVersionPtr)GetProcAddress(hNtdll, "RtlGetVersion");
+        if (rtl) {
+            RTL_OSVERSIONINFOW osvi = { sizeof(osvi) };
+            if (rtl(&osvi) == 0) {
+                major = osvi.dwMajorVersion;
+                minor = osvi.dwMinorVersion;
+                build = osvi.dwBuildNumber;
+            }
+        }
+    }
+}
+
+static void show_unsupported_windows_and_exit() {
+    DWORD major = 0, minor = 0;
+    WORD build = 0;
+    get_windows_version(major, minor, build);
+
+    wchar_t msg[512];
+    swprintf(msg, 512, // Сообщение об версии Windows
+        L"Real Engine requires Windows 10 (Build 10240) or higher.\n"
+        L"The installed version of Windows NT: NT version %lu.%lu (Build %u)\n"
+        L"Please upgrade to Windows 10 or 11 to run Real Engine.\n",
+        L"If you think this is a mistake, please let the developer know.",
+        major, minor, build);
+
+    MessageBoxW(NULL, msg, L"Unsupported Operating System", MB_OK | MB_ICONERROR | MB_SYSTEMMODAL);
+    exit(1);
+}
+#endif // CHECKED VERSION WINDOWS
+
+#ifdef LINUX_ENABLED
+#include <sys/utsname.h>
+#include <fstream>
+#include <sstream>
+#include <unordered_map>
+#include <cstdio>
+
+static String get_linux_kernel_version() {
+    struct utsname buffer;
+    if (uname(&buffer) != 0) {
+        return "unknown";
+    }
+    return String(buffer.release);
+}
+
+static bool get_linux_distro_info(String &distro_id, String &distro_version, String &pretty_name) {
+    const char* os_release_paths[] = { "/etc/os-release", "/usr/lib/os-release" };
+
+    for (const char* path : os_release_paths) {
+        std::ifstream file(path);
+        if (!file.is_open()) continue;
+
+        std::string line;
+        std::unordered_map<std::string, std::string> os_info;
+
+        while (std::getline(file, line)) {
+            if (line.empty() || line[0] == '#') continue;
+
+            size_t eq_pos = line.find('=');
+            if (eq_pos != std::string::npos) {
+                std::string key = line.substr(0, eq_pos);
+                std::string value = line.substr(eq_pos + 1);
+
+                if (!value.empty() && (value.front() == '"' || value.front() == '\'')) {
+                    value = value.substr(1, value.length() - 2);
+                }
+                os_info[key] = value;
+            }
+        }
+
+        if (os_info.find("ID") != os_info.end()) {
+            distro_id = String(os_info["ID"].c_str());
+            if (os_info.find("VERSION_ID") != os_info.end()) {
+                distro_version = String(os_info["VERSION_ID"].c_str());
+            }
+            if (os_info.find("PRETTY_NAME") != os_info.end()) {
+                pretty_name = String(os_info["PRETTY_NAME"].c_str());
+            }
+            return true;
+        }
+        file.close();
+    }
+    return false;
+}
+
+static bool is_kernel_version_at_least(int major, int minor, int patch) {
+    String kernel = get_linux_kernel_version();
+    Vector<String> parts = kernel.split(".");
+
+    if (parts.size() == 0) return false;
+
+    int ver_major = parts[0].to_int();
+    int ver_minor = (parts.size() > 1) ? parts[1].to_int() : 0;
+    int ver_patch = (parts.size() > 2) ? parts[2].to_int() : 0;
+
+    if (ver_major > major) return true;
+    if (ver_major < major) return false;
+    if (ver_minor > minor) return true;
+    if (ver_minor < minor) return false;
+    return ver_patch >= patch;
+}
+
+static bool is_linux_supported() {
+    const int MIN_KERNEL_MAJOR = 4;
+    const int MIN_KERNEL_MINOR = 0;
+    const int MIN_KERNEL_PATCH = 0;
+
+    if (!is_kernel_version_at_least(MIN_KERNEL_MAJOR, MIN_KERNEL_MINOR, MIN_KERNEL_PATCH)) {
+        print_line("[LINUX] Kernel version too old: " + get_linux_kernel_version());
+        return false;
+    }
+
+    // Опционально: можем ограничить поддержку определёнными дистрибутивами или версиями
+    String distro_id, distro_version, pretty_name;
+    if (get_linux_distro_info(distro_id, distro_version, pretty_name)) {
+        print_line("[LINUX] Detected distribution: " + distro_id + " " + distro_version);
+        print_line("[LINUX] Kernel version: " + get_linux_kernel_version());
+
+        // Пример: блокировка очень старых версий Ubuntu (ниже 18.04)
+        if (distro_id == "ubuntu") {
+            Vector<String> ver_parts = distro_version.split(".");
+            if (ver_parts.size() > 0) {
+                int ubuntu_version = ver_parts[0].to_int();
+                if (ubuntu_version < 18) {
+                    print_line("[LINUX] Ubuntu version too old: " + distro_version);
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+static void show_unsupported_linux_and_exit() {
+    String kernel = get_linux_kernel_version();
+    String distro_id, distro_version, pretty_name;
+    get_linux_distro_info(distro_id, distro_version, pretty_name);
+
+    String message;
+    message += "Real Engine requires a modern Linux distribution with:\n";
+    message += "- Linux kernel 4.0.0 or higher\n";
+    message += "- glibc 2.27 or higher\n\n";
+    message += "Your system:\n";
+    if (!pretty_name.is_empty()) message += "- Distribution: " + pretty_name + "\n";
+    message += "- Kernel version: " + kernel + "\n\n";
+    message += "Please upgrade your system to run Real Engine.";
+
+    print_line("[LINUX] " + message);
+    fprintf(stderr, "%s\n", message.utf8().get_data());
+    exit(1);
+}
+#endif // CHECKED VERSION LINUX
+
 /* Static members */
 
 // Singletons
@@ -3957,6 +4147,17 @@ static MainTimerSync main_timer_sync;
 // and should move on to `OS::run`, and EXIT_FAILURE otherwise for
 // an early exit with that error code.
 int Main::start() {
+    #ifdef WINDOWS_ENABLED
+        if (!is_windows_version_supported()) {
+            show_unsupported_windows_and_exit();
+        }
+    #endif
+    #ifdef LINUX_ENABLED
+        if (!is_linux_supported()) {
+            show_unsupported_linux_and_exit();
+        }
+    #endif
+
     #ifdef BETA_VERSION
         if (is_beta_expired()) {
             OS::get_singleton()->alert("The beta test of the Real Engine has been completed! The code main.cpp It was destroyed! Please download the new version of the Real Engine!");

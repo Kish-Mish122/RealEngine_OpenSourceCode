@@ -724,6 +724,7 @@ void EditorNode::_update_theme(bool p_skip_creation) {
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_TG), get_editor_theme_native_menu_icon(SNAME("Telegram"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_NEWS), get_editor_theme_native_menu_icon(SNAME("News"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_GITHUB), get_editor_theme_native_menu_icon(SNAME("GitHub"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
+		help_menu->set_item_icon(help_menu->get_item_index(HELP_CREATE_TICKET), get_editor_theme_native_menu_icon(SNAME("GitHubTicket"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_SUPPORT_GODOT_DEVELOPMENT), get_editor_theme_native_menu_icon(SNAME("Money"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 
 		_update_renderer_color();
@@ -1744,6 +1745,18 @@ Error EditorNode::load_scene_or_resource(const String &p_path, bool p_ignore_bro
 
 void EditorNode::edit_node(Node *p_node) {
 	push_item(p_node);
+}
+
+void EditorNode::starting_testing() {
+	#if defined(BETA_VERSION)
+    	print_line("[REAL EDITOR BETA-TESTING]: The functionality is limited!");
+    #elif defined(EARLY_RELEASE)
+    	print_line("[REAL EDITOR EARLY-RELEASE]: The functionality is limited!");
+    #elif defined(RELEASE)
+    	return;
+    #else
+    	print_line("[REAL EDITOR UNKNOW]: The version is Unknow!");
+    #endif // Если версия ** то **
 }
 
 void EditorNode::edit_resource(const Ref<Resource> &p_resource) {
@@ -3966,7 +3979,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			print_line("[REAL REPORT A BUG]: Maintain politeness and written etiquette!");
 		} break;
 		case HELP_COPY_SYSTEM_INFO: {
-		    print_line("[REAL EDITOR INFO]: System info are copied");
+		    EditorToaster::get_singleton()->popup_str("Information about the system has been copied!", EditorToaster::SEVERITY_INFO);
 			String info = _get_system_info();
 			DisplayServer::get_singleton()->clipboard_set(info);
 		} break;
@@ -3992,13 +4005,18 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 		    OS::get_singleton()->shell_open("https://vkplay.ru/play/game/real-engine/?mt_link_id=gflo54");
 		} break;
 		case HELP_TG: {
-		    OS::get_singleton()->shell_open("https://t.me/rlengine?mt_link_id=mj3ws4"); // Конечно, телеграмм заблокирован в России, так что, данная ссылка как бы безполезная...ы
+			EditorToaster::get_singleton()->popup_str("Telegram Community ID has been copied!", EditorToaster::SEVERITY_INFO);
+			String info = "t.me/rlengine";
+			DisplayServer::get_singleton()->clipboard_set(info);
 		} break;
 		case HELP_NEWS: {
 		    OS::get_singleton()->shell_open("https://community.vkplay.ru/community/game/real-engine-46163/?mt_link_id=zjyor5");
 		} break;
 		case HELP_GITHUB: {
 		    OS::get_singleton()->shell_open("https://github.com/Kish-Mish122/RealEngine_OpenSourceCode?mt_link_id=bjzjkx6");
+		} break;
+		case HELP_CREATE_TICKET: {
+		    OS::get_singleton()->shell_open("https://github.com/Kish-Mish122/Real-Engine/issues");
 		} break;
 	}
 }
@@ -4146,6 +4164,7 @@ void EditorNode::_check_system_theme_changed() {
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_TG), get_editor_theme_native_menu_icon(SNAME("Telegram"), menu_type==MENU_TYPE_GLOBAL,dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_NEWS), get_editor_theme_native_menu_icon(SNAME("News"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_GITHUB), get_editor_theme_native_menu_icon(SNAME("GitHub"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
+		help_menu->set_item_icon(help_menu->get_item_index(HELP_CREATE_TICKET), get_editor_theme_native_menu_icon(SNAME("GitHubTicket"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		help_menu->set_item_icon(help_menu->get_item_index(HELP_SUPPORT_GODOT_DEVELOPMENT), get_editor_theme_native_menu_icon(SNAME("Money"), menu_type == MENU_TYPE_GLOBAL, dark_mode));
 		editor_dock_manager->update_docks_menu();
 	}
@@ -8194,7 +8213,6 @@ void EditorNode::_build_help_menu() {
 		help_menu->set_system_menu(NativeMenu::INVALID_MENU_ID);
 	}
 	bool dark_mode = DisplayServer::get_singleton()->is_dark_mode_supported() && DisplayServer::get_singleton()->is_dark_mode();
-	help_menu->add_separator();
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/online_docs"), HELP_DOCS);
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/forum"), HELP_FORUM);
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/community"), HELP_COMMUNITY);
@@ -8202,6 +8220,7 @@ void EditorNode::_build_help_menu() {
 	help_menu->add_icon_shortcut(get_editor_theme_native_menu_icon(SNAME("ActionCopy"), menu_type == MENU_TYPE_GLOBAL, dark_mode), ED_GET_SHORTCUT("editor/copy_system_info"), HELP_COPY_SYSTEM_INFO);
 	help_menu->set_item_tooltip(-1, TTRC("Copies system information for support"));
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/report_a_bug"), HELP_REPORT_A_BUG);
+	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/create_ticket"), HELP_CREATE_TICKET);
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/suggest_a_feature"), HELP_SUGGEST_A_FEATURE);
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/send_docs_feedback"), HELP_SEND_DOCS_FEEDBACK);
 	help_menu->add_shortcut(ED_GET_SHORTCUT("editor/vk"), HELP_VK);
@@ -8994,16 +9013,36 @@ EditorNode::EditorNode() {
 	ED_SHORTCUT_AND_COMMAND("editor/community", TTRC("Community"));
 
 	ED_SHORTCUT_AND_COMMAND("editor/copy_system_info", TTRC("Copy System Info"));
-	ED_SHORTCUT_AND_COMMAND("editor/report_a_bug", TTRC("Report a Bug"));
+
+	#if defined(BETA_VERSION)
+		ED_SHORTCUT_AND_COMMAND("editor/report_a_bug", TTRC("Report a Bug"));
+	#elif defined(EARLY_RELEASE)
+		ED_SHORTCUT_AND_COMMAND("editor/report_a_bug", TTRC("Report a Bug"));
+	#endif // BETA
+
+	ED_SHORTCUT_AND_COMMAND("editor/create_ticket", TTRC("Create a Ticket"));
 	ED_SHORTCUT_AND_COMMAND("editor/suggest_a_feature", TTRC("Suggest a Feature"));
-	ED_SHORTCUT_AND_COMMAND("editor/send_docs_feedback", TTRC("Send Docs Feedback"));
-	ED_SHORTCUT_AND_COMMAND("editor/vkplay", TTRC("Open a VK Play Lib"));
+
+	#if defined(RELEASE)
+		ED_SHORTCUT_AND_COMMAND("editor/send_docs_feedback", TTRC("Send Docs Feedback"));
+	#endif // RELEASE
+
+	#if defined(RELEASE)
+		ED_SHORTCUT_AND_COMMAND("editor/vkplay", TTRC("Open a VK Play Lib"));
+	#endif // RELEASE
+
 	ED_SHORTCUT_AND_COMMAND("editor/ruscord", TTRC("Open a Ruscord Server"));
 	ED_SHORTCUT_AND_COMMAND("editor/about", TTRC("About Real Engine..."));
 	ED_SHORTCUT_AND_COMMAND("editor/tg", TTRC("Telegram"));
 	ED_SHORTCUT_AND_COMMAND("editor/news", TTRC("News"));
-	ED_SHORTCUT_AND_COMMAND("editor/github", TTRC("Open GitHub"));
-	ED_SHORTCUT_AND_COMMAND("editor/support_development", TTRC("Support Real Engine Development"));
+
+	#if defined(RELEASE)
+		ED_SHORTCUT_AND_COMMAND("editor/github", TTRC("Open GitHub"));
+	#endif // RELEASE
+
+	#if defined(RELEASE)
+		ED_SHORTCUT_AND_COMMAND("editor/support_development", TTRC("Support Real Engine Development"));
+	#endif // RELEASE
 
 	// Use the Ctrl modifier so F2 can be used to rename nodes in the scene tree dock.
 	ED_SHORTCUT_AND_COMMAND("editor/editor_2d", TTRC("Open 2D Workspace"), KeyModifierMask::CTRL | Key::F1);

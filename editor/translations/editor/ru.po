@@ -23161,3 +23161,6 @@ msgstr "Отправка с ошибкой: "
 
 msgid "Open GitHub"
 msgstr "Открыть GitHub"
+
+msgid "Create a Ticket"
+msgstr "Создать тикет"

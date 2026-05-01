@@ -229,6 +229,7 @@ public:
 		HELP_TG,
 		HELP_NEWS,
 		HELP_GITHUB,
+		HELP_CREATE_TICKET,
 
 		// Update spinner menu.
 		SPINNER_UPDATE_CONTINUOUSLY,
@@ -257,6 +258,8 @@ public:
 	};
 
 private:
+	void starting_testing();
+
     ExportItchDialog *export_itch_dialog = nullptr;
 
     void _add_system_status_bar();
