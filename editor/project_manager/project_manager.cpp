@@ -2075,7 +2075,7 @@ ProjectManager::ProjectManager() {
         // Указываем текстом, какая данная версия.
         #if defined(BETA_VERSION)
             tooltip += "|Beta-Test\n";
-            tooltip += "|TimeBomb: 20.0	5.2026";
+            tooltip += "|TimeBomb: 25.06.2026";
         #elif defined(EARLY_RELEASE)
             tooltip += "|Early Release";
         #elif defined(RELEASE)
