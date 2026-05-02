@@ -8,6 +8,7 @@
 #include "core/io/file_access.h"
 #include "scene/gui/box_container.h"
 #include "scene/gui/separator.h"
+#include "scene/gui/progress_bar.h"   // <-- добавлено
 
 ExportItchDialog::ExportItchDialog() {
     set_title(TTR("Export to itch.io"));
@@ -63,14 +64,15 @@ ExportItchDialog::ExportItchDialog() {
 
     vbox->add_child(memnew(HSeparator));
 
-    status_label = memnew(Label);
-    status_label->set_text("");
-    vbox->add_child(status_label);
-
-    // Use standard buttons
+    // Use standard OK/Cancel
     get_ok_button()->set_text(TTR("Upload"));
     get_cancel_button()->set_text(TTR("Cancel"));
     get_ok_button()->connect(SceneStringName(pressed), callable_mp(this, &ExportItchDialog::_upload));
+
+    progress_dialog = nullptr;
+    result_dialog = nullptr;
+    upload_thread = nullptr;
+    upload_finished = false;
 }
 
 void ExportItchDialog::show_dialog() {
@@ -81,25 +83,51 @@ void ExportItchDialog::show_dialog() {
     channel_edit->set_text(es->get_setting("export/itch/channel"));
     export_path_edit->set_text(es->get_setting("export/itch/export_path"));
 
-    status_label->set_text("");
     popup_centered();
-}
-
-void ExportItchDialog::_update_status(const String &p_text, bool p_error) {
-    status_label->set_text(p_text);
-    Color color = p_error ? Color(1, 0.5, 0.5) : Color(1, 1, 1);
-    status_label->add_theme_color_override("font_color", color);
 }
 
 void ExportItchDialog::_browse_export_folder() {
     EditorFileDialog *fd = memnew(EditorFileDialog);
     fd->set_file_mode(EditorFileDialog::FILE_MODE_OPEN_DIR);
     fd->connect("dir_selected", callable_mp(this, &ExportItchDialog::_on_export_folder_selected));
+    add_child(fd);
     fd->popup_centered();
 }
 
 void ExportItchDialog::_on_export_folder_selected(const String &p_path) {
     export_path_edit->set_text(p_path);
+}
+
+// Статическая функция-обёртка для потока
+void ExportItchDialog::_upload_thread_func(void *p_userdata) {
+    ExportItchDialog *self = (ExportItchDialog *)p_userdata;
+    self->_upload_async();
+}
+
+void ExportItchDialog::_upload_async() {
+    // Копируем значения, так как виджеты нельзя трогать из потока
+    String butler = butler_path_edit->get_text().strip_edges();
+    String username = username_edit->get_text().strip_edges();
+    String game = game_name_edit->get_text().strip_edges();
+    String channel = channel_edit->get_text().strip_edges();
+    String export_path = export_path_edit->get_text().strip_edges();
+    String target = username + "/" + game + ":" + channel;
+
+    List<String> args;
+    args.push_back("push");
+    args.push_back(export_path);
+    args.push_back(target);
+
+    String output;
+    int exit_code = 0;
+    OS::get_singleton()->execute(butler, args, &output, &exit_code, true);
+
+    upload_output = output;
+    upload_exit_code = exit_code;
+    upload_finished = true;
+
+    // Передаём управление обратно в главный поток
+    callable_mp(this, &ExportItchDialog::_upload_finished).call_deferred();
 }
 
 void ExportItchDialog::_upload() {
@@ -113,13 +141,13 @@ void ExportItchDialog::_upload() {
 
     String butler = butler_path_edit->get_text().strip_edges();
     if (butler.is_empty()) {
-        _update_status(TTR("Butler path is empty."), true);
+        OS::get_singleton()->alert(TTR("Butler path is empty."), TTR("Export Error"));
         print_line("[REAL ITCH]: Butler path is empty");
         return;
     }
     if (!FileAccess::exists(butler)) {
-        _update_status(TTR("Butler executable not found."), true);
-        print_line("[REAL ITCH]: Butler executable not found");
+        OS::get_singleton()->alert(TTR("Butler executable not found."), TTR("Export Error"));
+        print_line("[REAL ITCH]: Butler.exe not found!");
         return;
     }
 
@@ -127,55 +155,106 @@ void ExportItchDialog::_upload() {
     String game = game_name_edit->get_text().strip_edges();
     String channel = channel_edit->get_text().strip_edges();
     if (username.is_empty() || game.is_empty()) {
-        _update_status(TTR("Username or game name is empty."), true);
-        print_line("[REAL ITCH]: Username or game name is empty");
+        OS::get_singleton()->alert(TTR("Username or game name is empty."), TTR("Export Error"));
+        print_line("[REAL ITCH]: Username or game name is empty!");
         return;
     }
 
     String export_path = export_path_edit->get_text().strip_edges();
     if (export_path.is_empty()) {
-        _update_status(TTR("Export folder not specified."), true);
-        print_line("[REAL ITCH]: Export folder not specified");
+        OS::get_singleton()->alert(TTR("Export folder not specified."), TTR("Export Error"));
+        print_line("[REAL ITCH]: Export folder not specified!");
         return;
     }
     if (!DirAccess::exists(export_path)) {
-        _update_status(TTR("Export folder does not exist."), true);
-        print_line("[REAL ITCH]: Export folder does not exist");
+        OS::get_singleton()->alert(TTR("Export folder does not exist."), TTR("Export Error"));
+        print_line("[REAL ITCH]: Export folder does not exist!");
         return;
     }
 
-    String target = username + "/" + game + ":" + channel;
-    List<String> args;
-    args.push_back("push");
-    args.push_back(export_path);
-    args.push_back(target);
+    // Закрываем окно ввода
+    hide();
 
-    _update_status(TTR("Uploading... Please wait..."));
+    // Создаём окно прогресса (без кнопок)
+    progress_dialog = memnew(AcceptDialog);
+    add_child(progress_dialog);
+    progress_dialog->set_title(TTR("Export Progress"));
+    progress_dialog->set_min_size(Size2(350, 120));
+    progress_dialog->get_ok_button()->hide();
 
-    String output;
-    int exit_code = 0;
-    Error err = OS::get_singleton()->execute(butler, args, &output, &exit_code, true);
-    print_line("[REAL ITCH]: Exit code: " + itos(exit_code) + ", output: " + output);
+    VBoxContainer *vb = memnew(VBoxContainer);
+    progress_dialog->add_child(vb);
+    Label *info_label = memnew(Label);
+    info_label->set_text(TTR("Uploading, please wait..."));
+    vb->add_child(info_label);
+    ProgressBar *pb = memnew(ProgressBar);
+    pb->set_indeterminate(true);
+    vb->add_child(pb);
 
-    if (err == OK && exit_code == 0) {
-        _update_status(TTR("Upload successful!"));
-        print_line("[REAL ITCH]: Upload successful!");
-        hide();
+    progress_dialog->popup_centered();
+
+    // Запускаем поток
+    upload_finished = false;
+    upload_thread = memnew(Thread);
+    upload_thread->start(_upload_thread_func, this);
+}
+
+void ExportItchDialog::_upload_finished() {
+    if (progress_dialog) {
+        progress_dialog->hide();
+        progress_dialog->queue_free();
+        progress_dialog = nullptr;
+    }
+
+    String message;
+    if (upload_exit_code == 0) {
+        message = TTR("Upload successful! The game is now on itch.io.");
+        result_dialog = memnew(AcceptDialog);
+        add_child(result_dialog);
+        result_dialog->set_title(TTR("Upload Successful"));
+        result_dialog->get_ok_button()->set_text(TTR("OK"));
+        print_line("[REAL ITCH]: Upload successful! The game now on itch.io!");
     } else {
-        _update_status(TTR("Upload failed: ") + output, true);
-        print_line("[REAL ITCH]: Upload is Failed! Output: " + output, true);
+        message = TTR("Upload failed!");
+        result_dialog = memnew(AcceptDialog);
+        add_child(result_dialog);
+        result_dialog->set_title(TTR("Upload Failed"));
+        result_dialog->get_ok_button()->set_text(TTR("OK"));
+        print_line("[REAL ITCH]: Upload failed! Error details: " + upload_output);
+    }
+
+    VBoxContainer *vb = memnew(VBoxContainer);
+    result_dialog->add_child(vb);
+    Label *msg_label = memnew(Label);
+    msg_label->set_text(message);
+    msg_label->set_autowrap_mode(TextServer::AUTOWRAP_WORD);
+    vb->add_child(msg_label);
+
+    result_dialog->connect(SceneStringName(confirmed), callable_mp(this, &ExportItchDialog::_on_result_closed));
+    result_dialog->popup_centered();
+
+    if (upload_thread) {
+        upload_thread->wait_to_finish();
+        memdelete(upload_thread);
+        upload_thread = nullptr;
+    }
+    upload_finished = false;
+}
+
+void ExportItchDialog::_on_result_closed() {
+    if (result_dialog) {
+        result_dialog->queue_free();
+        result_dialog = nullptr;
     }
 }
 
 void ExportItchDialog::_notification(int p_what) {
+    // не используется
 }
 
 void ExportItchDialog::_bind_methods() {
     ClassDB::bind_method(D_METHOD("_upload"), &ExportItchDialog::_upload);
     ClassDB::bind_method(D_METHOD("_browse_export_folder"), &ExportItchDialog::_browse_export_folder);
     ClassDB::bind_method(D_METHOD("_on_export_folder_selected", "path"), &ExportItchDialog::_on_export_folder_selected);
+    ClassDB::bind_method(D_METHOD("_on_result_closed"), &ExportItchDialog::_on_result_closed);
 }
-
-/* Зачем столько логов?
-При попытке экспорта может крашнуться Real Engine, логи помогают найти в чём была ошибка
-*/

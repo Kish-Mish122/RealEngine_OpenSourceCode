@@ -5,6 +5,7 @@
 #include "scene/gui/line_edit.h"
 #include "scene/gui/button.h"
 #include "scene/gui/label.h"
+#include "core/os/thread.h"
 
 class ExportItchDialog : public ConfirmationDialog {
     GDCLASS(ExportItchDialog, ConfirmationDialog);
@@ -15,12 +16,22 @@ private:
     LineEdit *game_name_edit;
     LineEdit *channel_edit;
     LineEdit *export_path_edit;
-    Label *status_label;
+
+    AcceptDialog *progress_dialog;
+    AcceptDialog *result_dialog;
+
+    Thread *upload_thread;
+    String upload_output;
+    int upload_exit_code;
+    volatile bool upload_finished;
 
     void _upload();
-    void _update_status(const String &p_text, bool p_error = false);
     void _browse_export_folder();
     void _on_export_folder_selected(const String &p_path);
+    static void _upload_thread_func(void *p_userdata);
+    void _upload_async();
+    void _upload_finished();
+    void _on_result_closed();
 
 protected:
     void _notification(int p_what);
